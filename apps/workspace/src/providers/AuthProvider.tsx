@@ -1,0 +1,399 @@
+'use client' // if using App Router
+
+import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, ReactNode } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import { installWorkspaceApiUnauthorizedHandler } from '@/src/lib/install_workspace_api_unauthorized_handler'
+import { IdleSessionWarningModal } from '@/src/components/ui/IdleSessionWarningModal'
+import { useIdleLogout } from '@/src/hooks/useIdleLogout'
+import { useRemoteSessionInvalidation } from '@/src/hooks/useRemoteSessionInvalidation'
+import { getWorkspaceIdleLogoutDurations } from '@/src/utils/workspace_idle_logout'
+import { useRouter, usePathname } from 'next/navigation'
+import type { AuthChangeEvent, Session, User as SupabaseUser } from '@supabase/supabase-js'
+import {
+  workspaceAdminIncompleteOnboarding,
+  serviceProviderIncompleteOnboarding,
+  isAllowedPathDuringWorkspaceOnboarding,
+  workspaceOnboardingRegisterUrl,
+  workspaceOnboardingInviteWorkspaceId,
+} from '@/lib/auth_onboarding'
+import { logAuthActivityFromSession, logAuthActivityLoginDeduped, signOutWithAuthLog } from '@/src/lib/auth_activity_log_client'
+import { is_public_embed_booking_path } from '@/lib/public_embed_route'
+
+type User = any
+
+interface AuthContextType {
+  user: User | null
+  loading: boolean
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+})
+
+export const useAuth = () => useContext(AuthContext)
+
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/callback", "/invite-accept", "/my-bookings"];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_ROUTES.includes(pathname) || is_public_embed_booking_path(pathname) || pathname.startsWith('/booking-preview/');
+}
+
+// Allowed roles for workspace app
+const ALLOWED_ROLES = ['workspace_admin', 'customer', 'manager', 'service_provider', 'staff'];
+
+const ONBOARDING_AUTH_CHECK_TIMEOUT_MS = 30_000;
+/** Cap entire syncAuthFromSession so LayoutWrapper never spins forever on stuck getUser / network. */
+const AUTH_SYNC_TIMEOUT_MS = 30_000;
+
+const AUTH_RETRY_MAX_ATTEMPTS = 3
+const AUTH_RETRY_INITIAL_DELAY_MS = 1_000
+/** Avoid hanging forever on signOut (blocks `finally` → Layout stays on "Loading…"). */
+const SIGN_OUT_LOCAL_MAX_MS = 8_000
+
+class AuthSyncTimeoutError extends Error {
+  constructor() {
+    super('AUTH_SYNC_TIMEOUT')
+    this.name = 'AuthSyncTimeoutError'
+  }
+}
+
+class OnboardingCheckTimeoutError extends Error {
+  constructor() {
+    super('ONBOARDING_CHECK_TIMEOUT')
+    this.name = 'OnboardingCheckTimeoutError'
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
+
+async function signOutLocalBounded(logout_reason?: string): Promise<void> {
+  if (logout_reason) {
+    await logAuthActivityFromSession('logout', { reason: logout_reason })
+  }
+  try {
+    await Promise.race([
+      supabase.auth.signOut({ scope: 'local' }),
+      sleep(SIGN_OUT_LOCAL_MAX_MS).then(() => {
+        /* timeout — unblock caller; storage may still clear */
+      }),
+    ])
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Races `promise` against a timer; clears the timer when `promise` settles first
+ * so a late timer reject does not become an unhandled rejection.
+ */
+async function withTimeout<T>(promise: Promise<T>, ms: number, onTimeout: () => Error): Promise<T> {
+  // Browser timers use numeric handles; Node typings may use `Timeout` — normalize for `clearTimeout`.
+  let timeoutId: number | undefined
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(onTimeout()), ms) as unknown as number
+  })
+  try {
+    return await Promise.race([promise, timeoutPromise])
+  } finally {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId)
+    }
+  }
+}
+
+async function workspaceAdminIncompleteOnboardingWithTimeout(
+  supabaseClient: Parameters<typeof workspaceAdminIncompleteOnboarding>[0],
+  user: SupabaseUser
+): Promise<boolean> {
+  return withTimeout(
+    workspaceAdminIncompleteOnboarding(supabaseClient, user),
+    ONBOARDING_AUTH_CHECK_TIMEOUT_MS,
+    () => new OnboardingCheckTimeoutError()
+  )
+}
+
+async function workspaceAdminIncompleteOnboardingWithRetry(
+  supabaseClient: Parameters<typeof workspaceAdminIncompleteOnboarding>[0],
+  user: SupabaseUser
+): Promise<boolean> {
+  let delay = AUTH_RETRY_INITIAL_DELAY_MS
+  for (let i = 0; i < AUTH_RETRY_MAX_ATTEMPTS; i++) {
+    try {
+      return await workspaceAdminIncompleteOnboardingWithTimeout(supabaseClient, user)
+    } catch (e) {
+      if (e instanceof OnboardingCheckTimeoutError && i < AUTH_RETRY_MAX_ATTEMPTS - 1) {
+        console.warn(`Onboarding check timed out, retrying in ${delay}ms...`)
+        await sleep(delay)
+        delay *= 2
+      } else {
+        throw e
+      }
+    }
+  }
+  throw new Error('workspaceAdminIncompleteOnboardingWithRetry: exhausted retries')
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const router_ref = useRef(router)
+  router_ref.current = router
+  const pathname = usePathname()
+  const pathname_ref = useRef(pathname)
+  pathname_ref.current = pathname
+  const idleDurations = useMemo(() => getWorkspaceIdleLogoutDurations(), [])
+
+  const handleIdleLogout = useCallback(async () => {
+    try {
+      await signOutWithAuthLog('idle')
+    } catch (err) {
+      console.error(err)
+    }
+    router.push('/login?reason=idle')
+  }, [router])
+
+  const { showWarning, secondsRemaining, staySignedIn } = useIdleLogout(
+    Boolean(user) && !loading,
+    idleDurations.idleMs,
+    idleDurations.warningMs,
+    handleIdleLogout
+  )
+
+  useRemoteSessionInvalidation(Boolean(user) && !loading, pathname)
+
+  useEffect(() => {
+    installWorkspaceApiUnauthorizedHandler()
+  }, [])
+
+  useEffect(() => {
+    const clearInvalidSession = async () => {
+      await signOutLocalBounded('session_invalid')
+      setUser(null)
+      if (!isPublicPath(pathname_ref.current)) {
+        router_ref.current.push('/login?reason=session_invalid')
+      }
+    }
+
+    const syncAuthFromSessionInner = async (
+      session: Session | null,
+      authEvent?: AuthChangeEvent
+    ) => {
+      if (!session?.user) {
+        setUser(null)
+        if (!isPublicPath(pathname_ref.current)) {
+          router_ref.current.push('/login')
+        }
+        return
+      }
+
+      const isAuthCallback = pathname_ref.current === '/auth/callback'
+
+      // OAuth callback sets the session client-side; Supabase /auth/v1/user can briefly return 403
+      // while the access token propagates. Verifying here would sign the user out (clearInvalidSession)
+      // without redirect on this public route — leaving /auth/callback stuck on "Finishing sign-in…".
+      //
+      // USER_UPDATED / TOKEN_REFRESHED: do not call getUser() here. updateUser() and refresh hold the
+      // GoTrueClient mutex until _notifyAllSubscribers finishes; getUser() also acquires that lock
+      // → deadlock. The event session already carries the server-updated user (e.g. onboarding metadata).
+      const skipVerifyGetUser =
+        authEvent === 'USER_UPDATED' || authEvent === 'TOKEN_REFRESHED'
+
+      let currentUser: SupabaseUser
+      if (isAuthCallback) {
+        currentUser = session.user as SupabaseUser
+      } else if (skipVerifyGetUser) {
+        currentUser = session.user as SupabaseUser
+      } else {
+        const { data: verified, error: verifyErr } = await supabase.auth.getUser()
+        if (verifyErr || !verified.user) {
+          console.error(verifyErr ?? new Error('getUser returned no user'))
+          await clearInvalidSession()
+          return
+        }
+        currentUser = verified.user
+      }
+
+      const userRole = currentUser.user_metadata?.role
+      const isDeactivated = currentUser.user_metadata?.deactivated === true
+
+      if (isDeactivated) {
+        await signOutWithAuthLog('deactivated')
+        setUser(null)
+        if (!isPublicPath(pathname_ref.current)) {
+          router_ref.current.push('/login')
+        }
+        return
+      }
+
+      if (!isAuthCallback && (!userRole || !ALLOWED_ROLES.includes(userRole))) {
+        await signOutWithAuthLog('invalid_role')
+        setUser(null)
+        if (!isPublicPath(pathname_ref.current)) {
+          router_ref.current.push('/login')
+        }
+        return
+      }
+
+      if (
+        userRole === 'customer' &&
+        !pathname_ref.current.startsWith('/my-bookings') &&
+        !isPublicPath(pathname_ref.current)
+      ) {
+        router_ref.current.push('/my-bookings')
+        setUser(currentUser)
+        return
+      }
+
+      if (
+        userRole === 'workspace_admin' &&
+        !isPublicPath(pathname_ref.current) &&
+        !isAllowedPathDuringWorkspaceOnboarding(pathname_ref.current)
+      ) {
+        let incomplete: boolean
+        try {
+          incomplete = await workspaceAdminIncompleteOnboardingWithRetry(
+            supabase,
+            currentUser as SupabaseUser
+          )
+        } catch (e) {
+          console.error(e)
+          await clearInvalidSession()
+          return
+        }
+        if (incomplete) {
+          const meta = currentUser.user_metadata as Record<string, unknown> | undefined
+          router_ref.current.push(workspaceOnboardingRegisterUrl(meta ?? {}))
+          setUser(currentUser)
+          return
+        }
+      }
+
+      if (
+        userRole === 'service_provider' &&
+        !isPublicPath(pathname_ref.current) &&
+        !isAllowedPathDuringWorkspaceOnboarding(pathname_ref.current)
+      ) {
+        if (serviceProviderIncompleteOnboarding(currentUser as SupabaseUser)) {
+          const meta = currentUser.user_metadata as Record<string, unknown> | undefined
+          router_ref.current.push(
+            workspaceOnboardingRegisterUrl(meta ?? {}, {
+              inviteWorkspaceId: workspaceOnboardingInviteWorkspaceId(meta),
+            })
+          )
+          setUser(currentUser)
+          return
+        }
+      }
+
+      setUser(currentUser)
+    }
+
+    const syncAuthFromSessionWithTimeout = (session: Session | null, authEvent?: AuthChangeEvent) =>
+      withTimeout(syncAuthFromSessionInner(session, authEvent), AUTH_SYNC_TIMEOUT_MS, () => new AuthSyncTimeoutError())
+
+    const syncAuthFromSessionWithRetry = async (
+      session: Session | null,
+      authEvent?: AuthChangeEvent
+    ): Promise<void> => {
+      let delay = AUTH_RETRY_INITIAL_DELAY_MS
+      for (let i = 0; i < AUTH_RETRY_MAX_ATTEMPTS; i++) {
+        try {
+          await syncAuthFromSessionWithTimeout(session, authEvent)
+          return
+        } catch (err) {
+          if (err instanceof AuthSyncTimeoutError && i < AUTH_RETRY_MAX_ATTEMPTS - 1) {
+            console.warn(`Auth sync timed out, retrying in ${delay}ms...`)
+            await sleep(delay)
+            delay *= 2
+          } else {
+            throw err
+          }
+        }
+      }
+    }
+
+    const handleAuthSyncFailure = async (err: unknown) => {
+      console.error(err)
+      if (err instanceof AuthSyncTimeoutError) {
+        await signOutLocalBounded('auth_timeout')
+        setUser(null)
+        if (!isPublicPath(pathname_ref.current)) {
+          router_ref.current.push('/login?reason=auth_timeout')
+        }
+        return
+      }
+      setUser(null)
+      if (!isPublicPath(pathname_ref.current)) {
+        router_ref.current.push('/login')
+      }
+    }
+
+    const runInitial = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error(error)
+          setUser(null)
+          if (!isPublicPath(pathname_ref.current)) {
+            router_ref.current.push('/login')
+          }
+          return
+        }
+        await syncAuthFromSessionWithRetry(data.session ?? null)
+      } catch (err) {
+        void handleAuthSyncFailure(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void runInitial()
+
+    // Stable subscription: pathname/router via refs; effect deps [] so navigation or router identity
+    // changes do not re-subscribe (avoids duplicate SIGNED_IN / duplicate login audit rows).
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Defer so we never call getUser/getSession while inside the auth notifier (avoids deadlocks).
+      window.setTimeout(() => {
+        void (async () => {
+          try {
+            await syncAuthFromSessionWithRetry(session, event)
+            if (event === 'SIGNED_IN' && session?.access_token && session.user?.id) {
+              await logAuthActivityLoginDeduped(session.access_token, session.user.id, event)
+            }
+          } catch (err) {
+            void handleAuthSyncFailure(err)
+          } finally {
+            setLoading(false)
+          }
+        })()
+      }, 0)
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- single auth subscription; router/pathname via refs
+  }, [])
+
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      <IdleSessionWarningModal
+        open={showWarning}
+        secondsRemaining={secondsRemaining}
+        onStaySignedIn={staySignedIn}
+      />
+      {children}
+    </AuthContext.Provider>
+  )
+}
+

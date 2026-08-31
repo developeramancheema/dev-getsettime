@@ -1,0 +1,247 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseServerClient } from '@app/db';
+import { appendActivityLog } from '@/lib/activity-log';
+import {
+  admin_whatsapp_phones_for_booking,
+  notification_provider_name,
+  resolve_provider_notification_contact,
+} from '@/lib/booking_service_provider_phone';
+import { post_booking_whatsapp_notification } from '@/lib/post_booking_whatsapp_notification';
+import { readBookingTimezonesFromRow, whatsapp_timezone_payload } from '@/lib/booking-timezone-api';
+import {
+  is_whatsapp_admin_enabled,
+  type workspace_notifications_settings,
+} from '@/lib/workspace-notification-flags';
+import { load_customer_booking_rules_for_workspace } from '@/lib/customer-booking-rules';
+
+const NON_CANCELLABLE_STATUSES = ['cancelled', 'completed'];
+
+export async function POST(
+  _req: NextRequest,
+  { params }: { params: Promise<{ code: string }> }
+) {
+  try {
+    const { code } = await params;
+
+    if (!code || typeof code !== 'string') {
+      return NextResponse.json({ error: 'Invalid code' }, { status: 400 });
+    }
+
+    const supabase = createSupabaseServerClient();
+
+    const { data: booking, error: fetchError } = await supabase
+      .from('bookings')
+      .select('id, workspace_id, status, invitee_name, invitee_email, invitee_phone, start_at, end_at, event_type_id, service_provider_id, service_provider_name, department_id, metadata, customer_timezone, provider_timezone')
+      .eq('public_code', code)
+      .single();
+
+    if (fetchError || !booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+
+    if (NON_CANCELLABLE_STATUSES.includes(booking.status?.toLowerCase() ?? '')) {
+      return NextResponse.json(
+        { error: `Booking is already ${booking.status}` },
+        { status: 400 }
+      );
+    }
+
+    const customer_rules = await load_customer_booking_rules_for_workspace(
+      supabase,
+      booking.workspace_id
+    );
+    if (!customer_rules.allow_customer_cancellation) {
+      return NextResponse.json(
+        { error: 'Customer cancellation is not allowed for this workspace.' },
+        { status: 403 }
+      );
+    }
+
+    const { error: updateError } = await supabase
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', booking.id);
+
+    if (updateError) {
+      console.error('Error cancelling booking:', updateError);
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    await appendActivityLog(booking.workspace_id, {
+      type: 'booking',
+      action: 'updated',
+      title: 'Booking cancelled',
+      description: `${booking.invitee_name || 'Someone'} cancelled their booking`,
+    });
+
+    // Resolve notification context (best-effort)
+    let providerEmail: string | undefined;
+    let providerName: string | undefined = notification_provider_name(booking);
+    let departmentName: string | undefined;
+    let eventTypeName = 'Appointment';
+    let durationMinutes = 30;
+    let arriveEarlyMin = 10;
+    let arriveEarlyMax = 15;
+
+    try {
+      if (booking.event_type_id) {
+        const { data: et } = await supabase
+          .from('event_types')
+          .select('title, duration_minutes, buffer_before, buffer_after')
+          .eq('id', booking.event_type_id)
+          .single();
+        if (et) {
+          eventTypeName = et.title || eventTypeName;
+          durationMinutes = et.duration_minutes || durationMinutes;
+          arriveEarlyMin = Number(et.buffer_before ?? arriveEarlyMin);
+          arriveEarlyMax = Number(et.buffer_after ?? arriveEarlyMax);
+        }
+      }
+    } catch { /* non-blocking */ }
+
+    try {
+      if (booking.department_id) {
+        const { data: dept } = await supabase
+          .from('departments')
+          .select('name')
+          .eq('id', booking.department_id)
+          .single();
+        departmentName = dept?.name || undefined;
+      }
+    } catch { /* non-blocking */ }
+
+    try {
+      const resolved = await resolve_provider_notification_contact(
+        supabase,
+        supabase,
+        String(booking.workspace_id),
+        booking.service_provider_id || null
+      );
+      providerEmail = resolved.email;
+      providerName = notification_provider_name(booking, resolved);
+    } catch { /* non-blocking */ }
+
+    // Send cancellation emails
+    try {
+      const inviteeEmailTrimmed = booking.invitee_email?.trim();
+      if (inviteeEmailTrimmed || providerEmail?.trim()) {
+        const { sendBookingCancellationEmails } = await import('@/lib/email-service');
+        await sendBookingCancellationEmails({
+          inviteeName: booking.invitee_name || 'Invitee',
+          ...(inviteeEmailTrimmed ? { inviteeEmail: inviteeEmailTrimmed } : {}),
+          ...(providerName?.trim() ? { providerName: providerName.trim() } : {}),
+          providerEmail,
+          eventTypeName,
+          ...(departmentName?.trim() ? { departmentName: departmentName.trim() } : {}),
+          startTime: booking.start_at || '',
+          endTime: booking.end_at || booking.start_at || '',
+          duration: durationMinutes,
+        });
+      }
+    } catch (emailErr) {
+      console.error('Error sending cancellation emails:', emailErr);
+    }
+
+    // Send WhatsApp notification (best-effort)
+    try {
+      const { data: configData } = await supabase
+        .from('configurations')
+        .select('settings')
+        .eq('workspace_id', booking.workspace_id)
+        .single();
+
+      const notifications_settings =
+        configData?.settings?.notifications as
+          | workspace_notifications_settings
+          | undefined;
+      const whatsapp_admin = is_whatsapp_admin_enabled(notifications_settings);
+
+      let workspaceSlug = '';
+      try {
+        const { data: ws } = await supabase
+          .from('workspaces')
+          .select('slug')
+          .eq('id', booking.workspace_id)
+          .single();
+        workspaceSlug = ws?.slug || '';
+      } catch { /* non-blocking */ }
+
+      if (booking.invitee_phone && whatsapp_admin) {
+        let admin_whatsapp_phones: string[] = [];
+        try {
+          admin_whatsapp_phones = await admin_whatsapp_phones_for_booking(
+            supabase,
+            booking.id,
+            { workspace_id: String(booking.workspace_id) }
+          );
+        } catch (resolveAdminPhoneErr) {
+          console.warn(
+            'Could not resolve host phone for WhatsApp admin notification (cancel):',
+            resolveAdminPhoneErr
+          );
+        }
+
+        const origin = new URL(_req.url).origin;
+        const message = `Booking cancelled - Event: ${eventTypeName}, Client: ${booking.invitee_name || 'Invitee'}`;
+        const metaNotes = (booking.metadata as Record<string, unknown> | null)?.notes;
+        const noteStr =
+          metaNotes !== undefined && metaNotes !== null ? String(metaNotes) : '';
+
+        const cancelTz = readBookingTimezonesFromRow(booking);
+        await post_booking_whatsapp_notification(origin, {
+          name: booking.invitee_name || 'Invitee',
+          email: booking.invitee_email || null,
+          phone: String(booking.invitee_phone).trim(),
+          message,
+          service: eventTypeName,
+          ...(departmentName?.trim() ? { department: departmentName.trim() } : {}),
+          ...(providerName?.trim() ? { provider: providerName.trim() } : {}),
+          start: booking.start_at || '',
+          end: booking.end_at || booking.start_at || '',
+          note: noteStr,
+          arrive_early_min: arriveEarlyMin,
+          arrive_early_max: arriveEarlyMax,
+          booking_reference: workspaceSlug,
+          booking_id: booking.id ? String(booking.id) : undefined,
+          cancelled_by: booking.invitee_name,
+          send_to_user: false,
+          send_to_admin: true,
+          admin_phone: admin_whatsapp_phones,
+          skip_contact_form_email: true,
+          notification_kind: 'cancel',
+          ...whatsapp_timezone_payload(
+            cancelTz.customer_timezone,
+            cancelTz.provider_timezone
+          ),
+        });
+      }
+    } catch { /* non-blocking */ }
+
+    // Delete Google Calendar event if one exists for this booking
+    try {
+      const gcalEventId = (booking.metadata as Record<string, unknown>)?.google_calendar_event_id as string | undefined;
+      if (gcalEventId) {
+        const { deleteCalendarEvent } = await import('@/lib/google-calendar-service');
+        const calResult = await deleteCalendarEvent(
+          booking.workspace_id,
+          gcalEventId,
+          booking.service_provider_id || undefined
+        );
+        if (!calResult.success) {
+          console.warn('Google Calendar delete failed (non-blocking):', calResult.error);
+        }
+      }
+    } catch (calErr) {
+      console.warn('Google Calendar delete failed (non-blocking):', calErr);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error('Error cancelling booking:', error);
+    return NextResponse.json(
+      { error: error?.message || 'Server error' },
+      { status: 500 }
+    );
+  }
+}

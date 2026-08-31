@@ -1,0 +1,1299 @@
+import nodemailer from 'nodemailer';
+import { formatBookingLimitFeature } from '@app/db/subscription';
+import { formatNotificationDateTimeInTimezone } from '@/lib/date-timezone';
+import {
+  formatDualTimeBlock,
+  type dual_time_email_audience,
+} from '@/lib/booking-timezone-api';
+
+// Email transporter configuration
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
+};
+
+interface BookingEmailData {
+  inviteeName: string;
+  /** When omitted, only provider/admin reschedule notification is sent (if providerEmail is set). */
+  inviteeEmail?: string;
+  providerName?: string;
+  providerEmail?: string;
+  eventTypeName: string;
+  departmentName?: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  notes?: string;
+  /** IANA timezone for invitee display */
+  timezone?: string;
+  customerTimezone?: string;
+  providerTimezone?: string;
+  /** Pre-formatted dual-time block when customer and provider zones differ */
+  dualTimeBlock?: string;
+  previousStartTime?: string;
+  previousEndTime?: string;
+  meetingUrl?: string;
+  meetingLabel?: string;
+}
+
+const formatDateTime = (dateString: string, timezone?: string): string =>
+  formatNotificationDateTimeInTimezone(dateString, timezone);
+
+/** Treat legacy/placeholder labels as empty so rows are omitted in HTML emails. */
+const is_placeholder_assignment_label = (raw: string | undefined): boolean => {
+  const t = raw?.trim().toLowerCase();
+  if (!t) return true;
+  return t === 'not assigned' || t === 'assigned (details unavailable)';
+};
+
+const booking_email_department_row = (data: BookingEmailData): string => {
+  const v = data.departmentName?.trim();
+  if (!v || is_placeholder_assignment_label(data.departmentName)) return '';
+  return `
+        <div class="detail-row">
+          <span class="label">Department:</span> ${v}
+        </div>`;
+};
+
+const booking_email_provider_row = (data: BookingEmailData): string => {
+  const v = data.providerName?.trim();
+  if (!v || is_placeholder_assignment_label(data.providerName)) return '';
+  return `
+        <div class="detail-row">
+          <span class="label">Service Provider:</span> ${v}
+        </div>`;
+};
+
+const booking_email_dual_time_row = (
+  data: BookingEmailData,
+  audience: dual_time_email_audience
+): string => {
+  const block = formatDualTimeBlock(
+    data.startTime,
+    data.customerTimezone,
+    data.providerTimezone,
+    audience
+  );
+  if (!block || !block.includes('\n')) return '';
+  return `
+        <div class="detail-row">
+          <span class="label">Select Timezone(Date/Time):</span><br>${block.replace(/\n/g, '<br>')}
+        </div>`;
+};
+
+const recipient_timezone = (
+  data: BookingEmailData,
+  role: 'customer' | 'provider'
+): string | undefined => {
+  if (role === 'provider') {
+    return data.providerTimezone?.trim() || data.timezone?.trim();
+  }
+  return data.customerTimezone?.trim() || data.timezone?.trim();
+};
+
+const booking_email_meeting_row = (data: BookingEmailData): string => {
+  const url = data.meetingUrl?.trim();
+  const label =
+    data.meetingLabel?.trim() && data.meetingLabel.trim().length > 0
+      ? data.meetingLabel.trim()
+      : 'Video meeting';
+  if (!url) return '';
+  const safeUrl = url.replace(/"/g, '&quot;');
+  return `
+        <div class="detail-row">
+          <span class="label">${label}:</span> <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>
+        </div>`;
+};
+
+// Email template for the user (invitee)
+const getUserEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #4F46E5; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #4F46E5; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking Confirmed! 🎉</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>Your booking has been successfully confirmed. We're looking forward to seeing you!</p>
+      
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #4F46E5;">Booking Details</h2>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}${booking_email_provider_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'customer'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'customer'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'customer')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+        ${booking_email_meeting_row(data)}
+        ${data.notes ? `
+        <div class="detail-row">
+          <span class="label">Notes:</span> ${data.notes}
+        </div>
+        ` : ''}
+      </div>
+      
+      <p><strong>Important:</strong> Please arrive 5-10 minutes before your scheduled time.</p>
+      <p>If you need to reschedule or cancel, please contact us as soon as possible.</p>
+      
+      <div class="footer">
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+// Email template for the service provider (admin)
+const getProviderEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #059669; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #059669; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #059669; }
+    .alert { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>New Booking Alert 🗓️</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.providerName || 'Service Provider'},</p>
+      <p>You have received a new booking. Please review the details below:</p>
+      
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #059669;">Booking Details</h2>
+        <div class="detail-row">
+          <span class="label">Client Name:</span> ${data.inviteeName}
+        </div>
+        <div class="detail-row">
+          <span class="label">Client Email:</span> ${data.inviteeEmail?.trim() ? data.inviteeEmail : 'Not provided'}
+        </div>
+        <div class="detail-row">
+          <span class="label">Event Type:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'provider'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'provider'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'provider')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+        ${booking_email_meeting_row(data)}
+        ${data.notes ? `
+        <div class="detail-row">
+          <span class="label">Client Notes:</span> ${data.notes}
+        </div>
+        ` : ''}
+      </div>
+      
+      <div class="alert">
+        <strong>⚠️ Action Required:</strong> Please prepare for this appointment and ensure you're available at the scheduled time.
+      </div>
+      
+      <p>You can manage this booking from your dashboard.</p>
+      
+      <div class="footer">
+        <p>This is an automated notification from your booking system.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+// Send email to the user (invitee)
+export const sendUserBookingEmail = async (data: BookingEmailData): Promise<void> => {
+  try {
+    if (!data.inviteeEmail?.trim()) {
+      throw new Error('Invitee email is required');
+    }
+    const transporter = createTransporter();
+    
+    await transporter.sendMail({
+      from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+      to: data.inviteeEmail.trim(),
+      subject: `Booking Confirmation - ${data.eventTypeName}`,
+      html: getUserEmailTemplate(data),
+    });
+    
+    console.log('User booking email sent successfully to:', data.inviteeEmail);
+  } catch (error) {
+    console.error('Error sending user booking email:', error);
+    throw error;
+  }
+};
+
+// Send email to the service provider (admin)
+export const sendProviderBookingEmail = async (data: BookingEmailData): Promise<void> => {
+  try {
+    if (!data.providerEmail) return;
+    const transporter = createTransporter();
+    
+    await transporter.sendMail({
+      from: `"GetSetTime Bookings" <${process.env.SMTP_USER}>`,
+      to: data.providerEmail,
+      subject: `New Booking Alert - ${data.eventTypeName} with ${data.inviteeName}`,
+      html: getProviderEmailTemplate(data),
+    });
+    
+    console.log('Provider booking email sent successfully to:', data.providerEmail);
+  } catch (error) {
+    console.error('Error sending provider booking email:', error);
+    throw error;
+  }
+};
+
+// Send both emails (user and provider)
+export const sendBookingConfirmationEmails = async (data: BookingEmailData): Promise<{
+  userEmailSent: boolean;
+  providerEmailSent: boolean;
+  errors: string[];
+}> => {
+  const errors: string[] = [];
+  let userEmailSent = false;
+  let providerEmailSent = false;
+
+  // Send email to user
+  if (data.inviteeEmail) {
+    try {
+      await sendUserBookingEmail(data);
+      userEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send email to user: ${err.message}`);
+      console.error('User email error:', error);
+    }
+  } else {
+    errors.push('User email not provided');
+  }
+
+  // Send email to provider
+  if (data.providerEmail) {
+    try {
+      await sendProviderBookingEmail(data);
+      providerEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send email to provider: ${err.message}`);
+      console.error('Provider email error:', error);
+    }
+  }
+
+  return {
+    userEmailSent,
+    providerEmailSent,
+    errors,
+  };
+};
+
+// 24h reminder email template
+const getReminderEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #D97706; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #D97706; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #D97706; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Upcoming Appointment Reminder</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>This is a friendly reminder that your appointment is coming up <strong>tomorrow</strong>.</p>
+
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #D97706;">Appointment Details</h2>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}${booking_email_provider_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'customer'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'customer'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'customer')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+        ${booking_email_meeting_row(data)}
+        ${data.notes ? `
+        <div class="detail-row">
+          <span class="label">Notes:</span> ${data.notes}
+        </div>
+        ` : ''}
+      </div>
+
+      <p><strong>Please arrive 5-10 minutes before your scheduled time.</strong></p>
+      <p>If you need to reschedule or cancel, please contact us as soon as possible.</p>
+
+      <div class="footer">
+        <p>This is an automated reminder. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+// Post-meeting follow-up email template
+const getFollowUpEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #059669; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #059669; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #059669; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Thank You for Your Visit!</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>Thank you for attending your recent appointment. We hope everything went well!</p>
+
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #059669;">Appointment Summary</h2>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>
+        <div class="detail-row">
+          <span class="label">Date:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'customer'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'customer')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+      </div>
+
+      <p>If you have any questions or need a follow-up appointment, please don't hesitate to reach out.</p>
+      <p>We look forward to seeing you again!</p>
+
+      <div class="footer">
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+export const sendReminderEmail = async (data: BookingEmailData): Promise<void> => {
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+    to: data.inviteeEmail,
+    subject: `Reminder: ${data.eventTypeName} - Tomorrow`,
+    html: getReminderEmailTemplate(data),
+  });
+  console.log('Reminder email sent to:', data.inviteeEmail);
+};
+
+export const sendFollowUpEmail = async (data: BookingEmailData): Promise<void> => {
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+    to: data.inviteeEmail,
+    subject: `Thank You - ${data.eventTypeName}`,
+    html: getFollowUpEmailTemplate(data),
+  });
+  console.log('Follow-up email sent to:', data.inviteeEmail);
+};
+
+const meet_link_cta_block = (data: BookingEmailData): string => {
+  const url = data.meetingUrl?.trim();
+  if (!url) return '';
+  const safeUrl = url.replace(/"/g, '&quot;');
+  return `
+        <div style="margin: 24px 0; text-align: center;">
+          <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; font-weight: bold; padding: 14px 28px; border-radius: 8px;">
+            Join GetSetTime Meet
+          </a>
+        </div>
+        <div class="detail-row" style="word-break: break-all;">
+          <span class="label">Meeting link:</span> <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>
+        </div>`;
+};
+
+const getCustomerMeetLinkEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #4f46e5; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #4f46e5; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Your GetSetTime Meet Link</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>Your video meeting link for <strong>${data.eventTypeName}</strong> is ready. Use the button below to join at your scheduled time.</p>
+
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #4f46e5;">Meeting Details</h2>
+        ${meet_link_cta_block(data)}
+      </div>
+
+      <p>Please join a few minutes early and ensure your camera and microphone are working.</p>
+
+      <div class="footer">
+        <p>This is an automated message from GetSetTime. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+const getProviderMeetLinkEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #4f46e5; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #4f46e5; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>GetSetTime Meet Link Ready</h1>
+    </div>
+    <div class="content">
+      <p>Hello,</p>
+      <p>The GetSetTime Meet link for <strong>${data.eventTypeName}</strong> with <strong>${data.inviteeName}</strong> is now available.</p>
+
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #4f46e5;">Meeting Details</h2>
+        ${meet_link_cta_block(data)}
+      </div>
+
+      <div class="footer">
+        <p>This is an automated notification from GetSetTime.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+export const sendCustomerMeetLinkEmail = async (data: BookingEmailData): Promise<void> => {
+  if (!data.inviteeEmail?.trim()) {
+    throw new Error('Invitee email is required');
+  }
+  if (!data.meetingUrl?.trim()) {
+    throw new Error('Meeting URL is required');
+  }
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"GetSetTime Meet" <${process.env.SMTP_USER}>`,
+    to: data.inviteeEmail.trim(),
+    subject: `Your GetSetTime Meet link - ${data.eventTypeName}`,
+    html: getCustomerMeetLinkEmailTemplate(data),
+  });
+  console.log('GetSetTime Meet email sent to customer:', data.inviteeEmail);
+};
+
+export const sendProviderMeetLinkEmail = async (data: BookingEmailData): Promise<void> => {
+  if (!data.providerEmail?.trim()) return;
+  if (!data.meetingUrl?.trim()) {
+    throw new Error('Meeting URL is required');
+  }
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"GetSetTime Meet" <${process.env.SMTP_USER}>`,
+    to: data.providerEmail.trim(),
+    subject: `GetSetTime Meet link ready - ${data.eventTypeName} with ${data.inviteeName}`,
+    html: getProviderMeetLinkEmailTemplate(data),
+  });
+  console.log('GetSetTime Meet email sent to provider:', data.providerEmail);
+};
+
+export const sendMeetLinkEmails = async (
+  data: BookingEmailData
+): Promise<{
+  userEmailSent: boolean;
+  providerEmailSent: boolean;
+  errors: string[];
+}> => {
+  const errors: string[] = [];
+  let userEmailSent = false;
+  let providerEmailSent = false;
+
+  if (data.inviteeEmail?.trim()) {
+    try {
+      await sendCustomerMeetLinkEmail(data);
+      userEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send GetSetTime Meet email to customer: ${err.message}`);
+      console.error('Customer meet link email error:', error);
+    }
+  } else {
+    errors.push('Customer email not provided for GetSetTime Meet notification');
+  }
+
+  if (data.providerEmail?.trim()) {
+    try {
+      await sendProviderMeetLinkEmail(data);
+      providerEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send GetSetTime Meet email to provider: ${err.message}`);
+      console.error('Provider meet link email error:', error);
+    }
+  }
+
+  return { userEmailSent, providerEmailSent, errors };
+};
+
+// --- Reschedule email templates ---
+
+const getUserRescheduleEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #D97706; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #D97706; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #D97706; }
+    .old-time { text-decoration: line-through; color: #999; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking Rescheduled</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>Your booking has been rescheduled. Please review the updated details below:</p>
+      
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #D97706;">Updated Booking Details</h2>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}${booking_email_provider_row(data)}
+        ${data.previousStartTime ? `
+        <div class="detail-row">
+          <span class="label">Previous Time:</span> <span class="old-time">${formatDateTime(data.previousStartTime, recipient_timezone(data, 'customer'))}</span>
+        </div>
+        ` : ''}
+        <div class="detail-row">
+          <span class="label">New Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'customer'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">New End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'customer'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'customer')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+        ${booking_email_meeting_row(data)}
+      </div>
+      
+      <p><strong>Important:</strong> Please arrive 5-10 minutes before your new scheduled time.</p>
+      
+      <div class="footer">
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+const getProviderRescheduleEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #D97706; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #D97706; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #D97706; }
+    .old-time { text-decoration: line-through; color: #999; }
+    .alert { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking Rescheduled</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.providerName || 'Service Provider'},</p>
+      <p>This booking's date or time has been updated. Please review the details below:</p>
+      
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #D97706;">Updated Booking Details</h2>
+        <div class="detail-row">
+          <span class="label">Client Name:</span> ${data.inviteeName}
+        </div>
+        <div class="detail-row">
+          <span class="label">Client Email:</span> ${data.inviteeEmail?.trim() ? data.inviteeEmail : 'Not provided'}
+        </div>
+        <div class="detail-row">
+          <span class="label">Event Type:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}
+        ${data.previousStartTime ? `
+        <div class="detail-row">
+          <span class="label">Previous Time:</span> <span class="old-time">${formatDateTime(data.previousStartTime, recipient_timezone(data, 'provider'))}</span>
+        </div>
+        ` : ''}
+        <div class="detail-row">
+          <span class="label">New Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'provider'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">New End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'provider'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'provider')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+        ${booking_email_meeting_row(data)}
+      </div>
+      
+      <div class="alert">
+        <strong>Note:</strong> Please update your schedule accordingly for this rescheduled appointment.
+      </div>
+      
+      <div class="footer">
+        <p>This is an automated notification from your booking system.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+export const sendBookingRescheduleEmails = async (data: BookingEmailData): Promise<{
+  userEmailSent: boolean;
+  providerEmailSent: boolean;
+  errors: string[];
+}> => {
+  const errors: string[] = [];
+  let userEmailSent = false;
+  let providerEmailSent = false;
+
+  if (data.inviteeEmail?.trim()) {
+    try {
+      const transporter = createTransporter();
+      await transporter.sendMail({
+        from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+        to: data.inviteeEmail.trim(),
+        subject: `Booking Rescheduled - ${data.eventTypeName}`,
+        html: getUserRescheduleEmailTemplate(data),
+      });
+      userEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send reschedule email to user: ${err.message}`);
+    }
+  }
+
+  if (data.providerEmail?.trim()) {
+    try {
+      const transporter = createTransporter();
+      await transporter.sendMail({
+        from: `"GetSetTime Bookings" <${process.env.SMTP_USER}>`,
+        to: data.providerEmail.trim(),
+        subject: `Booking Rescheduled - ${data.eventTypeName} with ${data.inviteeName}`,
+        html: getProviderRescheduleEmailTemplate(data),
+      });
+      providerEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send reschedule email to provider: ${err.message}`);
+    }
+  }
+
+  return { userEmailSent, providerEmailSent, errors };
+};
+
+// --- Cancellation email templates ---
+
+const getUserCancellationEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #DC2626; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #DC2626; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #DC2626; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking Cancelled</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>Your booking has been cancelled. Here are the details of the cancelled appointment:</p>
+      
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #DC2626;">Cancelled Booking Details</h2>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}${booking_email_provider_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'customer'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'customer'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'customer')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+      </div>
+      
+      <p>If you'd like to rebook, please visit our booking page.</p>
+      
+      <div class="footer">
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+const getProviderCancellationEmailTemplate = (data: BookingEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #DC2626; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #DC2626; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #DC2626; }
+    .alert { background-color: #FEE2E2; border-left: 4px solid #DC2626; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking Cancelled</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.providerName || 'Service Provider'},</p>
+      <p>A booking has been cancelled by the client. Here are the details:</p>
+      
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #DC2626;">Cancelled Booking Details</h2>
+        <div class="detail-row">
+          <span class="label">Client Name:</span> ${data.inviteeName}
+        </div>
+        <div class="detail-row">
+          <span class="label">Client Email:</span> ${data.inviteeEmail?.trim() ? data.inviteeEmail : 'Not provided'}
+        </div>
+        <div class="detail-row">
+          <span class="label">Event Type:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'provider'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'provider'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'provider')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+      </div>
+      
+      <div class="alert">
+        <strong>Note:</strong> This time slot is now available for other bookings.
+      </div>
+      
+      <div class="footer">
+        <p>This is an automated notification from your booking system.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+export const sendBookingCancellationEmails = async (data: BookingEmailData): Promise<{
+  userEmailSent: boolean;
+  providerEmailSent: boolean;
+  errors: string[];
+}> => {
+  const errors: string[] = [];
+  let userEmailSent = false;
+  let providerEmailSent = false;
+
+  if (data.inviteeEmail) {
+    try {
+      const transporter = createTransporter();
+      await transporter.sendMail({
+        from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+        to: data.inviteeEmail,
+        subject: `Booking Cancelled - ${data.eventTypeName}`,
+        html: getUserCancellationEmailTemplate(data),
+      });
+      userEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send cancellation email to user: ${err.message}`);
+    }
+  }
+
+  if (data.providerEmail) {
+    try {
+      const transporter = createTransporter();
+      await transporter.sendMail({
+        from: `"GetSetTime Bookings" <${process.env.SMTP_USER}>`,
+        to: data.providerEmail,
+        subject: `Booking Cancelled - ${data.eventTypeName} with ${data.inviteeName}`,
+        html: getProviderCancellationEmailTemplate(data),
+      });
+      providerEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send cancellation email to provider: ${err.message}`);
+    }
+  }
+
+  return { userEmailSent, providerEmailSent, errors };
+};
+
+interface BookingStatusChangeEmailData extends BookingEmailData {
+  previousStatus: string;
+  newStatus: string;
+}
+
+const getUserStatusChangeEmailTemplate = (data: BookingStatusChangeEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #7C3AED; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #7C3AED; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #7C3AED; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking status updated</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.inviteeName},</p>
+      <p>Your booking status has been updated from <strong>${data.previousStatus}</strong> to <strong>${data.newStatus}</strong>.</p>
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #7C3AED;">Booking details</h2>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}${booking_email_provider_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'customer'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'customer'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'customer')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+        ${data.notes ? `
+        <div class="detail-row">
+          <span class="label">Notes:</span> ${data.notes}
+        </div>
+        ` : ''}
+      </div>
+      <div class="footer">
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+const getProviderStatusChangeEmailTemplate = (data: BookingStatusChangeEmailData): string => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #7C3AED; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+    .booking-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #7C3AED; }
+    .detail-row { margin: 10px 0; }
+    .label { font-weight: bold; color: #7C3AED; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking status updated</h1>
+    </div>
+    <div class="content">
+      <p>Dear ${data.providerName || 'Service Provider'},</p>
+      <p>A booking status was updated from <strong>${data.previousStatus}</strong> to <strong>${data.newStatus}</strong>.</p>
+      <div class="booking-details">
+        <h2 style="margin-top: 0; color: #7C3AED;">Booking details</h2>
+        <div class="detail-row">
+          <span class="label">Client:</span> ${data.inviteeName}
+        </div>
+        <div class="detail-row">
+          <span class="label">Client Email:</span> ${data.inviteeEmail?.trim() ? data.inviteeEmail : 'Not provided'}
+        </div>
+        <div class="detail-row">
+          <span class="label">Event:</span> ${data.eventTypeName}
+        </div>${booking_email_department_row(data)}
+        <div class="detail-row">
+          <span class="label">Start Time:</span> ${formatDateTime(data.startTime, recipient_timezone(data, 'provider'))}
+        </div>
+        <div class="detail-row">
+          <span class="label">End Time:</span> ${formatDateTime(data.endTime, recipient_timezone(data, 'provider'))}
+        </div>
+        ${booking_email_dual_time_row(data, 'provider')}
+        <div class="detail-row">
+          <span class="label">Duration:</span> ${data.duration} minutes
+        </div>
+      </div>
+      <div class="footer">
+        <p>This is an automated notification from your booking system.</p>
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+export const sendBookingStatusChangeEmails = async (
+  data: BookingStatusChangeEmailData
+): Promise<{
+  userEmailSent: boolean;
+  providerEmailSent: boolean;
+  errors: string[];
+}> => {
+  const errors: string[] = [];
+  let userEmailSent = false;
+  let providerEmailSent = false;
+
+  if (data.inviteeEmail?.trim()) {
+    try {
+      const transporter = createTransporter();
+      await transporter.sendMail({
+        from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+        to: data.inviteeEmail.trim(),
+        subject: `Booking status updated - ${data.eventTypeName}`,
+        html: getUserStatusChangeEmailTemplate(data),
+      });
+      userEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send status-change email to user: ${err.message}`);
+    }
+  }
+
+  if (data.providerEmail?.trim()) {
+    try {
+      const transporter = createTransporter();
+      await transporter.sendMail({
+        from: `"GetSetTime Bookings" <${process.env.SMTP_USER}>`,
+        to: data.providerEmail.trim(),
+        subject: `Booking status updated - ${data.eventTypeName} (${data.inviteeName})`,
+        html: getProviderStatusChangeEmailTemplate(data),
+      });
+      providerEmailSent = true;
+    } catch (error) {
+      const err = error as Error;
+      errors.push(`Failed to send status-change email to provider: ${err.message}`);
+    }
+  }
+
+  return { userEmailSent, providerEmailSent, errors };
+};
+
+// Send email confirmation link for registration (nodemailer)
+export interface WelcomeEmailParams {
+  to: string;
+  workspaceName: string;
+  adminName: string;
+  dashboardUrl: string;
+  upgradeUrl: string;
+  planName: string;
+  bookingLimit: number;
+  adminLimit: number;
+  serviceProviderLimit: number;
+}
+
+export const sendWelcomeEmail = async (params: WelcomeEmailParams): Promise<void> => {
+  const {
+    to,
+    workspaceName,
+    adminName,
+    dashboardUrl,
+    upgradeUrl,
+    planName,
+    bookingLimit,
+    adminLimit,
+    serviceProviderLimit,
+  } = params;
+
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+    to,
+    subject: 'Welcome to GetSetTime 🎉',
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; background-color: #4F46E5; color: #fff !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 8px 8px 8px 0; }
+    .button-secondary { background-color: #1de4a9; color: #111; }
+    ul { padding-left: 20px; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Welcome to GetSetTime 🎉</h1>
+    </div>
+    <div class="content">
+      <p>Hello ${adminName},</p>
+      <p>Your workspace <strong>${workspaceName}</strong> is ready.</p>
+      <p>You are on the <strong>${planName}</strong> plan:</p>
+      <ul>
+        <li>${formatBookingLimitFeature(bookingLimit)}</li>
+        <li>${adminLimit} admin</li>
+        <li>Up to ${serviceProviderLimit} service providers</li>
+        <li>Google Calendar sync</li>
+        <li>Email notifications</li>
+        <li>Public booking page</li>
+      </ul>
+      <p>
+        <a href="${dashboardUrl}" class="button">Go to dashboard</a>
+      </p>
+      <div class="footer">
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+    text: `
+Hello ${adminName},
+Your workspace ${workspaceName} is ready.
+You are on the ${planName} plan:
+${formatBookingLimitFeature(bookingLimit)}
+${adminLimit} admin
+Up to ${serviceProviderLimit} service providers
+Google Calendar sync
+Email notifications
+Public booking page
+Go to ${dashboardUrl}
+    `,
+    replyTo: process.env.SMTP_USER,
+  });
+};
+
+export const sendConfirmationEmail = async (
+  to: string,
+  name: string,
+  confirmationUrl: string
+): Promise<void> => {
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"GetSetTime" <${process.env.SMTP_USER}>`,
+    to,
+    subject: 'Confirm your GetSetTime account',
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Confirm your email</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name || 'there'},</p>
+      <p>Thanks for signing up for GetSetTime. Please confirm your email address by clicking the button below.</p>
+      <p><a href="${confirmationUrl}" class="button" style="display:inline-block;background-color:#4F46E5;color:#ffffff !important;-webkit-text-fill-color:#ffffff;padding:12px 24px;text-decoration:none !important;border-radius:8px;margin:16px 0;font-family:Arial,sans-serif;font-size:16px;font-weight:600;">Confirm email</a></p>
+      <p>This link expires in 24 hours. If you didn't create an account, you can ignore this email.</p>
+      <div class="footer">
+        <p>&copy; ${new Date().getFullYear()} GetSetTime. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+  });
+};
+

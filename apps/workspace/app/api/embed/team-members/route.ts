@@ -1,0 +1,178 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseServerClient } from '@app/db';
+import { createClient } from '@supabase/supabase-js';
+
+/**
+ * Creates an admin Supabase client for user management operations
+ */
+function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const workspaceSlug = searchParams.get('workspace_slug');
+    const workspaceId = searchParams.get('workspace_id');
+    const serviceProviderId = searchParams.get('service_provider_id')?.trim() || '';
+    
+    if (!workspaceSlug && !workspaceId) {
+      return NextResponse.json(
+        { error: 'Workspace slug or ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createSupabaseServerClient();
+    let workspaceIdResolved: string | null = null;
+
+    // Resolve workspace ID from slug if needed
+    if (workspaceSlug && !workspaceId) {
+      const { data: workspace } = await supabase
+        .from('workspaces')
+        .select('id')
+        .eq('slug', workspaceSlug)
+        .single();
+
+      if (!workspace) {
+        return NextResponse.json(
+          { error: 'Workspace not found' },
+          { status: 404 }
+        );
+      }
+
+      workspaceIdResolved = workspace.id;
+    } else if (workspaceId) {
+      workspaceIdResolved = workspaceId;
+    }
+
+    if (!workspaceIdResolved) {
+      return NextResponse.json(
+        { error: 'Workspace not found' },
+        { status: 404 }
+      );
+    }
+
+    // Use admin client to list users (auth.users table requires admin access)
+    const adminClient = createAdminClient();
+    if (!adminClient) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    // List all users and filter by workspace_id in metadata
+    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
+
+    if (listError) {
+      console.error('Error listing users:', listError);
+      return NextResponse.json({ error: listError.message }, { status: 500 });
+    }
+
+    const wsResolved = Number(workspaceIdResolved);
+    const { data: udRows } = await supabase
+      .from('user_departments')
+      .select('user_id, department_id')
+      .eq('workspace_id', wsResolved);
+    const deptByUser = new Map<string, number[]>();
+    for (const r of udRows ?? []) {
+      const uid = r.user_id as string;
+      const did = r.department_id as number;
+      if (!deptByUser.has(uid)) deptByUser.set(uid, []);
+      deptByUser.get(uid)!.push(did);
+    }
+
+    // Filter users by workspace_id in user_metadata
+    // Handle both string and number comparisons
+    const teamMembers = users
+      .filter(u => {
+        const userWorkspaceId = u.user_metadata?.workspace_id;
+        // Handle both string and number comparisons
+        const matches = userWorkspaceId && 
+               (userWorkspaceId == workspaceIdResolved || 
+                String(userWorkspaceId) === String(workspaceIdResolved));
+        if (!matches) return false;
+        if (serviceProviderId) {
+          return u.id === serviceProviderId;
+        }
+        return true;
+      })
+      .map((u) => {
+        const meta = u.user_metadata as Record<string, unknown> | undefined;
+        const phoneRaw = meta?.phone;
+        const phone =
+          typeof phoneRaw === 'string' && phoneRaw.trim() !== ''
+            ? phoneRaw
+            : null;
+
+        const eventTypeSettingsRaw = meta?.event_type_settings;
+        const eventTypeSettings =
+          eventTypeSettingsRaw && typeof eventTypeSettingsRaw === 'object'
+            ? (eventTypeSettingsRaw as Record<string, unknown>)
+            : null;
+        const adminNoticeRaw = eventTypeSettings?.admin_notice;
+        const admin_notice =
+          typeof adminNoticeRaw === 'string' && adminNoticeRaw.trim() !== ''
+            ? adminNoticeRaw
+            : null;
+
+        const additionalRolesRaw = meta?.additional_roles;
+        const additional_roles = Array.isArray(additionalRolesRaw)
+          ? (additionalRolesRaw.filter((r) => typeof r === 'string') as string[])
+          : [];
+
+        const deptIds = [...new Set(deptByUser.get(u.id) ?? [])].sort((a, b) => a - b);
+        const educationRaw = meta?.education;
+        const experienceRaw = meta?.experience;
+        const specialtyRaw = meta?.specialty;
+        const education =
+          typeof educationRaw === 'string' && educationRaw.trim() !== ''
+            ? educationRaw.trim()
+            : null;
+        const experience =
+          typeof experienceRaw === 'string' && experienceRaw.trim() !== ''
+            ? experienceRaw.trim()
+            : null;
+        const specialty =
+          typeof specialtyRaw === 'string' && specialtyRaw.trim() !== ''
+            ? specialtyRaw.trim()
+            : null;
+        return {
+          id: u.id,
+          email: u.email,
+          name: u.user_metadata?.name || u.email?.split('@')[0] || 'Unknown',
+          education,
+          experience,
+          specialty,
+          role: u.user_metadata?.role || null,
+          additional_roles,
+          departments: deptIds,
+          phone,
+          created_at: u.created_at,
+          email_confirmed_at: u.email_confirmed_at,
+          deactivated: u.user_metadata?.deactivated || false,
+          is_workspace_owner: u.user_metadata?.is_workspace_owner === true,
+          admin_notice,
+        };
+      });
+
+    return NextResponse.json({ teamMembers });
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error('Error:', error);
+    return NextResponse.json(
+      { error: error?.message || 'Server error' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,0 +1,836 @@
+"use client";
+import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { AlertModal } from "@/src/components/ui/AlertModal";
+import { useAuth } from "@/src/providers/AuthProvider";
+import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
+import { sync_settings_response } from "@/src/lib/workspace_shell_sync";
+import type { WorkspaceSettings } from "@/src/types/workspace";
+
+interface CustomField {
+  id: string;
+  label: string;
+  field_type: 'text' | 'textarea' | 'number' | 'url';
+  type?: 'text' | 'textarea' | 'number' | 'url';
+  required: boolean;
+  placeholder?: string;
+}
+
+type DefaultIntakeFieldKey = "name" | "email" | "phone" | "file_upload" | "additional_description";
+type FieldIcon = "user" | "mail" | "phone" | "upload" | "message" | "file";
+const LOCKED_DEFAULT_INTAKE_FIELDS: ReadonlySet<DefaultIntakeFieldKey> = new Set([
+  "name",
+  "email",
+  "phone",
+  "additional_description",
+]);
+
+const DEFAULT_INTAKE_FIELD_META: Array<{
+  key: DefaultIntakeFieldKey;
+  label: string;
+  description: string;
+  icon: FieldIcon;
+}> = [
+  { key: "name", label: "Name", description: "Collect invitee's full name", icon: "user" },
+  { key: "email", label: "Email", description: "Collect invitee's email address", icon: "mail" },
+  { key: "phone", label: "Phone", description: "Collect invitee's phone number", icon: "phone" },
+  { key: "additional_description", label: "Additional Description", description: "Collect notes, symptoms, requests, or extra details", icon: "message" },
+  { key: "file_upload", label: "File Upload", description: "Allow invitees to upload a file, PDF, or image", icon: "upload" },
+];
+
+type IconName = FieldIcon | "search" | "plus" | "save" | "trash" | "edit" | "sparkles" | "grip" | "clipboard" | "send" | "lock" | "info" | "arrowUpDown" | "users";
+
+function Icon({ name, className = "h-5 w-5" }: { name: IconName; className?: string }) {
+  const common = {
+    className,
+    viewBox: "0 0 24 24" as const,
+    fill: "none" as const,
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (name === "search") return <svg {...common}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
+  if (name === "plus") return <svg {...common}><path d="M12 5v14" /><path d="M5 12h14" /></svg>;
+  if (name === "mail") return <svg {...common}><path d="M4 6h16v12H4z" /><path d="m4 7 8 6 8-6" /></svg>;
+  if (name === "phone") return <svg {...common}><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.7 19.7 0 0 1 3.1 5.18 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.6 2.6a2 2 0 0 1-.45 2.11L9 10.7a16 16 0 0 0 4.3 4.3l1.27-1.25a2 2 0 0 1 2.11-.45c.83.28 1.7.48 2.6.6A2 2 0 0 1 22 16.92Z" /></svg>;
+  if (name === "upload") return <svg {...common}><path d="M12 15V3" /><path d="m7 8 5-5 5 5" /><path d="M20 16.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5" /></svg>;
+  if (name === "message") return <svg {...common}><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" /><path d="M8 9h8" /><path d="M8 13h5" /></svg>;
+  if (name === "file") return <svg {...common}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6" /><path d="M8 13h8" /><path d="M8 17h5" /></svg>;
+  if (name === "save") return <svg {...common}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8" /><path d="M7 3v5h8" /></svg>;
+  if (name === "trash") return <svg {...common}><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>;
+  if (name === "edit") return <svg {...common}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" /></svg>;
+  if (name === "sparkles") return <svg {...common}><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" /></svg>;
+  if (name === "grip") return <svg {...common}><path d="M9 6h.01" /><path d="M15 6h.01" /><path d="M9 12h.01" /><path d="M15 12h.01" /><path d="M9 18h.01" /><path d="M15 18h.01" /></svg>;
+  if (name === "clipboard") return <svg {...common}><path d="M9 4h6a2 2 0 0 1 2 2v1H7V6a2 2 0 0 1 2-2Z" /><path d="M7 6H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2" /><path d="M8 13h8" /><path d="M8 17h5" /></svg>;
+  if (name === "send") return <svg {...common}><path d="m22 2-7 20-4-9-9-4 20-7z" /><path d="M22 2 11 13" /></svg>;
+  if (name === "lock") return <svg {...common}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>;
+  if (name === "info") return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 10v5" /><path d="M12 7h.01" /></svg>;
+  if (name === "arrowUpDown") return <svg {...common}><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>;
+  if (name === "users") return <svg {...common}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
+
+  return <svg {...common}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>;
+}
+
+function FormsStatCard({
+  icon,
+  label,
+  value,
+  helper,
+  iconClassName,
+}: {
+  icon: Extract<IconName, "clipboard" | "send" | "lock">;
+  label: string;
+  value: string | number;
+  helper: string;
+  iconClassName: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+      <div className="flex items-start gap-3">
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${iconClassName}`}>
+          <Icon name={icon} className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-900">{label}</p>
+          <p className="mt-1 text-3xl font-bold leading-none text-slate-950">{value}</p>
+          <p className="mt-1 text-xs font-medium text-slate-400">{helper}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function fieldTypeLabel(fieldType: CustomField["field_type"]): string {
+  const labels: Record<CustomField["field_type"], string> = {
+    text: "Text",
+    textarea: "Text area",
+    number: "Number",
+    url: "URL",
+  };
+  return labels[fieldType];
+}
+
+const CUSTOM_FIELD_TYPE_OPTIONS: Array<{ value: CustomField["field_type"]; label: string }> = [
+  { value: "text", label: "Text (Single Line)" },
+  { value: "textarea", label: "Text Area (Multiple Lines)" },
+  { value: "number", label: "Number" },
+  { value: "url", label: "URL" },
+];
+
+export default function RoutingForm({ dark = false }) {
+  const { user } = useAuth();
+  const { settings, loading: settingsLoading } = useWorkspaceSettings();
+  const isStaffUser = user?.user_metadata?.role === "staff";
+  const [fieldSearch, setFieldSearch] = useState("");
+  const [intakeFormSettings, setIntakeFormSettings] = useState({
+    name: true,
+    email: true,
+    phone: true,
+    /*
+    TEMP DISABLED: Services intake support
+    services: {
+      enabled: false,
+      allowed_service_ids: [] as string[],
+    },
+    */
+    file_upload: false,
+    additional_description: true,
+    custom_fields: [] as CustomField[],
+  });
+
+  const [showCustomFieldForm, setShowCustomFieldForm] = useState(false);
+  const [editingCustomField, setEditingCustomField] = useState<CustomField | null>(null);
+  const [customFieldFormData, setCustomFieldFormData] = useState<CustomField>({
+    id: '',
+    label: '',
+    field_type: 'text',
+    required: false,
+    placeholder: '',
+  });
+
+  const [newCustomLabel, setNewCustomLabel] = useState("");
+  const [newCustomFieldType, setNewCustomFieldType] = useState<CustomField["field_type"]>("text");
+
+  const [loading, setLoading] = useState(false);
+  const [fileUploadSaving, setFileUploadSaving] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [draggedCustomFieldId, setDraggedCustomFieldId] = useState<string | null>(null);
+  const [dragOverCustomFieldId, setDragOverCustomFieldId] = useState<string | null>(null);
+
+  // Load intake form from workspace shell settings
+  useEffect(() => {
+    if (settingsLoading) return;
+    if (settings?.intake_form) {
+      setIntakeFormSettings({
+        name: true,
+        email: true,
+        phone: true,
+        file_upload: settings.intake_form.file_upload ?? false,
+        additional_description: true,
+        custom_fields: (settings.intake_form.custom_fields ?? []) as CustomField[],
+      });
+    }
+  }, [settings, settingsLoading]);
+
+  const buildIntakeFormPayload = (
+    overrides?: Partial<typeof intakeFormSettings>
+  ) => ({
+    ...intakeFormSettings,
+    ...overrides,
+    name: true,
+    email: true,
+    phone: true,
+    additional_description: true,
+  });
+
+  const persistIntakeFormSettings = async (
+    overrides?: Partial<typeof intakeFormSettings>
+  ): Promise<boolean> => {
+    if (isStaffUser) return false;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setAlertMessage('Not authenticated');
+        return false;
+      }
+
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          settings: {
+            intake_form: buildIntakeFormPayload(overrides),
+          },
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setAlertMessage(`Error: ${(result as { error?: string }).error || 'Failed to save settings'}`);
+        return false;
+      }
+      if (user?.id && (result as { settings?: WorkspaceSettings }).settings) {
+        sync_settings_response(user.id, result as { settings?: WorkspaceSettings | null });
+      }
+      return true;
+    } catch (error) {
+      console.error('Error saving intake form settings:', error);
+      setAlertMessage('An error occurred while saving settings');
+      return false;
+    }
+  };
+
+  const handleIntakeFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const ok = await persistIntakeFormSettings();
+      if (ok) {
+        setAlertMessage('Intake form settings saved successfully!');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditCustomField = (field: CustomField) => {
+    if (isStaffUser) return;
+    setEditingCustomField(field);
+    setCustomFieldFormData({
+      id: field.id,
+      label: field.label,
+      field_type: field.field_type,
+      required: field.required,
+      placeholder: field.placeholder || '',
+    });
+    setShowCustomFieldForm(true);
+  };
+
+  const handleCustomFieldFormCancel = () => {
+    setShowCustomFieldForm(false);
+    setEditingCustomField(null);
+    setCustomFieldFormData({
+      id: '',
+      label: '',
+      field_type: 'text',
+      required: false,
+      placeholder: '',
+    });
+  };
+
+  const handleCustomFieldFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isStaffUser) return;
+    if (!editingCustomField) return;
+    const updated: CustomField = {
+      ...customFieldFormData,
+      type: customFieldFormData.field_type,
+    };
+    setIntakeFormSettings((prev) => ({
+      ...prev,
+      custom_fields: prev.custom_fields.map((field) =>
+        field.id === editingCustomField.id ? updated : field
+      ),
+    }));
+    handleCustomFieldFormCancel();
+  };
+
+  const addCustomFieldInline = () => {
+    if (isStaffUser) return;
+    const label = newCustomLabel.trim();
+    if (!label) return;
+    const newField: CustomField = {
+      id: Date.now().toString(),
+      label,
+      field_type: newCustomFieldType,
+      type: newCustomFieldType,
+      required: false,
+      placeholder: "",
+    };
+    setIntakeFormSettings((prev) => ({
+      ...prev,
+      custom_fields: [...prev.custom_fields, newField],
+    }));
+    setNewCustomLabel("");
+    setNewCustomFieldType("text");
+  };
+
+  const toggleCustomFieldRequired = (id: string) => {
+    if (isStaffUser) return;
+    setIntakeFormSettings((prev) => ({
+      ...prev,
+      custom_fields: prev.custom_fields.map((field) =>
+        field.id === id ? { ...field, required: !field.required } : field
+      ),
+    }));
+  };
+
+  const handleRemoveCustomField = (id: string) => {
+    if (isStaffUser) return;
+    setIntakeFormSettings({
+      ...intakeFormSettings,
+      custom_fields: intakeFormSettings.custom_fields.filter(field => field.id !== id),
+    });
+  };
+
+  const reorderCustomFields = (activeId: string, overId: string) => {
+    if (isStaffUser) return;
+    setIntakeFormSettings((prev) => {
+      const fromIndex = prev.custom_fields.findIndex((field) => field.id === activeId);
+      const toIndex = prev.custom_fields.findIndex((field) => field.id === overId);
+      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return prev;
+
+      const custom_fields = [...prev.custom_fields];
+      const [moved] = custom_fields.splice(fromIndex, 1);
+      custom_fields.splice(toIndex, 0, moved);
+      return { ...prev, custom_fields };
+    });
+  };
+
+  const filteredDefaultFieldMeta = useMemo(() => {
+    const keyword = fieldSearch.trim().toLowerCase();
+    if (!keyword) return DEFAULT_INTAKE_FIELD_META;
+    return DEFAULT_INTAKE_FIELD_META.filter(
+      (row) =>
+        row.label.toLowerCase().includes(keyword) ||
+        row.description.toLowerCase().includes(keyword)
+    );
+  }, [fieldSearch]);
+
+  const enabledDefaultCount = useMemo(
+    () =>
+      [
+        intakeFormSettings.name,
+        intakeFormSettings.email,
+        intakeFormSettings.phone,
+        intakeFormSettings.file_upload,
+        intakeFormSettings.additional_description,
+      ].filter(Boolean).length,
+    [
+      intakeFormSettings.name,
+      intakeFormSettings.email,
+      intakeFormSettings.phone,
+      intakeFormSettings.file_upload,
+      intakeFormSettings.additional_description,
+    ]
+  );
+
+  const enabledFieldsCount = enabledDefaultCount + intakeFormSettings.custom_fields.length;
+  const requiredFieldsCount = useMemo(
+    () =>
+      LOCKED_DEFAULT_INTAKE_FIELDS.size +
+      intakeFormSettings.custom_fields.filter((f) => f.required).length,
+    [intakeFormSettings.custom_fields]
+  );
+
+  const toggleDefaultIntakeField = async (key: DefaultIntakeFieldKey) => {
+    if (isStaffUser) return;
+    if (LOCKED_DEFAULT_INTAKE_FIELDS.has(key)) return;
+
+    if (key === "file_upload") {
+      const nextValue = !intakeFormSettings.file_upload;
+      setIntakeFormSettings((prev) => ({ ...prev, file_upload: nextValue }));
+      setFileUploadSaving(true);
+      try {
+        const ok = await persistIntakeFormSettings({ file_upload: nextValue });
+        if (!ok) {
+          setIntakeFormSettings((prev) => ({ ...prev, file_upload: !nextValue }));
+        }
+      } finally {
+        setFileUploadSaving(false);
+      }
+      return;
+    }
+
+    setIntakeFormSettings((prev) => {
+      switch (key) {
+        case "name":
+          return { ...prev, name: !prev.name };
+        case "email":
+          return { ...prev, email: !prev.email };
+        case "phone":
+          return { ...prev, phone: !prev.phone };
+        case "additional_description":
+          return { ...prev, additional_description: !prev.additional_description };
+        default:
+          return prev;
+      }
+    });
+  };
+
+  const defaultFieldEnabled = (key: DefaultIntakeFieldKey): boolean => {
+    switch (key) {
+      case "name":
+        return intakeFormSettings.name;
+      case "email":
+        return intakeFormSettings.email;
+      case "phone":
+        return intakeFormSettings.phone;
+      case "file_upload":
+        return intakeFormSettings.file_upload;
+      case "additional_description":
+        return intakeFormSettings.additional_description;
+      default:
+        return false;
+    }
+  };
+
+  return (
+    <div className="min-h-screen text-slate-900">
+      <div className="mx-auto space-y-6">
+        <div className="rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm md:px-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                Routing &amp; Forms
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                Configure intake, pre-check in, feedback, and security forms visible to your workspace.
+              </p>
+            </div>
+
+            <div className="relative w-full lg:w-80">
+              <Icon name="search" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                value={fieldSearch}
+                onChange={(event) => setFieldSearch(event.target.value)}
+                placeholder="Search fields..."
+                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                type="search"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <FormsStatCard
+            icon="clipboard"
+            iconClassName="bg-blue-600 text-white"
+            label="Active Forms"
+            value={enabledFieldsCount}
+            helper="Currently active"
+          />
+          <FormsStatCard
+            icon="send"
+            iconClassName="bg-emerald-500 text-white"
+            label="Required Fields"
+            value={requiredFieldsCount}
+            helper="Mandatory fields"
+          />
+          <FormsStatCard
+            icon="lock"
+            iconClassName="bg-violet-600 text-white"
+            label="Custom Fields"
+            value={intakeFormSettings.custom_fields.length}
+            helper="Created by you"
+          />
+        </div>
+
+        <form onSubmit={handleIntakeFormSubmit} className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-start">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <Icon name="clipboard" className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Default Intake Fields</h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Enable or disable standard fields shown during appointment booking.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 divide-y divide-slate-200 border-t border-slate-200">
+                {filteredDefaultFieldMeta.map((field) => {
+                  const enabled = defaultFieldEnabled(field.key);
+                  const isLocked = LOCKED_DEFAULT_INTAKE_FIELDS.has(field.key);
+                  const isFileUpload = field.key === "file_upload";
+                  const toggleDisabled = isLocked || (isFileUpload && fileUploadSaving);
+                  return (
+                    <div
+                      key={field.key}
+                      className="flex items-center gap-3 py-4"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <Icon name={field.icon} className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-semibold text-slate-900">{field.label}</h3>
+                          {isFileUpload && fileUploadSaving ? (
+                            <span className="text-xs font-medium text-blue-600">Saving…</span>
+                          ) : null}
+                        </div>
+                        <p className="mt-0.5 text-sm text-slate-500">{field.description}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void toggleDefaultIntakeField(field.key)}
+                        aria-label={isLocked ? `${field.label} is always enabled` : `Toggle ${field.label}`}
+                        aria-pressed={enabled}
+                        disabled={toggleDisabled || isStaffUser}
+                        className={`relative h-6 w-11 shrink-0 rounded-full transition ${enabled ? "bg-blue-600" : "bg-slate-300"} ${isLocked ? "cursor-not-allowed opacity-20" : ""} ${isFileUpload && fileUploadSaving ? "cursor-wait opacity-60" : ""}`}
+                      >
+                        <span
+                          className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${enabled ? "left-6" : "left-1"}`}
+                        />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6 lg:sticky lg:top-6 lg:self-start">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                  <Icon name="file" className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Live Form Preview</h3>
+                  <p className="mt-0.5 text-sm text-slate-500">Customer&apos;s visible fields</p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-2.5">
+                {DEFAULT_INTAKE_FIELD_META.filter((row) => defaultFieldEnabled(row.key)).map((field) => (
+                  <div
+                    key={field.key}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+                  >
+                    <Icon name={field.icon} className="h-4 w-4 shrink-0 text-blue-600" />
+                    <span className="text-sm font-medium text-slate-800">{field.label}</span>
+                  </div>
+                ))}
+
+                {intakeFormSettings.custom_fields.map((field) => (
+                  <div
+                    key={field.id}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+                  >
+                    <Icon name="file" className="h-4 w-4 shrink-0 text-blue-600" />
+                    <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{field.label}</span>
+                    <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2">
+                      {field.required && (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                          Required
+                        </span>
+                      )}
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                        {fieldTypeLabel(field.field_type)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-xl bg-blue-50 px-4 py-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <Icon name="info" className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">Preview as a customer</p>
+                    <p className="mt-1 text-sm leading-6 text-blue-700">
+                      This is how the form appears before appointment confirmed and can be used for security checks.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full lg:w-3/4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Custom Fields</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  Add custom fields to collect additional information from your customers.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {!isStaffUser ? (
+                  <>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 disabled:opacity-50"
+                    >
+                      <Icon name="arrowUpDown" className="h-4 w-4" />
+                      {loading ? "Saving..." : "Save Order"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addCustomFieldInline}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
+                    >
+                      <Icon name="plus" className="h-4 w-4" />
+                      Add Field
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+              <input
+                type="text"
+                value={newCustomLabel}
+                onChange={(e) => setNewCustomLabel(e.target.value)}
+                disabled={isStaffUser}
+                placeholder="Field Name (e.g. Patient ID)"
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              />
+              <select
+                value={newCustomFieldType}
+                onChange={(e) => setNewCustomFieldType(e.target.value as CustomField["field_type"])}
+                disabled={isStaffUser}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              >
+                {CUSTOM_FIELD_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {intakeFormSettings.custom_fields.length === 0 ? (
+              <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                <Icon name="users" className="h-4 w-4 shrink-0 text-slate-400" />
+                Drag and drop to reorder fields
+              </div>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {intakeFormSettings.custom_fields.map((field) => (
+                  <div
+                    key={field.id}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                      if (draggedCustomFieldId && draggedCustomFieldId !== field.id) {
+                        setDragOverCustomFieldId(field.id);
+                      }
+                    }}
+                    onDragLeave={() => {
+                      setDragOverCustomFieldId((current) => (current === field.id ? null : current));
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      const fromId = event.dataTransfer.getData("text/plain") || draggedCustomFieldId;
+                      if (fromId && fromId !== field.id) {
+                        reorderCustomFields(fromId, field.id);
+                      }
+                      setDraggedCustomFieldId(null);
+                      setDragOverCustomFieldId(null);
+                    }}
+                    className={`flex items-center gap-3 rounded-xl border bg-white px-4 py-3 transition ${
+                      dragOverCustomFieldId === field.id
+                        ? "border-blue-300 ring-2 ring-blue-100"
+                        : "border-slate-200"
+                    } ${draggedCustomFieldId === field.id ? "opacity-50" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      draggable
+                      disabled={isStaffUser}
+                      onDragStart={(event) => {
+                        setDraggedCustomFieldId(field.id);
+                        event.dataTransfer.setData("text/plain", field.id);
+                        event.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => {
+                        setDraggedCustomFieldId(null);
+                        setDragOverCustomFieldId(null);
+                      }}
+                      className="flex h-9 w-9 shrink-0 cursor-grab items-center justify-center rounded-lg border border-transparent text-slate-400 transition hover:border-slate-200 hover:bg-slate-50 active:cursor-grabbing"
+                      aria-label={`Drag to reorder ${field.label}`}
+                    >
+                      <Icon name="grip" className="h-4 w-4" aria-hidden />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-semibold text-slate-900">{field.label}</h4>
+                      <p className="text-xs text-slate-500">{fieldTypeLabel(field.field_type)} field</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleCustomFieldRequired(field.id)}
+                      disabled={isStaffUser}
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${field.required ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}
+                      aria-label={field.required ? "Mark optional" : "Mark required"}
+                    >
+                      {field.required ? "Required" : "Optional"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEditCustomField(field)}
+                      disabled={isStaffUser}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:text-blue-600"
+                      title="Edit field"
+                      aria-label="Edit custom field"
+                    >
+                      <Icon name="edit" className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomField(field.id)}
+                      disabled={isStaffUser}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-500 transition hover:bg-red-100"
+                      title="Remove field"
+                      aria-label="Delete custom field"
+                    >
+                      <Icon name="trash" className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </form>
+
+        {/* Edit Custom Field Modal */}
+        {showCustomFieldForm && editingCustomField && (
+        <div className={`fixed inset-0 z-50 flex items-center justify-center px-4 py-6 transition-opacity duration-200 ${showCustomFieldForm ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
+          <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${showCustomFieldForm ? 'opacity-100' : 'opacity-0'}`} aria-hidden="true" onClick={handleCustomFieldFormCancel}/>
+          <section className={`relative w-full max-w-4xl transform bg-white rounded-2xl shadow-2xl transition-all duration-300 ${showCustomFieldForm ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+            <div className={`flex items-center justify-between border-b border-gray-200 px-6 py-4`}>
+              <div>
+                <h2 className={`text-lg font-semibold text-gray-800`}>Edit Custom Field</h2>
+                <p className="text-xs text-slate-500 mt-1">Update field details</p>
+              </div>
+              <button className={`rounded-full p-2 text-gray-500 hover:bg-gray-100 transition`} aria-label="Close form" onClick={handleCustomFieldFormCancel}>
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <form onSubmit={handleCustomFieldFormSubmit} className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 text-slate-700`}>Field Label <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={customFieldFormData.label}
+                    onChange={(e) => setCustomFieldFormData({ ...customFieldFormData, label: e.target.value })}
+                    placeholder="e.g., Company Name, Job Title"
+                    className={`w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none`}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 text-slate-700`}>Field Type <span className="text-red-500">*</span></label>
+                  <select
+                    value={customFieldFormData.field_type}
+                    onChange={(e) => setCustomFieldFormData({ ...customFieldFormData, field_type: e.target.value as CustomField['field_type'] })}
+                    className={`w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none`}
+                    required
+                  >
+                    {CUSTOM_FIELD_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 text-slate-700`}>Placeholder (Optional)</label>
+                  <input
+                    type="text"
+                    value={customFieldFormData.placeholder}
+                    onChange={(e) => setCustomFieldFormData({ ...customFieldFormData, placeholder: e.target.value })}
+                    placeholder="e.g., Enter your company name"
+                    className={`w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none`}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50">
+                  <input
+                    type="checkbox"
+                    id="customFieldRequired"
+                    checked={customFieldFormData.required}
+                    onChange={(e) => setCustomFieldFormData({ ...customFieldFormData, required: e.target.checked })}
+                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <label htmlFor="customFieldRequired" className="text-sm font-medium text-slate-700 cursor-pointer">
+                    Make this field required
+                  </label>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCustomFieldFormCancel}
+                    className="px-4 py-2 rounded-xl text-sm font-medium bg-slate-200 text-slate-700 hover:bg-slate-300 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                  >
+                    Update Field
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {alertMessage && (
+        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
+      )}
+      </div>
+    </div>
+  );
+}

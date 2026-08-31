@@ -1,0 +1,616 @@
+'use client';
+
+import React, { useRef, useCallback, useEffect, useMemo } from 'react';
+import type {
+  AvailabilitySettings,
+  Booking,
+  EventType,
+  Timeslot,
+} from '@/src/types/bookingForm';
+import type { date_exception } from '@/src/types/date_exceptions';
+import type { ServiceDurationCatalogItem } from '@/src/utils/bookingDuration';
+import {
+  BOOKING_BUTTON_LABELS,
+  BOOKING_EMPTY_MESSAGES,
+  BOOKING_LOADING_MESSAGES,
+  BOOKING_STEP_TITLES,
+  DAY_NAMES,
+  SCROLL_LOAD_DISTANCE,
+  STRIP_MAX_DAYS,
+} from '@/src/constants/booking';
+import { getCalendarDays, isToday, normalizeDate } from '@/src/utils/bookingTime';
+import { isDateAvailable } from '@/src/utils/bookingAvailability';
+import { TimezoneSelector } from './TimezoneSelector';
+import {
+  formatFullDateTimeInTimezone,
+  getTimezoneAbbreviation,
+} from '@/lib/date-timezone';
+import { needsTimezoneConversion } from '@/src/utils/timezone';
+import {
+  step3PerfDateClickStart,
+  step3PerfLog,
+  step3PerfSlotClickStart,
+  step3PerfSync,
+} from '@/src/utils/bookingStep3Perf';
+
+interface Step3DateTimeProps {
+  selectedDate: Date | null;
+  selectedTime: string;
+  timeslots: Timeslot[];
+  days: Date[];
+  currentMonth: Date;
+  showCalendar: boolean;
+  loadingAvailability: boolean;
+  loadingBookings: boolean;
+  availabilitySettings: AvailabilitySettings | null;
+  existingBookings: Booking[];
+  selectedType: EventType | null;
+  selectedServiceIds?: string[];
+  serviceCatalog?: ServiceDurationCatalogItem[];
+  departmentsCount: number;
+  workspacePrimaryColor: string;
+  workspaceAccentColor: string | null;
+  onSelectDate: (date: Date) => void;
+  onSelectTime: (time: string) => void;
+  onToggleCalendar: () => void;
+  onNavigateMonth: (dir: 'prev' | 'next') => void;
+  onSetCurrentMonth?: (date: Date) => void;
+  onBack?: (() => void) | undefined;
+  onContinue: () => void;
+  onDaysChange: (updater: (prev: Date[]) => Date[]) => void;
+  continueLabel?: string;
+  continueDisabled?: boolean;
+  previousStartAt?: string | null;
+  previousEndAt?: string | null;
+  /** Matches useTimeslots lead time (e.g. embed reschedule). */
+  minLeadTimeMinutes?: number;
+  customerTimezone?: string;
+  providerTimezone?: string;
+  workspaceTimezoneConfigured?: boolean;
+  selectedStartUtc?: string | null;
+  onTimezoneChange?: (timezone: string) => void;
+  onSelectSlot?: (slot: Timeslot) => void;
+  dateExceptions?: date_exception[];
+  serviceProviderId?: string | null;
+}
+
+export function Step3DateTime({
+  selectedDate,
+  selectedTime,
+  timeslots,
+  days,
+  currentMonth,
+  showCalendar,
+  loadingAvailability,
+  loadingBookings,
+  availabilitySettings,
+  existingBookings,
+  selectedType,
+  selectedServiceIds = [],
+  serviceCatalog = [],
+  departmentsCount,
+  workspacePrimaryColor,
+  workspaceAccentColor,
+  onSelectDate,
+  onSelectTime,
+  onToggleCalendar,
+  onNavigateMonth,
+  onSetCurrentMonth,
+  onBack,
+  onContinue,
+  onDaysChange,
+  continueLabel,
+  continueDisabled,
+  previousStartAt,
+  previousEndAt,
+  minLeadTimeMinutes = 0,
+  customerTimezone = '',
+  providerTimezone = '',
+  workspaceTimezoneConfigured = false,
+  selectedStartUtc = null,
+  onTimezoneChange,
+  onSelectSlot,
+  dateExceptions = [],
+  serviceProviderId = null,
+}: Step3DateTimeProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const selectedDateRef = useRef<HTMLButtonElement | null>(null);
+  const isLoadingMoreRef = useRef(false);
+  const timeslotSectionRef = useRef<HTMLDivElement>(null);
+  // Tracks the date we've already auto-scrolled timeslots for. Initialized to
+  // any preselected date so we don't scroll on mount (e.g. reschedule flows).
+  const scrolledForDateRef = useRef<string | null | undefined>(undefined);
+  if (scrolledForDateRef.current === undefined) {
+    scrolledForDateRef.current = selectedDate ? selectedDate.toDateString() : null;
+  }
+
+  // Auto-select the first available date the first time Step 3 opens with no
+  // existing selection, so available times show immediately. Existing selections
+  // (e.g. navigating back/forth between steps) are preserved. The selection waits
+  // for availability to load and runs after `availableDays` is computed below.
+  const autoSelectedDefaultDateRef = useRef(false);
+
+  const loadMoreDates = useCallback(() => {
+    if (isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    onDaysChange((prevDays) => {
+      const lastDate = prevDays[prevDays.length - 1];
+      const newDates: Date[] = [];
+      for (let i = 1; i <= 10; i++) {
+        const d = new Date(lastDate);
+        d.setDate(d.getDate() + i);
+        newDates.push(normalizeDate(d));
+      }
+      return [...prevDays, ...newDates];
+    });
+    setTimeout(() => { isLoadingMoreRef.current = false; }, 300);
+  }, [onDaysChange]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const checkAndLoadMore = () => {
+      if (isLoadingMoreRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      const hasOverflow = scrollWidth > clientWidth + 2;
+      const distanceToEnd = scrollWidth - (scrollLeft + clientWidth);
+      const nearEnd = hasOverflow && distanceToEnd < SCROLL_LOAD_DISTANCE;
+      const stripDoesNotFillWidth = !hasOverflow && days.length < STRIP_MAX_DAYS;
+      if (nearEnd || stripDoesNotFillWidth) {
+        loadMoreDates();
+      }
+    };
+
+    const rafId = requestAnimationFrame(checkAndLoadMore);
+    container.addEventListener('scroll', checkAndLoadMore, { passive: true });
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(checkAndLoadMore);
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      container.removeEventListener('scroll', checkAndLoadMore);
+      resizeObserver.disconnect();
+    };
+  }, [loadMoreDates, days.length]);
+
+  useEffect(() => {
+    if (selectedDate && selectedDateRef.current && scrollContainerRef.current) {
+      const timer = setTimeout(() => {
+        const container = scrollContainerRef.current;
+        const button = selectedDateRef.current;
+        if (container && button) {
+          const scrollLeft = button.offsetLeft - container.getBoundingClientRect().width / 2 + button.getBoundingClientRect().width / 2;
+          container.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDate]);
+
+  // When a (newly selected) date's timeslots finish loading, scroll the
+  // available-times section into view across all booking forms.
+  useEffect(() => {
+    if (!selectedDate) return;
+    if (loadingAvailability || loadingBookings) return;
+    if (timeslots.length === 0) return;
+    const dateKey = selectedDate.toDateString();
+    if (scrolledForDateRef.current === dateKey) return;
+    scrolledForDateRef.current = dateKey;
+    timeslotSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selectedDate, loadingAvailability, loadingBookings, timeslots.length]);
+
+  const hasNewSelection = Boolean(selectedDate && selectedTime);
+
+  const viewerTimezoneAbbrev = useMemo(() => {
+    if (!customerTimezone?.trim()) return null;
+    return getTimezoneAbbreviation(customerTimezone.trim());
+  }, [customerTimezone]);
+
+  const existingBookingsSig = useMemo(
+    () =>
+      existingBookings
+        .map((b) => `${b.id}:${b.start_at}:${b.end_at ?? ''}`)
+        .join('|'),
+    [existingBookings]
+  );
+
+  const availableDays = useMemo(() => {
+    const t0 = performance.now();
+    const result = days.filter((d) => {
+      const past = d < new Date() && !isToday(d);
+      if (past) return false;
+      if (!availabilitySettings?.timesheet || !selectedType) return true;
+      return isDateAvailable(
+        d,
+        availabilitySettings,
+        selectedType,
+        existingBookings,
+        minLeadTimeMinutes,
+        selectedServiceIds,
+        serviceCatalog,
+        providerTimezone,
+        customerTimezone,
+        dateExceptions,
+        serviceProviderId
+      );
+    });
+    const ms = performance.now() - t0;
+    if (ms > 50) {
+      step3PerfLog('date strip filter (isDateAvailable per day)', {
+        ms: `${ms.toFixed(1)}ms`,
+        daysChecked: days.length,
+        daysShown: result.length,
+      });
+    }
+    return result;
+  }, [
+    days,
+    availabilitySettings,
+    selectedType,
+    existingBookings,
+    existingBookingsSig,
+    minLeadTimeMinutes,
+    selectedServiceIds,
+    serviceCatalog,
+    providerTimezone,
+    customerTimezone,
+    dateExceptions,
+    serviceProviderId,
+  ]);
+
+  useEffect(() => {
+    if (autoSelectedDefaultDateRef.current) return;
+    if (selectedDate != null) {
+      autoSelectedDefaultDateRef.current = true;
+      return;
+    }
+    // Wait for availability/bookings so `availableDays` reflects real openings
+    // before picking the default date.
+    if (loadingAvailability || loadingBookings) return;
+    autoSelectedDefaultDateRef.current = true;
+    const firstAvailable = availableDays[0];
+    onSelectDate(normalizeDate(firstAvailable ?? new Date()));
+  }, [selectedDate, onSelectDate, loadingAvailability, loadingBookings, availableDays]);
+
+  const formatPreviousDateTime = (iso: string) => {
+    if (customerTimezone) {
+      const customer = formatFullDateTimeInTimezone(iso, customerTimezone);
+      if (
+        providerTimezone &&
+        needsTimezoneConversion(providerTimezone, customerTimezone)
+      ) {
+        const host = formatFullDateTimeInTimezone(iso, providerTimezone);
+        return `${customer} (Host: ${host})`;
+      }
+      return customer;
+    }
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8 animate-fadeIn">
+      <div className="text-center lg:text-left">
+        <h2 className="text-2xl font-bold text-gray-900">{BOOKING_STEP_TITLES.step3}</h2>
+        <p className="text-xs sm:text-sm text-gray-500">{BOOKING_STEP_TITLES.step3Subtitle}</p>
+      </div>
+
+      {previousStartAt && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-800 mb-1">Previous Appointment</p>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-amber-700">Start:</span>
+                  <span className={`text-sm text-amber-900 ${hasNewSelection ? 'line-through opacity-60' : ''}`}>
+                    {formatPreviousDateTime(previousStartAt)}
+                  </span>
+                </div>
+                {previousEndAt && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-amber-700">End:</span>
+                    <span className={`text-sm text-amber-900 ${hasNewSelection ? 'line-through opacity-60' : ''}`}>
+                      {formatPreviousDateTime(previousEndAt)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {hasNewSelection && (
+                <p className="text-xs text-amber-600 mt-1.5 font-medium">Select a new date and time below to reschedule.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="relative">
+        <div className="relative z-20 flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center flex-shrink-0">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide">{BOOKING_BUTTON_LABELS.pickDay}</div>
+          </div>
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={onToggleCalendar}
+              className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 cursor-pointer"
+            >
+              {showCalendar ? BOOKING_BUTTON_LABELS.hideCalendar : BOOKING_BUTTON_LABELS.showCalendar}
+              <svg className={`w-4 h-4 transition-transform ${showCalendar ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showCalendar && (
+              <div
+                className="absolute right-0 top-full mt-1 w-[min(100vw-1.5rem,320px)] sm:w-auto sm:min-w-[280px] grid rounded-2xl overflow-hidden border text-sm shadow-xl border-slate-200 bg-white text-slate-700"
+                role="dialog"
+                aria-label="Select a date"
+              >
+            <div className="bg-indigo-600 text-white flex items-center justify-between px-1 py-1">
+              <button onClick={() => onNavigateMonth('prev')} className="w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center transition-colors">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h3 className="text-base font-medium text-white">
+                {currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+              </h3>
+              <button onClick={() => onNavigateMonth('next')} className="w-8 h-8 rounded-lg cursor-pointer flex items-center justify-center transition-colors">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            <div className="grid grid-cols-7 p-2 gap-1 sm:gap-2">
+              {DAY_NAMES.map((day) => (
+                <div key={day} className="text-center text-xs sm:text-sm font-medium text-gray-500 py-2">{day}</div>
+              ))}
+              {getCalendarDays(currentMonth).map((date, index) => {
+                const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+                if (!isCurrentMonth) {
+                  return <div key={index} className="aspect-square" aria-hidden="true" />;
+                }
+                const isSelected = selectedDate?.toDateString() === date.toDateString();
+                const isTodayDate = isToday(date);
+                const isAvailable =
+                  !availabilitySettings?.timesheet || !selectedType
+                    ? true
+                    : isDateAvailable(
+                        date,
+                        availabilitySettings,
+                        selectedType,
+                        existingBookings,
+                        minLeadTimeMinutes,
+                        selectedServiceIds,
+                        serviceCatalog,
+                        providerTimezone,
+                        customerTimezone,
+                        dateExceptions,
+                        serviceProviderId
+                      );
+                const isPast = date < new Date() && !isTodayDate;
+                const isDisabled = !isAvailable || isPast;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        const nd = normalizeDate(date);
+                        step3PerfDateClickStart(nd.toDateString());
+                        const t0 = performance.now();
+                        onSelectDate(nd);
+                        onSelectTime('');
+                        if (onSetCurrentMonth && (date.getMonth() !== currentMonth.getMonth() || date.getFullYear() !== currentMonth.getFullYear())) {
+                          onSetCurrentMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+                        }
+                        onToggleCalendar();
+                        onDaysChange((prev) => {
+                          const exists = prev.some((d) => d.toDateString() === nd.toDateString());
+                          if (!exists) {
+                            const newDays: Date[] = [];
+                            for (let i = -5; i <= 5; i++) {
+                              const d = new Date(nd);
+                              d.setDate(nd.getDate() + i);
+                              newDays.push(normalizeDate(d));
+                            }
+                            return newDays.sort((a, b) => a.getTime() - b.getTime());
+                          }
+                          return prev;
+                        });
+                        step3PerfSync('Step3DateTime calendar date click handler', t0);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`aspect-square p-1 sm:p-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 ${
+                      isDisabled
+                        ? 'bg-gray-50 border-2 border-gray-200 text-gray-300 cursor-not-allowed opacity-60'
+                        : isSelected
+                          ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg scale-110 ring-2 ring-indigo-200'
+                          : 'text-gray-900 bg-white hover:bg-indigo-50 hover:border-2 hover:border-indigo-300 border-2 border-transparent'
+                    } ${isTodayDate && !isSelected && !isDisabled ? 'ring-2 ring-indigo-400' : ''}`}
+                  >
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <span>{date.getDate()}</span>
+                      {isTodayDate && !isSelected && !isDisabled && (
+                        <div className="w-1 h-1 rounded-full bg-indigo-600 mt-0.5" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="relative z-0 w-full min-w-0 overflow-hidden">
+          <div
+            ref={scrollContainerRef}
+            className="flex flex-nowrap gap-2 sm:gap-3 overflow-x-auto overflow-y-hidden py-2 sm:pb-3 -mx-1 px-1 scroll-smooth [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 px-4"
+          >
+            {availableDays.map((d) => {
+                const isSelected = selectedDate?.toDateString() === d.toDateString();
+                const isTodayDate = isToday(d);
+                return (
+                  <button
+                    key={d.toISOString()}
+                    ref={(el) => { if (isSelected) selectedDateRef.current = el; }}
+                    onClick={() => {
+                      const nd = normalizeDate(d);
+                      step3PerfDateClickStart(nd.toDateString());
+                      const t0 = performance.now();
+                      onSelectDate(nd);
+                      onSelectTime('');
+                      step3PerfSync('Step3DateTime date strip click handler', t0);
+                    }}
+                    className={`group flex-none min-w-[70px] p-2 rounded-xl sm:rounded-2xl transition-all duration-300 relative overflow-hidden ${
+                      isSelected
+                        ? 'text-white bg-indigo-600 shadow-xl scale-105 ring-2 sm:ring-4 ring-indigo-200 z-10'
+                        : 'bg-indigo-50 border-2 border-gray-200 hover:border-indigo-400 hover:shadow-lg hover:scale-105'
+                    }`} >
+                    {isSelected && <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />}
+                    <div className="relative z-10 text-center">
+                      <div className={`text-[10px] sm:text-xs font-bold ${isSelected ? 'text-indigo-100' : 'text-gray-500'}`}>
+                        {d.toLocaleDateString(undefined, { weekday: 'short' })}
+                      </div>
+                      <div className={`font-bold text-base sm:text-lg lg:text-xl ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                        {d.toLocaleDateString(undefined, { day: 'numeric' })}
+                      </div>
+                      <div className={`text-[10px] sm:text-xs ${isSelected ? 'text-indigo-100' : 'text-gray-500'}`}>
+                        {d.toLocaleDateString(undefined, { month: 'short' })}
+                      </div>
+                      {isTodayDate && !isSelected && (
+                        <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-indigo-600" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+
+      <div ref={timeslotSectionRef} className="scroll-mt-4">
+        {customerTimezone && onTimezoneChange ? (
+          <TimezoneSelector
+            customerTimezone={customerTimezone}
+            providerTimezone={providerTimezone}
+            workspaceTimezoneConfigured={workspaceTimezoneConfigured}
+            onTimezoneChange={onTimezoneChange}
+          />
+        ) : null}
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide">
+            {BOOKING_BUTTON_LABELS.availableTimes}
+            {customerTimezone ? (
+              <span className="text-xs text-gray-500 ml-2 normal-case font-normal">
+                ({customerTimezone})
+                {viewerTimezoneAbbrev ? ` - ${viewerTimezoneAbbrev}` : ''}
+              </span>
+            ) : null}
+          </div>
+        </div>
+        {loadingAvailability || loadingBookings ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center gap-3 text-gray-500">
+              <div className="w-6 h-6 border-[3px] border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              <span>{BOOKING_LOADING_MESSAGES.availability}</span>
+            </div>
+          </div>
+        ) : timeslots.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+            <p className="text-gray-500 font-medium">
+              {!selectedType
+                ? BOOKING_EMPTY_MESSAGES.selectEventFirst
+                : !selectedDate
+                  ? BOOKING_EMPTY_MESSAGES.selectDateFirst
+                  : BOOKING_EMPTY_MESSAGES.noTimeSlots}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
+            {timeslots
+              .filter((s) => !s.disabled)
+              .map((slot) => {
+                const isSelected =
+                  selectedStartUtc === slot.startUtc ||
+                  (!selectedStartUtc && selectedTime === slot.time);
+                return (
+                  <button
+                    key={slot.startUtc}
+                    onClick={() => {
+                      step3PerfSlotClickStart(slot.time);
+                      const t0 = performance.now();
+                      onSelectTime(slot.time);
+                      onSelectSlot?.(slot);
+                      step3PerfSync('Step3DateTime timeslot click handler', t0, {
+                        startUtc: slot.startUtc,
+                      });
+                    }}
+                    disabled={!selectedDate}
+                    title={slot.hostTime ? `Host: ${slot.hostTime}` : undefined}
+                    className={`group relative p-2.5 sm:p-3 lg:p-4 rounded-lg sm:rounded-xl transition-all duration-300 text-xs sm:text-sm font-bold overflow-hidden ${
+                      isSelected
+                        ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-xl scale-105 ring-2 sm:ring-4 ring-indigo-200'
+                        : 'bg-white border-2 border-gray-200 hover:border-indigo-400 hover:shadow-lg hover:scale-105 hover:bg-indigo-50'
+                    } ${!selectedDate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isSelected && <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />}
+                    <span className="relative z-10">{slot.time}</span>
+                  </button>
+                );
+              })}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 lg:mt-10 pt-6 sm:pt-8 border-t border-gray-200">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all font-semibold text-gray-700 hover:shadow-md"
+          >
+            {BOOKING_BUTTON_LABELS.back}
+          </button>
+        )}
+        <button
+          disabled={!selectedDate || !selectedTime || continueDisabled}
+          onClick={onContinue}
+          className={`w-full sm:w-auto sm:ml-auto px-6 sm:px-10 py-3 sm:py-3.5 rounded-xl text-white transition-all font-semibold ${
+            !selectedDate || !selectedTime || continueDisabled
+              ? 'bg-gray-300 cursor-not-allowed'
+              : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-xl hover:shadow-2xl hover:scale-105'
+          }`}
+        >
+          {continueLabel || BOOKING_BUTTON_LABELS.continue}
+        </button>
+      </div>
+    </div>
+  );
+}
