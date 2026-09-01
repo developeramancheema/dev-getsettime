@@ -114,6 +114,7 @@ export type meeting_options_settings = {
 };
 
 import type { workspace_notifications_settings } from '@/lib/workspace-notification-flags';
+import type { booking_rules } from '@/src/types/booking_rules';
 
 export type { workspace_notifications_settings };
 
@@ -123,6 +124,7 @@ export type WorkspaceSettings = {
   intake_form?: IntakeFormSettings;
   meeting_options?: meeting_options_settings;
   notifications?: workspace_notifications_settings;
+  booking_rules?: booking_rules;
   /** Public booking link slugs keyed by service provider user id */
   links?: Record<string, { slug?: string }>;
   /** Write-once ipapi geo snapshot from workspace registration */

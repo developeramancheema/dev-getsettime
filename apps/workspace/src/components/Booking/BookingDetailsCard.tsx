@@ -85,6 +85,20 @@ function normalize_booking_status_for_edit(
   return 'pending';
 }
 
+/** True when the booking’s calendar day is before today (local time). */
+function is_booking_date_past(
+  start_at: string | null | undefined
+): boolean {
+  if (!start_at) return false;
+  const start = new Date(start_at);
+  if (Number.isNaN(start.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const booking_day = new Date(start);
+  booking_day.setHours(0, 0, 0, 0);
+  return booking_day.getTime() < today.getTime();
+}
+
 export type BookingInviteeSavePayload = {
   invitee_name: string;
   invitee_email: string;
@@ -307,7 +321,14 @@ export function BookingDetailsCard({
 
   const start_all_inline_edits_ref = useRef<() => void>(() => {});
   start_all_inline_edits_ref.current = () => {
-    if ((booking.status || '').trim().toLowerCase() === 'cancelled') return;
+    const status_norm = (booking.status || '').trim().toLowerCase();
+    if (
+      status_norm === 'cancelled' ||
+      status_norm === 'completed' ||
+      is_booking_date_past(booking.start_at)
+    ) {
+      return;
+    }
     if (invitee_inline_edit) start_invitee_edit();
     if (booking_inline_edit) start_booking_info_edit();
   };
@@ -700,8 +721,12 @@ export function BookingDetailsCard({
   const booking_status_label = booking.status || 'Pending';
   const booking_status_normalized = (booking.status || '').trim().toLowerCase();
   const is_booking_cancelled = booking_status_normalized === 'cancelled';
-  const hide_booking_change_actions =
-    is_booking_cancelled || booking_status_normalized === 'completed';
+  const is_booking_completed = booking_status_normalized === 'completed';
+  const is_booking_past = is_booking_date_past(booking.start_at);
+  /** Past / completed / cancelled: fields & status locked; follow-up still allowed. */
+  const is_booking_read_only =
+    is_booking_cancelled || is_booking_completed || is_booking_past;
+  const hide_booking_change_actions = is_booking_read_only;
   const status_edit_options = is_booking_cancelled
     ? CANCELLED_STATUS_EDIT_OPTIONS
     : BOOKING_STATUS_EDIT_OPTIONS;
@@ -937,7 +962,7 @@ export function BookingDetailsCard({
                 Customer Information
               </h2>
               {(invitee_inline_edit || onEditInvitee) &&
-                (!is_booking_cancelled ||
+                (!is_booking_read_only ||
                   (invitee_editing && invitee_inline_edit)) && (
                 <div className="flex shrink-0 items-center gap-2 print:hidden">
                   {invitee_editing && invitee_inline_edit ? (
@@ -1031,7 +1056,7 @@ export function BookingDetailsCard({
                 Booking Information
               </h2>
               {(booking_inline_edit || onEditBooking) &&
-                (!is_booking_cancelled ||
+                (!is_booking_read_only ||
                   (booking_info_editing && booking_inline_edit)) && (
                 <div className="flex shrink-0 items-center gap-2 print:hidden">
                   {booking_info_editing && booking_inline_edit ? (
@@ -1471,85 +1496,87 @@ export function BookingDetailsCard({
               >
                 Copy Booking Link
               </button>
-              <button
-                type="button"
-                onClick={onMarkCompleted}
-                disabled={quickActionFeedback?.phase === 'loading'}
-                aria-busy={
-                  quickActionFeedback?.action === 'completed' &&
-                  quickActionFeedback.phase === 'loading'
-                }
-                className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span>Mark as Completed</span>
-                {quickActionFeedback?.action === 'completed' &&
-                  quickActionFeedback.phase === 'loading' && (
-                    <LoaderIcon
-                      aria-hidden
-                      className="h-5 w-5 shrink-0 animate-spin text-emerald-600"
-                    />
-                  )}
-                {quickActionFeedback?.action === 'completed' &&
-                  quickActionFeedback.phase === 'success' && (
-                    <CircleCheck
-                      aria-hidden
-                      className="h-5 w-5 shrink-0 text-emerald-600"
-                    />
-                  )}
-              </button>
-              <button
-                type="button"
-                onClick={onMarkNoShow}
-                disabled={quickActionFeedback?.phase === 'loading'}
-                aria-busy={
-                  quickActionFeedback?.action === 'no-show' &&
-                  quickActionFeedback.phase === 'loading'
-                }
-                className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-left text-sm font-medium text-yellow-700 transition hover:bg-yellow-100 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span>Mark as No-show</span>
-                {quickActionFeedback?.action === 'no-show' &&
-                  quickActionFeedback.phase === 'loading' && (
-                    <LoaderIcon
-                      aria-hidden
-                      className="h-5 w-5 shrink-0 animate-spin text-amber-600"
-                    />
-                  )}
-                {quickActionFeedback?.action === 'no-show' &&
-                  quickActionFeedback.phase === 'success' && (
-                    <CircleCheck
-                      aria-hidden
-                      className="h-5 w-5 shrink-0 text-emerald-600"
-                    />
-                  )}
-              </button>
               {!hide_booking_change_actions && (
-                <button
-                  type="button"
-                  onClick={onCancelBooking}
-                  disabled={quickActionFeedback?.phase === 'loading'}
-                  aria-busy={
-                    quickActionFeedback?.action === 'cancelled' &&
-                    quickActionFeedback.phase === 'loading'
-                  }
-                  className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span>Cancel Booking</span>
-                  {quickActionFeedback?.action === 'cancelled' &&
-                    quickActionFeedback.phase === 'loading' && (
-                      <LoaderIcon
-                        aria-hidden
-                        className="h-5 w-5 shrink-0 animate-spin text-red-600"
-                      />
-                    )}
-                  {quickActionFeedback?.action === 'cancelled' &&
-                    quickActionFeedback.phase === 'success' && (
-                      <CircleCheck
-                        aria-hidden
-                        className="h-5 w-5 shrink-0 text-emerald-600"
-                      />
-                    )}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={onMarkCompleted}
+                    disabled={quickActionFeedback?.phase === 'loading'}
+                    aria-busy={
+                      quickActionFeedback?.action === 'completed' &&
+                      quickActionFeedback.phase === 'loading'
+                    }
+                    className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span>Mark as Completed</span>
+                    {quickActionFeedback?.action === 'completed' &&
+                      quickActionFeedback.phase === 'loading' && (
+                        <LoaderIcon
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 animate-spin text-emerald-600"
+                        />
+                      )}
+                    {quickActionFeedback?.action === 'completed' &&
+                      quickActionFeedback.phase === 'success' && (
+                        <CircleCheck
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 text-emerald-600"
+                        />
+                      )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onMarkNoShow}
+                    disabled={quickActionFeedback?.phase === 'loading'}
+                    aria-busy={
+                      quickActionFeedback?.action === 'no-show' &&
+                      quickActionFeedback.phase === 'loading'
+                    }
+                    className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-left text-sm font-medium text-yellow-700 transition hover:bg-yellow-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span>Mark as No-show</span>
+                    {quickActionFeedback?.action === 'no-show' &&
+                      quickActionFeedback.phase === 'loading' && (
+                        <LoaderIcon
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 animate-spin text-amber-600"
+                        />
+                      )}
+                    {quickActionFeedback?.action === 'no-show' &&
+                      quickActionFeedback.phase === 'success' && (
+                        <CircleCheck
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 text-emerald-600"
+                        />
+                      )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onCancelBooking}
+                    disabled={quickActionFeedback?.phase === 'loading'}
+                    aria-busy={
+                      quickActionFeedback?.action === 'cancelled' &&
+                      quickActionFeedback.phase === 'loading'
+                    }
+                    className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span>Cancel Booking</span>
+                    {quickActionFeedback?.action === 'cancelled' &&
+                      quickActionFeedback.phase === 'loading' && (
+                        <LoaderIcon
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 animate-spin text-red-600"
+                        />
+                      )}
+                    {quickActionFeedback?.action === 'cancelled' &&
+                      quickActionFeedback.phase === 'success' && (
+                        <CircleCheck
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 text-emerald-600"
+                        />
+                      )}
+                  </button>
+                </>
               )}
               <button
                 type="button"

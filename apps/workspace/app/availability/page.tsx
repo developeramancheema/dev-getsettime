@@ -22,6 +22,10 @@ import AvailabilityTimesheet, {
 } from '@/src/components/Settings/AvailabilityTimesheet';
 import { DateExceptionsTable } from '@/src/components/Settings/DateExceptionsTable';
 import { AddExceptionPanel } from '@/src/features/availability/AddExceptionPanel';
+import { BookingRulesList } from '@/src/features/availability/BookingRulesList';
+import { EditBookingRulesPanel } from '@/src/features/availability/EditBookingRulesPanel';
+import { resolve_booking_rules } from '@/src/features/availability/booking_rules';
+import { slugify_event_type_title } from '@/src/features/event-types/event_type_slug';
 import AlertMessage from '@/src/components/Auth/AlertMessage';
 import { AvailabilityGeneralSkeleton } from '@/src/components/ui/AvailabilityGeneralSkeleton';
 import { TimezoneSelector } from '@/src/components/ui/TimezoneSelector';
@@ -34,12 +38,38 @@ import {
   formatTimezoneSelectLabel,
   getBrowserTimezone,
 } from '@/src/utils/timezone';
+import type { booking_rules, booking_rules_edit_target } from '@/src/types/booking_rules';
 import type { date_exception } from '@/src/types/date_exceptions';
 import { supabase } from "@/lib/supabaseClient";
 import { sync_settings_response } from '@/src/lib/workspace_shell_sync';
 import type { WorkspaceSettings, provider_availability_entry } from '@/src/types/workspace';
 
-type TabType = 'general' | 'date_exceptions' | 'availability';
+type TabType = 'general' | 'date_exceptions' | 'booking_rules' | 'availability';
+
+type booking_rules_event_type = {
+  id: number;
+  title: string;
+  slug: string | null;
+  short_description?: string | null;
+  internal_label: string | null;
+  event_type_format: string;
+  capacity_per_slot: number;
+  availability_mode: string;
+  recurrence: unknown;
+  allow_waitlist: boolean;
+  min_booking_notice_minutes: number;
+  max_booking_window_days: number;
+  allow_reschedule: boolean;
+  allow_cancellation: boolean;
+  duration_minutes: number | null;
+  buffer_before: number | null;
+  buffer_after: number | null;
+  location_type: string | null;
+  is_public: boolean | null;
+  status: string;
+  owner_id: string | null;
+  settings?: Record<string, unknown> | null;
+};
 type DayName = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 type BreakTime = { id: string; start: string; end: string };
 type DaySchedule = {
@@ -116,11 +146,29 @@ export default function Availability() {
   const [editingException, setEditingException] = useState<date_exception | null>(null);
   const [exceptionPendingDelete, setExceptionPendingDelete] = useState<date_exception | null>(null);
   const [exceptionDeleting, setExceptionDeleting] = useState(false);
+  const [bookingRulesPanelOpen, setBookingRulesPanelOpen] = useState(false);
+  const [bookingRulesEditTarget, setBookingRulesEditTarget] =
+    useState<booking_rules_edit_target | null>(null);
+  const [bookingRulesEventTypes, setBookingRulesEventTypes] = useState<
+    booking_rules_event_type[]
+  >([]);
+  const [bookingRulesEventTypesLoading, setBookingRulesEventTypesLoading] =
+    useState(false);
+  const [localBookingRules, setLocalBookingRules] = useState<booking_rules | null>(
+    null
+  );
   const [settingsAvailability, setSettingsAvailability] = useState<{
     timesheet: Record<DayName, DaySchedule> | null;
     individual: Record<string, boolean> | undefined;
     providers: Record<string, { timesheet?: Record<DayName, DaySchedule>; individual?: Record<string, boolean> }>;
   } | null>(null);
+
+  const bookingRules = useMemo(() => {
+    if (localBookingRules) return localBookingRules;
+    return resolve_booking_rules(
+      (settings ?? {}) as Record<string, unknown>
+    );
+  }, [localBookingRules, settings]);
 
   const formatHour = (hour: number) => {
     const suffix = hour >= 12 ? "PM" : "AM";
@@ -881,6 +929,166 @@ export default function Availability() {
     }
   };
 
+  const fetchBookingRulesEventTypes = async () => {
+    setBookingRulesEventTypesLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+
+      const res = await fetch("/api/event-types", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const rows = Array.isArray(data.data)
+        ? (data.data as booking_rules_event_type[])
+        : [];
+      setBookingRulesEventTypes(rows);
+    } catch (error) {
+      console.error("Error loading event types for booking rules:", error);
+    } finally {
+      setBookingRulesEventTypesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== "booking_rules") return;
+    void fetchBookingRulesEventTypes();
+  }, [activeTab]);
+
+  const openBookingRulesPanel = (target: booking_rules_edit_target) => {
+    if (!isWorkspaceAdminUser) return;
+    setBookingRulesEditTarget(target);
+    setBookingRulesPanelOpen(true);
+  };
+
+  const closeBookingRulesPanel = () => {
+    setBookingRulesPanelOpen(false);
+    setBookingRulesEditTarget(null);
+  };
+
+  const handleSaveGlobalBookingRules = async (next: booking_rules) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error("You are not signed in. Please refresh and try again.");
+    }
+
+    const res = await fetch("/api/settings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        settings: {
+          booking_rules: next,
+          general: {
+            allow_customer_cancellation: next.allow_cancellation,
+            allow_customer_reschedule: next.allow_reschedule,
+          },
+        },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(
+        typeof data.error === "string" ? data.error : "Failed to save booking rules."
+      );
+    }
+    if (session.user?.id && data.settings) {
+      sync_settings_response(session.user.id, data);
+    }
+    setLocalBookingRules(next);
+  };
+
+  const handleSaveEventTypeOverride = async (
+    eventTypeId: number,
+    patch: {
+      duration_minutes: number;
+      buffer_before: number;
+      buffer_after: number;
+      min_booking_notice_minutes: number;
+    }
+  ) => {
+    const existing = bookingRulesEventTypes.find((row) => row.id === eventTypeId);
+    if (!existing) {
+      throw new Error("Event type not found.");
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error("You are not signed in. Please refresh and try again.");
+    }
+
+    const shortDescription =
+      typeof existing.settings?.short_description === "string"
+        ? existing.settings.short_description
+        : existing.short_description ?? "";
+    const slug =
+      (existing.slug && existing.slug.trim()) ||
+      slugify_event_type_title(existing.title);
+
+    const res = await fetch("/api/event-types", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: existing.id,
+        title: existing.title,
+        slug,
+        short_description: shortDescription,
+        internal_label: existing.internal_label,
+        event_type_format: existing.event_type_format,
+        capacity_per_slot: existing.capacity_per_slot,
+        availability_mode: existing.availability_mode,
+        recurrence: existing.recurrence,
+        allow_waitlist: existing.allow_waitlist,
+        min_booking_notice_minutes: patch.min_booking_notice_minutes,
+        max_booking_window_days: existing.max_booking_window_days,
+        allow_reschedule: existing.allow_reschedule,
+        allow_cancellation: existing.allow_cancellation,
+        duration_minutes: patch.duration_minutes,
+        buffer_before: patch.buffer_before,
+        buffer_after: patch.buffer_after,
+        location_type: existing.location_type,
+        is_public: existing.is_public,
+        status: existing.status,
+        owner_id: existing.owner_id,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(
+        typeof data.error === "string"
+          ? data.error
+          : "Failed to save event type override."
+      );
+    }
+
+    const updated = (data.data ?? null) as booking_rules_event_type | null;
+    setBookingRulesEventTypes((prev) =>
+      prev.map((row) => {
+        if (row.id !== eventTypeId) return row;
+        if (updated) return { ...row, ...updated };
+        return {
+          ...row,
+          duration_minutes: patch.duration_minutes,
+          buffer_before: patch.buffer_before,
+          buffer_after: patch.buffer_after,
+          min_booking_notice_minutes: patch.min_booking_notice_minutes,
+        };
+      })
+    );
+  };
+
   const renderTabNav = () => (
     <nav className="flex shrink-0 gap-6 border-b border-slate-200">
       <button
@@ -908,6 +1116,20 @@ export default function Availability() {
       >
         Date Exceptions
         {activeTab === "date_exceptions" ? (
+          <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-indigo-600" />
+        ) : null}
+      </button>
+      <button
+        type="button"
+        onClick={() => setActiveTab("booking_rules")}
+        className={`relative -mb-px pb-3 text-sm font-semibold transition-colors ${
+          activeTab === "booking_rules"
+            ? "text-indigo-600"
+            : "text-slate-500 hover:text-slate-800"
+        }`}
+      >
+        Booking Rules
+        {activeTab === "booking_rules" ? (
           <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-indigo-600" />
         ) : null}
       </button>
@@ -961,7 +1183,9 @@ export default function Availability() {
   };
 
   const layoutPanelOpen =
-    (activeTab === "general" && timesheetEditPanelOpen) || exceptionPanelOpen;
+    (activeTab === "general" && timesheetEditPanelOpen) ||
+    exceptionPanelOpen ||
+    bookingRulesPanelOpen;
 
   const outlineActionBtn =
     "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50";
@@ -1100,6 +1324,23 @@ export default function Availability() {
             onEdit={openEditExceptionPanel}
             onDelete={setExceptionPendingDelete}
             readOnly={isStaffUser}
+          />
+        ) : null}
+
+        {activeTab === "booking_rules" ? (
+          <BookingRulesList
+            rules={bookingRules}
+            eventTypes={bookingRulesEventTypes.map((row) => ({
+              id: row.id,
+              title: row.title,
+              duration_minutes: row.duration_minutes,
+              buffer_before: row.buffer_before,
+              buffer_after: row.buffer_after,
+              min_booking_notice_minutes: row.min_booking_notice_minutes ?? 120,
+            }))}
+            loadingEventTypes={bookingRulesEventTypesLoading}
+            readOnly={!isWorkspaceAdminUser}
+            onEdit={openBookingRulesPanel}
           />
         ) : null}
 
@@ -1446,6 +1687,15 @@ export default function Availability() {
           isServiceProviderUser && currentUserId ? currentUserId : ""
         }
         lockProviderScope={isServiceProviderUser}
+      />
+
+      <EditBookingRulesPanel
+        open={bookingRulesPanelOpen}
+        target={bookingRulesEditTarget}
+        rules={bookingRules}
+        onClose={closeBookingRulesPanel}
+        onSaveGlobal={handleSaveGlobalBookingRules}
+        onSaveEventType={handleSaveEventTypeOverride}
       />
 
       {exceptionPendingDelete ? (

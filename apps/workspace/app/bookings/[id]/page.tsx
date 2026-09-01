@@ -149,12 +149,31 @@ export default function BookingDetailsPage() {
     }
   }, [toolbar_edit_session, is_inline_editing, inline_save_pending]);
 
-  const is_booking_cancelled =
+  const booking_status_normalized =
+    fetch_state.status === 'ready'
+      ? (fetch_state.booking.status || '').trim().toLowerCase()
+      : '';
+  const is_booking_cancelled = booking_status_normalized === 'cancelled';
+  const is_booking_completed = booking_status_normalized === 'completed';
+  const is_booking_past =
     fetch_state.status === 'ready' &&
-    (fetch_state.booking.status || '').trim().toLowerCase() === 'cancelled';
+    (() => {
+      const start_at = fetch_state.booking.start_at;
+      if (!start_at) return false;
+      const start = new Date(start_at);
+      if (Number.isNaN(start.getTime())) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const booking_day = new Date(start);
+      booking_day.setHours(0, 0, 0, 0);
+      return booking_day.getTime() < today.getTime();
+    })();
+  /** Past / completed / cancelled bookings stay locked; follow-up remains available. */
+  const is_booking_read_only =
+    is_booking_cancelled || is_booking_completed || is_booking_past;
 
   const show_toolbar_save =
-    !is_booking_cancelled &&
+    !is_booking_read_only &&
     toolbar_edit_session &&
     (is_inline_editing || inline_save_pending);
 
@@ -240,7 +259,7 @@ export default function BookingDetailsPage() {
             </button>
             {fetch_state.status === 'ready' && (
               <>
-                {!is_booking_cancelled && !show_toolbar_save && (
+                {!is_booking_read_only && !show_toolbar_save && (
                   <button
                     type="button"
                     onClick={() => {

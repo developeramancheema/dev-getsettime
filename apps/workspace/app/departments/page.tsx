@@ -30,7 +30,11 @@ import { Pagination, usePagination } from "@app/ui";
 import { supabase } from "@/lib/supabaseClient";
 import { AlertModal } from "@/src/components/ui/AlertModal";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
-import { DepartmentSkeleton } from "@/src/components/ui/DepartmentSkeleton";
+import {
+  DepartmentPaginationSkeleton,
+  DepartmentTableRowsSkeleton,
+  StatValueSkeleton,
+} from "@/src/components/ui/DepartmentSkeleton";
 import { PortalActionsMenu } from "@/src/components/ui/PortalActionsMenu";
 import { AddDepartmentPanel } from "@/src/features/departments/AddDepartmentPanel";
 import {
@@ -906,9 +910,8 @@ export default function DepartmentsPage() {
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [rowMenuId]);
 
-  if (initialLoading || spLoading || authLoading) {
-    return <DepartmentSkeleton />;
-  }
+  const isPageLoading = initialLoading || spLoading || authLoading;
+  const showRowActions = !isLoggedInServiceProvider && !isStaffUser;
 
   const panelFieldClass =
     "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
@@ -1000,7 +1003,11 @@ export default function DepartmentsPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xl font-bold text-slate-900">
-                  {activeDepartmentsCount}
+                  {isPageLoading ? (
+                    <StatValueSkeleton />
+                  ) : (
+                    activeDepartmentsCount
+                  )}
                 </p>
                 <p className="text-sm text-slate-500">active departments</p>
               </div>
@@ -1012,7 +1019,7 @@ export default function DepartmentsPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xl font-bold text-slate-900">
-                  {totalServicesCount}
+                  {isPageLoading ? <StatValueSkeleton /> : totalServicesCount}
                 </p>
                 <p className="text-sm text-slate-500">linked services</p>
               </div>
@@ -1024,7 +1031,13 @@ export default function DepartmentsPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xl font-bold text-slate-900">
-                  {showFullDoctorFlow ? assignedDoctorsCount : doctors.length}
+                  {isPageLoading ? (
+                    <StatValueSkeleton />
+                  ) : showFullDoctorFlow ? (
+                    assignedDoctorsCount
+                  ) : (
+                    doctors.length
+                  )}
                 </p>
                 <p className="text-sm text-slate-500">
                   {showFullDoctorFlow ? "assigned consultants" : "consultants"}
@@ -1039,7 +1052,11 @@ export default function DepartmentsPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold text-slate-900">
-                    {privateDepartmentsCount + draftDepartmentsCount}
+                    {isPageLoading ? (
+                      <StatValueSkeleton />
+                    ) : (
+                      privateDepartmentsCount + draftDepartmentsCount
+                    )}
                   </p>
                   <p className="text-sm text-slate-500">private / draft</p>
                 </div>
@@ -1097,7 +1114,7 @@ export default function DepartmentsPage() {
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Status
                       </th>
-                      {!isLoggedInServiceProvider && !isStaffUser && (
+                      {showRowActions && (
                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                           Action
                         </th>
@@ -1105,213 +1122,223 @@ export default function DepartmentsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedDepartments.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={isLoggedInServiceProvider || isStaffUser ? 4 : 5}
-                          className="px-4 py-10 text-center"
-                        >
-                          <p className="text-sm font-medium text-slate-700">
-                            {isLoggedInServiceProvider
-                              ? "No assigned departments yet"
-                              : "No departments found"}
-                          </p>
-                          <p className="mt-1 text-sm text-slate-500">
-                            {isLoggedInServiceProvider
-                              ? "Choose a department from Quick Suggestions when adding."
-                              : departments.length === 0
-                                ? "Add your first department to get started."
-                                : "Try changing the search or status filter."}
-                          </p>
-                        </td>
-                      </tr>
-                    )}
-
-                    {paginatedDepartments.map((dep) => {
-                      const assigned = getDepartmentDoctors(dep.id);
-                      const services = getDepartmentServices(dep.id);
-                      const doctorCount = getDepartmentDoctorCount(dep.id);
-
-                      return (
-                        <tr
-                          key={dep.id}
-                          className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
-                        >
-                          <td className="px-4 py-3.5">
-                            <div className="flex items-start gap-3">
-                              <div
-                                className={classNames(
-                                  "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
-                                  get_department_gradient(dep)
-                                )}
-                              >
-                                <FaUserDoctor className="h-4 w-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-slate-900">
-                                  {dep.name}
-                                </p>
-                                {dep.description ? (
-                                  <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
-                                    {dep.description}
-                                  </p>
-                                ) : (
-                                  <p className="mt-0.5 text-xs text-slate-400">
-                                    {doctorCount} consultant
-                                    {doctorCount !== 1 ? "s" : ""}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-3.5">
-                            {assigned.length === 0 ? (
-                              <span className="text-sm text-slate-400">
-                                Unassigned
-                              </span>
-                            ) : (
-                              <div className="flex min-w-0 items-center gap-2.5">
-                                <div className="flex shrink-0 items-center">
-                                  {assigned.slice(0, 3).map((doctor, index) => (
-                                    <div
-                                      key={doctor.id}
-                                      className={classNames(
-                                        "relative rounded-full ring-2 ring-white",
-                                        index > 0 && "-ml-2"
-                                      )}
-                                      style={{ zIndex: assigned.length - index }}
-                                    >
-                                      <ProviderAvatar
-                                        name={doctor.name}
-                                        initials={provider_initials(doctor.name)}
-                                        avatarUrl={providerAvatarById.get(doctor.id)}
-                                        size="sm"
-                                      />
-                                    </div>
-                                  ))}
-                                  {assigned.length > 3 && (
-                                    <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
-                                      +{assigned.length - 3}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="min-w-0 text-sm leading-snug text-slate-800">
-                                  {assigned[0]?.name}
-                                  {assigned.length > 1 ? (
-                                    <>
-                                      <br />
-                                      <span className="text-xs text-slate-500">
-                                        +{assigned.length - 1} more
-                                      </span>
-                                    </>
-                                  ) : null}
-                                </p>
-                              </div>
-                            )}
-                          </td>
-
-                          <td className="px-4 py-3.5">
-                            {services.length === 0 ? (
-                              <span className="text-sm text-slate-400">
-                                No services
-                              </span>
-                            ) : (
-                              <p className="text-sm text-slate-700">
-                                {services.length} service
-                                {services.length !== 1 ? "s" : ""}
-                              </p>
-                            )}
-                          </td>
-
-                          <td className="px-4 py-3.5">
-                            <span
-                              className={classNames(
-                                "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
-                                departmentStatusBadgeClass(dep.status)
-                              )}
+                    {isPageLoading ? (
+                      <DepartmentTableRowsSkeleton showActions={showRowActions} />
+                    ) : (
+                      <>
+                        {paginatedDepartments.length === 0 && (
+                          <tr>
+                            <td
+                              colSpan={showRowActions ? 5 : 4}
+                              className="px-4 py-10 text-center"
                             >
-                              {departmentStatusLabel(dep.status)}
-                            </span>
-                          </td>
-
-                          {!isLoggedInServiceProvider && !isStaffUser && (
-                            <td className="px-4 py-3.5">
-                              <div className="relative flex items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => openEditDepartment(dep)}
-                                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                  Edit
-                                </button>
-                                <PortalActionsMenu
-                                  open={rowMenuId === dep.id}
-                                  onToggle={() =>
-                                    setRowMenuId((prev) =>
-                                      prev === dep.id ? null : dep.id
-                                    )
-                                  }
-                                >
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    disabled={busyAction}
-                                    onClick={() => {
-                                      setRowMenuId(null);
-                                      void toggleDepartmentStatus(dep);
-                                    }}
-                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                                  >
-                                    {dep.status === "inactive" ? (
-                                      <>
-                                        <Power className="h-3.5 w-3.5" />
-                                        Activate
-                                      </>
-                                    ) : (
-                                      <>
-                                        <PowerOff className="h-3.5 w-3.5" />
-                                        Inactivate
-                                      </>
-                                    )}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    disabled={
-                                      busyAction || departments.length === 1
-                                    }
-                                    onClick={() => {
-                                      setRowMenuId(null);
-                                      handleDeleteDepartmentClick(dep.id);
-                                    }}
-                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Delete
-                                  </button>
-                                </PortalActionsMenu>
-                              </div>
+                              <p className="text-sm font-medium text-slate-700">
+                                {isLoggedInServiceProvider
+                                  ? "No assigned departments yet"
+                                  : "No departments found"}
+                              </p>
+                              <p className="mt-1 text-sm text-slate-500">
+                                {isLoggedInServiceProvider
+                                  ? "Choose a department from Quick Suggestions when adding."
+                                  : departments.length === 0
+                                    ? "Add your first department to get started."
+                                    : "Try changing the search or status filter."}
+                              </p>
                             </td>
-                          )}
-                        </tr>
-                      );
-                    })}
+                          </tr>
+                        )}
+
+                        {paginatedDepartments.map((dep) => {
+                          const assigned = getDepartmentDoctors(dep.id);
+                          const services = getDepartmentServices(dep.id);
+                          const doctorCount = getDepartmentDoctorCount(dep.id);
+
+                          return (
+                            <tr
+                              key={dep.id}
+                              className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
+                            >
+                              <td className="px-4 py-3.5">
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className={classNames(
+                                      "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                                      get_department_gradient(dep)
+                                    )}
+                                  >
+                                    <FaUserDoctor className="h-4 w-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-slate-900">
+                                      {dep.name}
+                                    </p>
+                                    {dep.description ? (
+                                      <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                                        {dep.description}
+                                      </p>
+                                    ) : (
+                                      <p className="mt-0.5 text-xs text-slate-400">
+                                        {doctorCount} consultant
+                                        {doctorCount !== 1 ? "s" : ""}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-3.5">
+                                {assigned.length === 0 ? (
+                                  <span className="text-sm text-slate-400">
+                                    Unassigned
+                                  </span>
+                                ) : (
+                                  <div className="flex min-w-0 items-center gap-2.5">
+                                    <div className="flex shrink-0 items-center">
+                                      {assigned.slice(0, 3).map((doctor, index) => (
+                                        <div
+                                          key={doctor.id}
+                                          className={classNames(
+                                            "relative rounded-full ring-2 ring-white",
+                                            index > 0 && "-ml-2"
+                                          )}
+                                          style={{ zIndex: assigned.length - index }}
+                                        >
+                                          <ProviderAvatar
+                                            name={doctor.name}
+                                            initials={provider_initials(doctor.name)}
+                                            avatarUrl={providerAvatarById.get(doctor.id)}
+                                            size="sm"
+                                          />
+                                        </div>
+                                      ))}
+                                      {assigned.length > 3 && (
+                                        <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
+                                          +{assigned.length - 3}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="min-w-0 text-sm leading-snug text-slate-800">
+                                      {assigned[0]?.name}
+                                      {assigned.length > 1 ? (
+                                        <>
+                                          <br />
+                                          <span className="text-xs text-slate-500">
+                                            +{assigned.length - 1} more
+                                          </span>
+                                        </>
+                                      ) : null}
+                                    </p>
+                                  </div>
+                                )}
+                              </td>
+
+                              <td className="px-4 py-3.5">
+                                {services.length === 0 ? (
+                                  <span className="text-sm text-slate-400">
+                                    No services
+                                  </span>
+                                ) : (
+                                  <p className="text-sm text-slate-700">
+                                    {services.length} service
+                                    {services.length !== 1 ? "s" : ""}
+                                  </p>
+                                )}
+                              </td>
+
+                              <td className="px-4 py-3.5">
+                                <span
+                                  className={classNames(
+                                    "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+                                    departmentStatusBadgeClass(dep.status)
+                                  )}
+                                >
+                                  {departmentStatusLabel(dep.status)}
+                                </span>
+                              </td>
+
+                              {showRowActions && (
+                                <td className="px-4 py-3.5">
+                                  <div className="relative flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditDepartment(dep)}
+                                      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                      Edit
+                                    </button>
+                                    <PortalActionsMenu
+                                      open={rowMenuId === dep.id}
+                                      onToggle={() =>
+                                        setRowMenuId((prev) =>
+                                          prev === dep.id ? null : dep.id
+                                        )
+                                      }
+                                    >
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        disabled={busyAction}
+                                        onClick={() => {
+                                          setRowMenuId(null);
+                                          void toggleDepartmentStatus(dep);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                                      >
+                                        {dep.status === "inactive" ? (
+                                          <>
+                                            <Power className="h-3.5 w-3.5" />
+                                            Activate
+                                          </>
+                                        ) : (
+                                          <>
+                                            <PowerOff className="h-3.5 w-3.5" />
+                                            Inactivate
+                                          </>
+                                        )}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        disabled={
+                                          busyAction || departments.length === 1
+                                        }
+                                        onClick={() => {
+                                          setRowMenuId(null);
+                                          handleDeleteDepartmentClick(dep.id);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        Delete
+                                      </button>
+                                    </PortalActionsMenu>
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </>
+                    )}
                   </tbody>
                 </table>
               </div>
 
               <div className="border-t border-slate-200 px-4 py-3">
-                <Pagination
-                  currentPage={departmentsPage}
-                  totalPages={departmentsTotalPages}
-                  totalItems={departmentsTotalItems}
-                  itemsPerPage={DEPARTMENTS_PAGE_SIZE}
-                  onPageChange={handleDepartmentsPageChange}
-                  loading={busyAction}
-                  itemLabel="departments"
-                />
+                {isPageLoading ? (
+                  <DepartmentPaginationSkeleton />
+                ) : (
+                  <Pagination
+                    currentPage={departmentsPage}
+                    totalPages={departmentsTotalPages}
+                    totalItems={departmentsTotalItems}
+                    itemsPerPage={DEPARTMENTS_PAGE_SIZE}
+                    onPageChange={handleDepartmentsPageChange}
+                    loading={busyAction}
+                    itemLabel="departments"
+                  />
+                )}
               </div>
             </div>
           </section>
@@ -1324,7 +1351,11 @@ export default function DepartmentsPage() {
                 </div>
                 <p className="text-sm text-slate-600">
                   <span className="font-semibold text-slate-900">
-                    {totalAssignments}
+                    {isPageLoading ? (
+                      <StatValueSkeleton className="inline-block h-4 w-8 align-middle" />
+                    ) : (
+                      totalAssignments
+                    )}
                   </span>{" "}
                   total consultant-department assignments
                 </p>
@@ -1335,7 +1366,11 @@ export default function DepartmentsPage() {
                 </div>
                 <p className="text-sm text-slate-600">
                   <span className="font-semibold text-slate-900">
-                    {activeDepartmentsCount}
+                    {isPageLoading ? (
+                      <StatValueSkeleton className="inline-block h-4 w-8 align-middle" />
+                    ) : (
+                      activeDepartmentsCount
+                    )}
                   </span>{" "}
                   departments visible on booking
                 </p>
@@ -1346,11 +1381,19 @@ export default function DepartmentsPage() {
                 </div>
                 <p className="text-sm text-slate-600">
                   <span className="font-semibold text-slate-900">
-                    {privateDepartmentsCount}
+                    {isPageLoading ? (
+                      <StatValueSkeleton className="inline-block h-4 w-8 align-middle" />
+                    ) : (
+                      privateDepartmentsCount
+                    )}
                   </span>{" "}
                   private department
-                  {privateDepartmentsCount !== 1 ? "s" : ""}
-                  {draftDepartmentsCount > 0
+                  {isPageLoading
+                    ? "s"
+                    : privateDepartmentsCount !== 1
+                      ? "s"
+                      : ""}
+                  {!isPageLoading && draftDepartmentsCount > 0
                     ? `, ${draftDepartmentsCount} draft`
                     : ""}
                 </p>

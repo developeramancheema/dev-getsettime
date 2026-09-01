@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Department, EventType, Service, ServiceProvider } from '@/src/types/bookingForm';
 import { useBookingFormData } from '@/src/hooks/useBookingFormData';
 import { useTimeslots } from '@/src/hooks/useTimeslots';
@@ -24,6 +24,14 @@ import type { NormalizedIntakeForm } from '@/src/utils/intakeForm';
 import type { IntakeFormSettings } from '@/src/types/workspace';
 
 type Mode = 'follow_up' | 'reschedule';
+
+function same_calendar_day(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
 
 function build_department(
   booking_department_id: string | number | null | undefined,
@@ -101,6 +109,12 @@ export function BookingDetailDatetimeModal({
   );
   const [error, setError] = useState<string | null>(null);
   const [rescheduleServiceCatalog, setRescheduleServiceCatalog] = useState<Service[]>([]);
+  /**
+   * Preselect the original booking slot once per open. Must not re-run on every
+   * `timeslots` rebuild — Step3's date strip grows to STRIP_MAX_DAYS and each
+   * growth refetches busy slots, which would otherwise overwrite the user's pick.
+   */
+  const initial_slot_applied_ref = useRef(false);
 
   const {
     customerTimezone: manualCustomerTz,
@@ -123,10 +137,15 @@ export function BookingDetailDatetimeModal({
     [booking.metadata]
   );
 
+  /**
+   * Department/provider are locked from the booking in this modal (unlike the
+   * multi-step create form). Clearing the date here fought preselection and left
+   * Step3 to auto-pick the first available day whenever availability resolved.
+   */
   const onAvailabilityChange = useCallback(() => {
-    setSelectedDate(null);
     setSelectedTime('');
     setSelectedStartUtc(null);
+    initial_slot_applied_ref.current = false;
   }, []);
 
   const {
@@ -178,6 +197,12 @@ export function BookingDetailDatetimeModal({
     providerTimezone,
     viewerTimezone
   );
+
+  const handleSelectDate = useCallback((date: Date) => {
+    setSelectedDate(date);
+    setSelectedTime('');
+    setSelectedStartUtc(null);
+  }, []);
 
   const handleSelectSlot = useCallback((slot: Timeslot) => {
     setSelectedTime(slot.time);
@@ -276,27 +301,50 @@ export function BookingDetailDatetimeModal({
   }, [open, booking.event_type_id, eventTypes]);
 
   useEffect(() => {
-    if (!open || !booking.start_at) return;
+    if (!open) {
+      initial_slot_applied_ref.current = false;
+      return;
+    }
+    if (!booking.start_at) return;
     const d = new Date(booking.start_at);
     setSelectedDate(normalizeDate(d));
     setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1));
     setSelectedStartUtc(booking.start_at);
+    setSelectedTime('');
+    initial_slot_applied_ref.current = false;
   }, [open, booking.start_at]);
 
   useEffect(() => {
     if (!open || !booking.start_at || !selectedDate || timeslots.length === 0) return;
-    const slot =
-      timeslots.find((s) => s.startUtc === booking.start_at && !s.disabled) ??
-      timeslots.find((s) => !s.disabled);
+    if (initial_slot_applied_ref.current) return;
+
+    const booking_day = normalizeDate(new Date(booking.start_at));
+    if (!same_calendar_day(selectedDate, booking_day)) {
+      // User (or Step3 auto-select) already moved off the original day — do not
+      // force the first enabled slot; that was overwriting manual picks.
+      initial_slot_applied_ref.current = true;
+      return;
+    }
+
+    const slot = timeslots.find(
+      (s) => s.startUtc === booking.start_at && !s.disabled
+    );
     if (slot) {
       setSelectedTime(slot.time);
       setSelectedStartUtc(slot.startUtc);
     }
+    initial_slot_applied_ref.current = true;
   }, [open, booking.start_at, selectedDate, timeslots]);
 
   useEffect(() => {
-    if (selectedDate && selectedTime) {
-      const valid = timeslots.some((s) => s.time === selectedTime && !s.disabled);
+    if (selectedDate && (selectedTime || selectedStartUtc)) {
+      const valid = timeslots.some(
+        (s) =>
+          !s.disabled &&
+          (selectedStartUtc
+            ? s.startUtc === selectedStartUtc
+            : s.time === selectedTime)
+      );
       if (!valid) {
         setSelectedTime('');
         setSelectedStartUtc(null);
@@ -305,7 +353,7 @@ export function BookingDetailDatetimeModal({
       setSelectedTime('');
       setSelectedStartUtc(null);
     }
-  }, [selectedDate, timeslots, selectedTime]);
+  }, [selectedDate, timeslots, selectedTime, selectedStartUtc]);
 
   const title =
     mode === 'follow_up'
@@ -438,7 +486,7 @@ export function BookingDetailDatetimeModal({
               departmentsCount={departments.length}
               workspacePrimaryColor={workspacePrimaryColor}
               workspaceAccentColor={workspaceAccentColor}
-              onSelectDate={setSelectedDate}
+              onSelectDate={handleSelectDate}
               onSelectTime={setSelectedTime}
               onSelectSlot={handleSelectSlot}
               onToggleCalendar={() => setShowCalendar((s) => !s)}

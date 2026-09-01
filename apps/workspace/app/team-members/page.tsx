@@ -35,7 +35,10 @@ import {
   useSubscription,
   type SubscriptionApiResponse,
 } from "@/src/hooks/useSubscription";
-import { TeamMemberSkeleton } from "@/src/components/ui/TeamMemberSkeleton";
+import {
+  StatValueSkeleton,
+  TeamMemberCardsSkeleton,
+} from "@/src/components/ui/TeamMemberSkeleton";
 import {
   ROLE_SERVICE_PROVIDER,
   ROLE_WORKSPACE_ADMIN,
@@ -929,10 +932,7 @@ export default function TeamMembersPage() {
         </div>
       )}
 
-      {initialLoading ? (
-        <TeamMemberSkeleton />
-      ) : (
-        <div className="mx-auto">
+      <div className="mx-auto">
           <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.25)]">
             <div className="border-b border-slate-100 bg-gradient-to-r from-sky-50 via-white to-indigo-50 px-5 py-5 md:px-7 md:py-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -999,7 +999,9 @@ export default function TeamMembersPage() {
                     <div className="flex items-center justify-between p-5">
                       <div>
                         <p className="text-sm text-slate-500">{label}</p>
-                        <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
+                        <p className="mt-1 text-2xl font-semibold text-slate-900">
+                          {initialLoading ? <StatValueSkeleton /> : value}
+                        </p>
                       </div>
                       <div className={`rounded-2xl p-3 ${iconClass}`}>
                         <StatIcon className="h-5 w-5" aria-hidden />
@@ -1053,7 +1055,9 @@ export default function TeamMembersPage() {
                 </div>
               </div>
 
-              {teamMembers.length === 0 ? (
+              {initialLoading ? (
+                <TeamMemberCardsSkeleton showActions={canManageMembers} />
+              ) : teamMembers.length === 0 ? (
                 <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
                     <LuUsers className="h-6 w-6 text-slate-400" aria-hidden />
@@ -1358,7 +1362,6 @@ export default function TeamMembersPage() {
             </div>
           </section>
         </div>
-      )}
 
       <ProviderCreateModal
         open={showMemberForm && !editingMember}

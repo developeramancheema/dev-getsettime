@@ -15,6 +15,20 @@ const CANCELLED_STATUS_OPTIONS = BOOKING_STATUSES.filter(
   (s) => s.value === "cancelled" || s.value === "reschedule"
 );
 
+const DEFAULT_EVENT_DURATION_MINUTES = 30;
+
+/** Add minutes to a datetime-local value and return the same input format. */
+function end_at_from_start(
+  start_local: string,
+  duration_minutes: number
+): string {
+  if (!start_local) return "";
+  const start = new Date(start_local);
+  if (Number.isNaN(start.getTime())) return "";
+  const end = new Date(start.getTime() + duration_minutes * 60_000);
+  return formatDateTimeLocal(end.toISOString());
+}
+
 interface BookingFormProps {
   booking?: Booking | null;
   onSave: () => void;
@@ -273,6 +287,57 @@ const BookingForm = ({
     []
   );
 
+  const duration_for_event_type = useCallback(
+    (event_type_id: string) => {
+      const selected = eventTypes.find((et) => et.id === event_type_id);
+      const minutes = selected?.duration_minutes;
+      if (typeof minutes === "number" && Number.isFinite(minutes) && minutes >= 1) {
+        return Math.trunc(minutes);
+      }
+      return DEFAULT_EVENT_DURATION_MINUTES;
+    },
+    [eventTypes]
+  );
+
+  const handleStartAtChange = useCallback(
+    (value: string) => {
+      setFormData((prev) => {
+        const duration = duration_for_event_type(prev.event_type_id);
+        const next_end = end_at_from_start(value, duration);
+        const previous_start = booking
+          ? formatDateTimeLocal(booking.start_at)
+          : "";
+        const start_changed =
+          Boolean(booking) && Boolean(value) && value !== previous_start;
+
+        return {
+          ...prev,
+          start_at: value,
+          end_at: next_end || prev.end_at,
+          status: start_changed ? "reschedule" : prev.status,
+        };
+      });
+    },
+    [booking, duration_for_event_type]
+  );
+
+  const handleEventTypeChange = useCallback(
+    (value: string) => {
+      setFormData((prev) => {
+        const duration = duration_for_event_type(value);
+        const next_end = prev.start_at
+          ? end_at_from_start(prev.start_at, duration)
+          : prev.end_at;
+        return {
+          ...prev,
+          event_type_id: value,
+          end_at: next_end || prev.end_at,
+        };
+      });
+    },
+    [duration_for_event_type]
+  );
+
   const handleStatusChange = useCallback(
     (value: string) => {
       if (isCancelledBooking && value === "reschedule") {
@@ -487,7 +552,7 @@ const BookingForm = ({
           id="start_at"
           type="datetime-local"
           value={formData.start_at}
-          onChange={(e) => updateFormField("start_at", e.target.value)}
+          onChange={(e) => handleStartAtChange(e.target.value)}
           className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
           required
         />
@@ -504,9 +569,18 @@ const BookingForm = ({
           id="end_at"
           type="datetime-local"
           value={formData.end_at}
-          onChange={(e) => updateFormField("end_at", e.target.value)}
-          className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
+          disabled
+          readOnly
+          className="w-full px-4 py-2 rounded-lg border border-slate-300 bg-slate-100 text-slate-600 cursor-not-allowed outline-none"
+          aria-describedby="end_at_hint"
         />
+        <p id="end_at_hint" className="mt-1 text-xs text-slate-500">
+          Calculated from start time and event type duration
+          {formData.event_type_id
+            ? ` (${duration_for_event_type(formData.event_type_id)} min)`
+            : ` (${DEFAULT_EVENT_DURATION_MINUTES} min default)`}
+          .
+        </p>
       </div>
 
       <div>
@@ -519,7 +593,7 @@ const BookingForm = ({
         <select
           id="event_type_id"
           value={formData.event_type_id}
-          onChange={(e) => updateFormField("event_type_id", e.target.value)}
+          onChange={(e) => handleEventTypeChange(e.target.value)}
           className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
           disabled={loadingEventTypes}
         >
