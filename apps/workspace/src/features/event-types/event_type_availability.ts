@@ -105,6 +105,19 @@ export function format_iso_date_label(value: string): string {
   return format_iso_date_display(value) || '—';
 }
 
+/** Display format: `9 Sep 2026`. */
+export function format_iso_date_long(value: string): string {
+  const parsed = parse_iso_date_input(value);
+  if (!parsed) return '';
+  const date = new Date(`${parsed}T00:00`);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 /** Display format: `dd-mm-yyyy hh:mm AM/PM`. */
 export function format_datetime_local_display(value: string): string {
   const parsed = parse_datetime_local_input(value);

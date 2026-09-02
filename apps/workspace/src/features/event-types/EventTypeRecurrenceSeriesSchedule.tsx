@@ -8,6 +8,7 @@ import { EventTypeTimeField } from "@/src/features/event-types/EventTypeTimeFiel
 import {
   datetime_local_from_date_and_time,
   format_iso_date_label,
+  format_iso_date_long,
   parse_datetime_local_input,
 } from "@/src/features/event-types/event_type_availability";
 import {
@@ -53,6 +54,9 @@ type EventTypeRecurrenceSeriesScheduleProps = {
   custom_availability: boolean;
   custom_availability_start_date: string | null;
   custom_availability_end_date: string | null;
+  ends_on_date: string | null;
+  max_fitting_sessions: number | null;
+  series_ready: boolean;
   digit_key_filter: (e: ReactKeyboardEvent<HTMLInputElement>) => void;
   show_heading?: boolean;
 };
@@ -71,9 +75,29 @@ export function EventTypeRecurrenceSeriesSchedule({
   custom_availability,
   custom_availability_start_date,
   custom_availability_end_date,
+  ends_on_date,
+  max_fitting_sessions,
+  series_ready,
   digit_key_filter,
   show_heading = true,
 }: EventTypeRecurrenceSeriesScheduleProps) {
+  const requested_sessions = parseInt(recurrence.end_after_sessions, 10);
+  const sessions_overflow =
+    custom_availability &&
+    recurrence.end_type === "after" &&
+    Number.isFinite(requested_sessions) &&
+    requested_sessions >= 1 &&
+    max_fitting_sessions != null &&
+    requested_sessions > max_fitting_sessions;
+  const sessions_unavailable =
+    series_ready &&
+    recurrence.end_type === "after" &&
+    Number.isFinite(requested_sessions) &&
+    requested_sessions >= 1 &&
+    !sessions_overflow &&
+    !ends_on_date;
+  const sessions_error_id = "event-type-recurrence-sessions-error";
+  const ends_on_label = ends_on_date ? format_iso_date_long(ends_on_date) : "";
   return (
     <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
       {show_heading ? (
@@ -356,15 +380,17 @@ export function EventTypeRecurrenceSeriesSchedule({
             ) : null}
           </div>
 
-          <label className="flex flex-wrap items-center gap-3">
-            <input
-              type="radio"
-              name={end_radio_name}
-              className="h-4 w-4 border-slate-300 text-violet-600 focus:ring-violet-500"
-              checked={recurrence.end_type === "after"}
-              onChange={() => on_recurrence_patch({ end_type: "after" })}
-            />
-            <span className="text-sm font-medium text-slate-800">After</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-3">
+              <input
+                type="radio"
+                name={end_radio_name}
+                className="h-4 w-4 border-slate-300 text-violet-600 focus:ring-violet-500"
+                checked={recurrence.end_type === "after"}
+                onChange={() => on_recurrence_patch({ end_type: "after" })}
+              />
+              <span className="text-sm font-medium text-slate-800">After</span>
+            </label>
             <input
               type="text"
               inputMode="numeric"
@@ -374,36 +400,99 @@ export function EventTypeRecurrenceSeriesSchedule({
                 const raw = e.target.value;
                 if (raw !== "" && !/^\d+$/.test(raw)) return;
                 const sessions = parseInt(raw, 10);
-                if (raw !== "" && Number.isFinite(sessions) && sessions >= 1) {
+                if (
+                  raw !== "" &&
+                  Number.isFinite(sessions) &&
+                  sessions >= 1 &&
+                  !(
+                    custom_availability &&
+                    max_fitting_sessions != null &&
+                    sessions > max_fitting_sessions
+                  )
+                ) {
                   clear_field_error("recurrence_end_after_sessions");
                 }
                 on_recurrence_patch({ end_type: "after", end_after_sessions: raw });
               }}
               onKeyDown={digit_key_filter}
-              aria-invalid={!!field_errors.recurrence_end_after_sessions}
+              aria-invalid={
+                !!field_errors.recurrence_end_after_sessions ||
+                sessions_overflow ||
+                sessions_unavailable
+              }
               aria-describedby={
-                field_errors.recurrence_end_after_sessions
-                  ? "event-type-recurrence-sessions-error"
-                  : undefined
+                field_errors.recurrence_end_after_sessions ||
+                sessions_overflow ||
+                sessions_unavailable
+                  ? sessions_error_id
+                  : ends_on_label && recurrence.end_type === "after"
+                    ? "event-type-recurrence-ends-on"
+                    : undefined
               }
               className={`w-16 rounded-xl border bg-slate-50 px-3 py-2.5 text-center text-sm text-slate-900 outline-none transition focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
-                field_errors.recurrence_end_after_sessions
+                field_errors.recurrence_end_after_sessions ||
+                sessions_overflow ||
+                sessions_unavailable
                   ? "border-red-400 focus:border-red-400"
                   : "border-slate-200 focus:border-violet-400"
               }`}
               data-event-type-field="recurrence_end_after_sessions"
             />
             <span className="text-sm text-slate-600">sessions</span>
-            {field_errors.recurrence_end_after_sessions ? (
+            {recurrence.end_type === "after" && ends_on_label ? (
+              <span
+                id="event-type-recurrence-ends-on"
+                className="text-sm text-slate-600"
+              >
+                Ends on{" "}
+                <span className="font-semibold text-slate-800">{ends_on_label}</span>
+              </span>
+            ) : null}
+            {sessions_overflow && max_fitting_sessions != null ? (
               <p
-                id="event-type-recurrence-sessions-error"
+                id={sessions_error_id}
+                className="basis-full text-sm text-red-600"
+                role="alert"
+              >
+                {max_fitting_sessions < 1 ? (
+                  <>
+                    The selected Custom Availability period cannot accommodate any
+                    sessions for this recurrence. Please extend the Custom
+                    Availability end date or choose a time the provider is
+                    available.
+                  </>
+                ) : (
+                  <>
+                    The selected Custom Availability period can accommodate a maximum
+                    of{" "}
+                    <strong>
+                      {max_fitting_sessions}{" "}
+                      {max_fitting_sessions === 1 ? "session" : "sessions"}
+                    </strong>
+                    . Please reduce the number of sessions or extend the Custom
+                    Availability end date.
+                  </>
+                )}
+              </p>
+            ) : sessions_unavailable ? (
+              <p
+                id={sessions_error_id}
+                className="basis-full text-sm text-red-600"
+                role="alert"
+              >
+                No available dates were found for this recurrence. Check the
+                provider&apos;s working hours and date exceptions.
+              </p>
+            ) : field_errors.recurrence_end_after_sessions ? (
+              <p
+                id={sessions_error_id}
                 className="basis-full text-sm text-red-600"
                 role="alert"
               >
                 {field_errors.recurrence_end_after_sessions}
               </p>
             ) : null}
-          </label>
+          </div>
         </div>
       </div>
     </div>

@@ -61,6 +61,12 @@ import { EventTypeRecurrenceSeriesSchedule } from "@/src/features/event-types/Ev
 import { copy_text_to_clipboard } from "@/src/utils/public_booking_link";
 import { supabase } from "@/lib/supabaseClient";
 import { normalizeServiceProvidersMeta } from "@/src/utils/bookingServiceAssignments";
+import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
+import type { date_exception } from "@/src/types/date_exceptions";
+import {
+  calculate_recurrence_series,
+  recurrence_sessions_capacity_error,
+} from "@/src/features/event-types/event_type_recurrence_occurrences";
 
 export {
   EVENT_TYPE_LOCATION_OPTIONS,
@@ -448,7 +454,8 @@ function apply_recurrence_schedule_step_errors(
   frequency: event_type_recurrence_frequency,
   errors: event_type_field_errors,
   custom_availability: boolean,
-  custom_availability_end_date: string | null | undefined
+  custom_availability_end_date: string | null | undefined,
+  series: { ends_on: string | null; max_sessions: number | null } | null
 ) {
   if (!recurrence.start_date.trim()) {
     errors.recurrence_start_date = "Start date is required.";
@@ -485,6 +492,17 @@ function apply_recurrence_schedule_step_errors(
       sessions < 1
     ) {
       errors.recurrence_end_after_sessions = "Enter at least 1 session.";
+    } else if (
+      custom_availability &&
+      series?.max_sessions != null &&
+      sessions > series.max_sessions
+    ) {
+      errors.recurrence_end_after_sessions = recurrence_sessions_capacity_error(
+        series.max_sessions
+      );
+    } else if (series != null && series.ends_on == null) {
+      errors.recurrence_end_after_sessions =
+        "No available dates were found for this recurrence. Check the provider's working hours and date exceptions.";
     }
   }
 }
@@ -537,6 +555,7 @@ export function EventTypeFormLayout({
   timezone_label = null,
   booking_url = null,
 }: EventTypeFormLayoutProps) {
+  const { availability: workspace_availability } = useWorkspaceSettings();
   const [active_step, set_active_step] = useState(0);
   const [field_errors, set_field_errors] = useState<event_type_field_errors>({});
   const [step_banner_error, set_step_banner_error] = useState<string | null>(null);
@@ -545,6 +564,7 @@ export function EventTypeFormLayout({
   const [departments, set_departments] = useState<event_type_department_option[]>([]);
   const [services, set_services] = useState<event_type_service_option[]>([]);
   const [lookups_loading, set_lookups_loading] = useState(false);
+  const [date_exceptions, set_date_exceptions] = useState<date_exception[]>([]);
   const [service_panel_open, set_service_panel_open] = useState(false);
   const [service_panel_entered, set_service_panel_entered] = useState(false);
 
@@ -573,10 +593,12 @@ export function EventTypeFormLayout({
       if (!session?.access_token || !lookups_mounted_ref.current) return;
 
       const headers = { Authorization: `Bearer ${session.access_token}` };
-      const [departments_response, services_response] = await Promise.all([
-        fetch("/api/departments", { headers }),
-        fetch("/api/services", { headers }),
-      ]);
+      const [departments_response, services_response, exceptions_response] =
+        await Promise.all([
+          fetch("/api/departments", { headers }),
+          fetch("/api/services", { headers }),
+          fetch("/api/date-exceptions?status=active&limit=200", { headers }),
+        ]);
 
       const departments_body = departments_response.ok
         ? ((await departments_response.json()) as { departments?: unknown })
@@ -584,6 +606,10 @@ export function EventTypeFormLayout({
       const services_body = services_response.ok
         ? ((await services_response.json()) as { services?: unknown })
         : { services: [] };
+
+      const exceptions_body = exceptions_response.ok
+        ? ((await exceptions_response.json()) as { exceptions?: unknown })
+        : { exceptions: [] };
 
       if (!lookups_mounted_ref.current) return;
 
@@ -643,11 +669,23 @@ export function EventTypeFormLayout({
 
       set_departments(next_departments);
       set_services(next_services);
+      set_date_exceptions(
+        Array.isArray(exceptions_body.exceptions)
+          ? exceptions_body.exceptions.filter(
+              (row): row is date_exception =>
+                !!row &&
+                typeof row === "object" &&
+                typeof (row as date_exception).id === "number" &&
+                typeof (row as date_exception).exception_date === "string"
+            )
+          : []
+      );
     } catch (error) {
       console.error("Error loading department and service lookups:", error);
       if (lookups_mounted_ref.current) {
         set_departments([]);
         set_services([]);
+        set_date_exceptions([]);
       }
     } finally {
       if (lookups_mounted_ref.current) set_lookups_loading(false);
@@ -732,6 +770,50 @@ export function EventTypeFormLayout({
       };
     });
   }, [service_provider_options, services, value.service_id]);
+
+  const schedule_active =
+    recurring_format || (group_format && value.recurrence.enabled);
+  const schedule_frequency = recurring_format
+    ? value.recurrence.frequency
+    : value.recurrence.allowed_frequency;
+
+  const series_preview = useMemo(() => {
+    if (!schedule_active) return null;
+    const sessions = parseInt(value.recurrence.end_after_sessions, 10);
+    if (!Number.isFinite(sessions) || sessions < 1) return null;
+    return calculate_recurrence_series({
+      frequency: schedule_frequency,
+      days_of_week: value.recurrence.days_of_week,
+      start_date: value.recurrence.start_date,
+      start_time: value.recurrence.start_time,
+      session_count: sessions,
+      duration_minutes: total_min,
+      custom_availability,
+      custom_availability_start: custom_availability
+        ? value.recurrence.custom_availability_start || null
+        : null,
+      custom_availability_end: custom_availability
+        ? value.recurrence.custom_availability_end || null
+        : null,
+      provider_ids: value.service_provider_ids,
+      workspace_availability,
+      date_exceptions,
+    });
+  }, [
+    custom_availability,
+    date_exceptions,
+    schedule_active,
+    schedule_frequency,
+    total_min,
+    value.recurrence.custom_availability_end,
+    value.recurrence.custom_availability_start,
+    value.recurrence.days_of_week,
+    value.recurrence.end_after_sessions,
+    value.recurrence.start_date,
+    value.recurrence.start_time,
+    value.service_provider_ids,
+    workspace_availability,
+  ]);
 
   // A service with a single provider leaves no choice to make, so pre-select it
   // once per service instead of forcing a click. Tracked by service id so a
@@ -837,7 +919,8 @@ export function EventTypeFormLayout({
             value.recurrence.frequency,
             errors,
             custom_availability,
-            custom_availability_end_date
+            custom_availability_end_date,
+            series_preview
           );
         }
         if (group_format && value.recurrence.enabled) {
@@ -846,7 +929,8 @@ export function EventTypeFormLayout({
             value.recurrence.allowed_frequency,
             errors,
             custom_availability,
-            custom_availability_end_date
+            custom_availability_end_date,
+            series_preview
           );
           if (value.recurrence.allow_custom_count) {
             const custom_count = parseInt(
@@ -876,6 +960,7 @@ export function EventTypeFormLayout({
       group_format,
       recurring_format,
       self_assign_option,
+      series_preview,
       show_service_provider_field,
       total_min,
       value.capacity_per_slot,
@@ -1067,11 +1152,20 @@ export function EventTypeFormLayout({
           clear("recurrence_end_after_sessions");
         } else {
           const sessions = parseInt(value.recurrence.end_after_sessions, 10);
-          if (
+          const valid_count =
             value.recurrence.end_after_sessions.trim() !== "" &&
             Number.isFinite(sessions) &&
-            sessions >= 1
-          ) {
+            sessions >= 1;
+          const overflow =
+            custom_availability &&
+            series_preview?.max_sessions != null &&
+            valid_count &&
+            sessions > series_preview.max_sessions;
+          const missing_dates =
+            series_preview != null &&
+            series_preview.ends_on == null &&
+            valid_count;
+          if (valid_count && !overflow && !missing_dates) {
             clear("recurrence_end_after_sessions");
           }
         }
@@ -1123,6 +1217,7 @@ export function EventTypeFormLayout({
     value.service_provider_ids.length,
     value.slug,
     value.title,
+    series_preview,
   ]);
 
   const duration_options = (() => {
@@ -1605,6 +1700,9 @@ export function EventTypeFormLayout({
     custom_availability,
     custom_availability_start_date,
     custom_availability_end_date,
+    ends_on_date: series_preview?.ends_on ?? null,
+    max_fitting_sessions: series_preview?.max_sessions ?? null,
+    series_ready: series_preview != null,
     digit_key_filter,
   };
 
