@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { assignFreePlanToWorkspace } from '@app/db/subscription';
 import { getTimezoneForCountry } from '@app/location';
+import { sendNewWorkspaceSuperadminEmail } from '@/lib/send-new-workspace-superadmin-email';
 import { ROLE_SERVICE_PROVIDER } from '@/src/constants/roles';
 import { resolveMeetingOptionsForServiceProvider } from '@/src/utils/providerSettingsResolution';
 import { workspace_meeting_options_to_location_types } from '@/src/utils/meeting_options';
@@ -380,6 +381,17 @@ export async function getOrCreateWorkspace(
     if (eventTypeError) {
       console.warn('Default event type creation (non-critical):', eventTypeError);
     }
+
+    void sendNewWorkspaceSuperadminEmail({
+      workspaceId: workspace.id,
+      workspaceName,
+      workspaceSlug,
+      ownerName: userName,
+      ownerEmail: userEmail,
+      source: 'self-serve',
+    }).catch((err) =>
+      console.error('Superadmin new-workspace email failed (non-critical):', err)
+    );
 
     return {
       data: { workspaceId: workspace.id, isNewWorkspace: true },
