@@ -170,34 +170,27 @@ export default function DashboardCalendarSnapshot() {
 
       <p className="mb-4 text-sm font-bold text-slate-700">{range_label}</p>
 
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {week_days.map((d, i) => {
-          const items = bookings_by_day.get(toDateKey(d)) ?? [];
-          const is_today = is_same_day(d, today);
-          return (
-            <div
-              key={toDateKey(d)}
-              className="flex flex-col items-center gap-1.5 py-1"
-            >
-              <span className="text-xs font-bold text-slate-400">
-                {WEEKDAY_LABELS[i]}
-              </span>
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
-                  is_today
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-700"
-                }`}
-              >
-                {d.getDate()}
-              </span>
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${day_dot_class(items)}`}
-              />
-            </div>
-          );
-        })}
+      <div className="overflow-hidden rounded-xl border border-slate-200">
+        <div className="grid grid-cols-7 divide-x divide-slate-200">
+          {week_days.map((d, i) => {
+            const items = bookings_by_day.get(toDateKey(d)) ?? [];
+            const is_today = is_same_day(d, today);
+            return (
+              <div key={toDateKey(d)} className={`flex min-h-[88px] flex-col items-center justify-between px-0.5 py-3 ${is_today ? "bg-indigo-50" : ""}`}>
+                <span className="text-xs font-bold text-slate-400">{WEEKDAY_LABELS[i]}</span>
+                <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
+                    is_today ? "bg-indigo-600 text-white" : "text-slate-700"
+                  }`}
+                >
+                  {d.getDate()}
+                </span>
+                <span className={`h-1.5 w-1.5 rounded-full ${day_dot_class(items)}`}/>
+              </div>
+            );
+          })}
+        </div>
       </div>
+      
 
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-4">
         {loading ? (

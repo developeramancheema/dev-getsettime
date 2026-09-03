@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import DashboardIcon, { type DashboardIconName } from "./DashboardIcon";
+import ScreenGate from "../ScreenGate";
 
 type IntegrationStatus = {
   label: string;
@@ -168,7 +169,8 @@ export default function WorkspaceOverviewCard({
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="grid divide-y divide-slate-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="grid divide-y divide-slate-100 grid-cols-1 lg:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <ScreenGate minWidth={1024}>
           <MetricTile
             label="Confirmed Today"
             value={loading ? "…" : String(confirmed_today)}
@@ -177,6 +179,9 @@ export default function WorkspaceOverviewCard({
             icon_bg="bg-indigo-50"
             icon_color="text-indigo-600"
           />
+          </ScreenGate>
+
+          <ScreenGate minWidth={1024}>
           <MetricTile
             label="Completion Rate"
             value={loading ? "…" : completion_rate_display}
@@ -186,6 +191,8 @@ export default function WorkspaceOverviewCard({
             icon_bg="bg-emerald-50"
             icon_color="text-emerald-600"
           />
+          </ScreenGate>
+
           <MetricTile
             label="Total Bookings"
             value={loading ? "…" : total_bookings.toLocaleString()}
@@ -197,7 +204,7 @@ export default function WorkspaceOverviewCard({
           />
         </div>
 
-        <div className="grid divide-y divide-slate-100 border-t border-slate-100 bg-slate-50/40 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="grid divide-y divide-slate-100 border-t border-slate-100 bg-slate-50/40 lg:grid-cols-3 sm:divide-x sm:divide-y-0">
           {integrations.map((integration) => (
             <Link
               key={integration.label}

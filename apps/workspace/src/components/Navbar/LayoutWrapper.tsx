@@ -9,43 +9,47 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "../Sidebar/Sidebar";
+import MobileSidebar from "../Sidebar/MobilesideBar";
 import Topbar from "./Topbar";
+import BottomBar from "./BottomBar";
 import { SubscriptionBanners } from "../Subscription/SubscriptionBanners";
 import { is_public_embed_booking_path } from "@/lib/public_embed_route";
 import { canAccessPage } from "@/src/constants/permissions";
 import { ROLE_CUSTOMER } from "@/src/constants/roles";
+import ScreenGate from "../ScreenGate";
 
 // Public routes that don't require authentication or sidebar
 const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/callback", "/invite-accept", "/my-bookings"];
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
   };
 
-  // Close sidebar when click outside
-  const closeSidebar = () => {
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(false);
-    }
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
-  // Close sidebar when window is resized to desktop size
+  // Close mobile menu when window is resized to desktop size
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // Check if current route is public
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || is_public_embed_booking_path(pathname) || pathname.startsWith('/booking-preview/');
@@ -123,14 +127,19 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     <WorkspaceSettingsProvider>
     <CreateBookingModalProvider>
     <div className="flex h-screen relative w-full overflow-hidden">
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-white/50 backdrop-blur-sm z-30 lg:hidden" onClick={closeSidebar} aria-hidden="true"/>
-      )}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      
+      <ScreenGate minWidth={1024}>
+        <Sidebar />
+      </ScreenGate>
+
+      <ScreenGate maxWidth={1023}>
+        <MobileSidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
+      </ScreenGate>
+
       <div className="flex-1 flex flex-col w-full min-w-0 min-h-0 ml-0 lg:ml-64 transition-all duration-300">
-        <Topbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <main className="relative flex min-h-0 flex-1 flex-col w-full overflow-x-hidden bg-gray-100">
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 lg:p-8">
+        <Topbar />
+        <main className="relative flex flex-1 flex-col w-full overflow-x-hidden bg-gray-100 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+          <div className={`flex flex-1 flex-col overflow-y-auto p-4 lg:p-8 ${isMobileMenuOpen ? "hidden lg:flex" : ""}`}>
             <div className="w-full max-w-full">
               <SubscriptionBanners />
               {children}
@@ -138,6 +147,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           </div>
           <CreateBookingModalHost />
         </main>
+        <BottomBar onMoreClick={toggleMobileMenu} isMoreOpen={isMobileMenuOpen} />
       </div>
     </div>
     </CreateBookingModalProvider>

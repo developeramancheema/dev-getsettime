@@ -14,17 +14,17 @@ export default function DashboardHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-4 md:flex-nowrap">
       <div className="min-w-0">
-        <h2 className="truncate text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+        <h2 className="truncate text-xl lg:text-2xl font-bold tracking-tight text-slate-900">
           Welcome back, {user_name}{" "}
           <span className="animate-wave inline-block" aria-hidden>
             👋
           </span>
         </h2>
         {subtitle ? (
-          <p className="mt-1 text-sm font-medium text-slate-500">{subtitle}</p>
+          <p className="text-sm text-slate-600">{subtitle}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex items-center gap-2.5">{actions}</div> : null}
+      {actions ? <div className="flex items-center gap-2.5 flex-wrap">{actions}</div> : null}
     </header>
   );
 }

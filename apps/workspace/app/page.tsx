@@ -26,6 +26,8 @@ import QrCodePublicLinkButton from "@/src/components/Dashboard/QrCodePublicLinkB
 import DashboardIcon from "@/src/components/Dashboard/DashboardIcon";
 import { DashboardUpgradeModal } from "@/src/components/Subscription/DashboardUpgradeModal";
 import { useSubscription } from "@/src/hooks/useSubscription";
+import ScreenGate from "@/src/components/ScreenGate";
+
 import {
   is_whatsapp_admin_enabled,
   is_whatsapp_user_enabled,
@@ -271,20 +273,22 @@ const Dashboard: React.FC = () => {
   const stat_loading = loading || range_loading;
 
   return (
-    <div className="space-y-6 pb-28 text-slate-900">
+    <div className="space-y-6 text-slate-900">
       <DashboardHeader
         user_name={user_name}
         subtitle="Here's what's happening with your workspace today."
         actions={
           <>
+            <ScreenGate minWidth={1024}>
             <button
               type="button"
               onClick={open_create_booking}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
               <DashboardIcon name="plus" size={17} className="text-indigo-600" />
-              Create Booking
+              <span className="hidden lg:block">Create Booking</span>
             </button>
+            </ScreenGate>
             <CopyPublicLinkButton />
             <QrCodePublicLinkButton />
             {show_upgrade_cta && (
@@ -301,7 +305,9 @@ const Dashboard: React.FC = () => {
         }
       />
 
+      <ScreenGate minWidth={1024}>
       <DashboardFilterBar range={range} on_range_change={set_range} />
+      </ScreenGate>
 
       <DashboardStatCards
         loading={stat_loading}
@@ -317,7 +323,8 @@ const Dashboard: React.FC = () => {
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.4fr_0.85fr]">
-        <div className="space-y-6">
+        <div className="space-y-6 order-2 lg:order-1">
+        <ScreenGate minWidth={1024}>
           <WorkspaceOverviewCard
             loading={loading}
             confirmed_today={confirmed_today}
@@ -330,10 +337,14 @@ const Dashboard: React.FC = () => {
             whatsapp_active={whatsapp_active}
             email_active={email_active}
           />
+          </ScreenGate>
+
           <UpcomingAppointmentsList
             bookings={upcoming_appointments}
             loading={upcoming_loading}
           />
+
+          <ScreenGate minWidth={1024}>
           <PlanUsageCard
             loading={subscription_loading}
             used={subscription_data?.usage.bookings_this_month ?? 0}
@@ -342,12 +353,46 @@ const Dashboard: React.FC = () => {
             usage={subscription_data?.usage ?? null}
             onUpgrade={() => set_show_upgrade_modal(true)}
           />
+          </ScreenGate>
+          
+          <ScreenGate maxWidth={1023}>
+            <div className="grid sm:grid-cols-2 gap-4">
+            <WorkspaceOverviewCard
+              loading={loading}
+              confirmed_today={confirmed_today}
+              confirmed_today_secondary={confirmed_today_secondary}
+              completion_rate_display={completion_rate_display}
+              completion_trend={completion_trend}
+              total_bookings={bookingsTotal}
+              total_bookings_trend={total_bookings_trend}
+              google_calendar_active={google_calendar_active}
+              whatsapp_active={whatsapp_active}
+              email_active={email_active}
+            />
+            <PlanUsageCard
+              loading={subscription_loading}
+              used={subscription_data?.usage.bookings_this_month ?? 0}
+              limit={subscription_data?.usage.booking_limit ?? 250}
+              plan={subscription_data?.plan ?? null}
+              usage={subscription_data?.usage ?? null}
+              onUpgrade={() => set_show_upgrade_modal(true)}
+            />
+            </div>
+          </ScreenGate>
+
         </div>
 
-        <div className="space-y-6">
+
+        <div className="space-y-6 order-1 lg:order-2">
+          <ScreenGate minWidth={1024}>
           <PublicBookingPreviewCard />
+          </ScreenGate>
+          
           <DashboardCalendarSnapshot />
+
+          <ScreenGate minWidth={1024}>
           <RecentActivityFeed />
+          </ScreenGate>
         </div>
       </section>
 

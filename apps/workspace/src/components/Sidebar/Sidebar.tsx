@@ -47,12 +47,7 @@ function pathnameToActiveMenu(pathname: string): string {
   return "";
 }
 
-interface SidebarProps {
-  isOpen: boolean;
-  onClose?: () => void;
-}
-
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar() {
   const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
   const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
 
@@ -128,11 +123,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const accountName = workspaceName || "GetSetTime";
 
-  const handleNavClick = () => {
-    if (typeof window !== "undefined" && window.innerWidth < 1024) {
-      onClose?.();
-    }
-  };
+  const handleNavClick = () => {};
 
   useEffect(() => {
     if (pathname === "/services" || pathname === "/departments") {
@@ -149,7 +140,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, [activeMenu]);
 
   return (
-    <aside className={`bg-white border-r border-gray-200 fixed top-0 left-0 z-40 h-screen w-64 flex flex-col transition-transform duration-300 ease-in-out ${ isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} shadow-lg`}>
+    <aside className="flex bg-white border-r border-gray-200 fixed top-0 left-0 z-40 h-screen w-64 flex-col shadow-lg">
       
       <div className="relative flex flex-1 flex-col min-h-0">
         <div className="h-16 px-3 flex items-center justify-start border-b border-gray-200">

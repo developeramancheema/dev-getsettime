@@ -10,10 +10,7 @@ import { useWorkspaceSettings } from "../../hooks/useWorkspaceSettings";
 import { useSubscription } from "@/src/hooks/useSubscription";
 import { WorkspaceBrandLogo } from "../molecules/WorkspaceBrandLogo";
 import GlobalSearch from "./GlobalSearch";
-interface TopbarProps {
-  toggleSidebar: () => void;
-  isSidebarOpen: boolean;
-}
+import ScreenGate from "../ScreenGate";
 
 interface NotificationItem {
   id: string;
@@ -33,7 +30,7 @@ function getRelativeTime(dateIso: string) {
   return `${days}d ago`;
 }
 
-export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
+export default function Topbar() {
   const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
   const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -179,18 +176,8 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
     <header className="sticky top-0 z-40 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center">
-          <button onClick={toggleSidebar} className="p-2 rounded-md text-gray-500 hover:bg-gray-100 lg:hidden" aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {isSidebarOpen ? (
-                <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-              ) : (
-                <path strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
-              )}
-            </svg>
-          </button>
-          
           <div className="lg:hidden">
-            <div className="h-16 px-3 flex items-center justify-start border-b border-gray-200">
+            <div className="h-16 flex items-center justify-start border-b border-gray-200">
               <Link href="/" className="logo flex flex-col items-start gap-0.5">
                 {!loadingSettings && (
                   <>
@@ -199,13 +186,16 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
                       alt={`${accountName} Logo`}
                       width={150}
                       height={40}
-                      className="h-8 w-auto object-contain"
+                      className="h-10 sm:h-12 lg:h-8 w-auto object-contain"
                     />
+                    <ScreenGate minWidth={1024}>
                     {accountName && accountName !== "GetSetTime" && (
                       <span className="text-xs sm:text-sm font-semibold text-gray-700 truncate max-w-[180px]">
                         {accountName}
                       </span>
                     )}
+                    </ScreenGate>
+
                   </>
                 )}
               </Link>

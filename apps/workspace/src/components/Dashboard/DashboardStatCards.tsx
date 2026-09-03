@@ -62,12 +62,8 @@ function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
   }
   const is_up = trend.direction === "up";
   return (
-    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium">
-      <span
-        className={`inline-flex items-center gap-0.5 font-bold ${
-          is_up ? "text-emerald-600" : "text-rose-500"
-        }`}
-      >
+    <p className="mt-1.5 flex flex-wrap items-center gap-1 text-xs">
+      <span className={`inline-flex items-center gap-0.5 ${ is_up ? "text-emerald-600" : "text-rose-500" }`}>
         <svg
           className="h-3.5 w-3.5"
           viewBox="0 0 24 24"
@@ -135,31 +131,19 @@ export default function DashboardStatCards({
   ];
 
   return (
-    <section
-      aria-label="dashboard-metrics"
-      className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-    >
+    <section aria-label="dashboard-metrics" className="grid gap-4 min-[450px]:grid-cols-2 md:grid-cols-4">
       {STAT_CARDS.map((stat, index) => (
-        <article
-          key={stat.label}
-          className="rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm transition duration-300 hover:shadow-md"
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className={`flex h-17 w-17 shrink-0 items-center justify-center rounded-2xl ${stat.icon_bg} ${stat.icon_color}`}
-            >
-              <DashboardIcon name={stat.icon} size={35} />
+        <article key={stat.label} className="rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm transition duration-300 hover:shadow-md">
+          <div className="flex items-start xl:items-center max-[450px]:flex-row-reverse max-[450px]:justify-between gap-4">
+            <div className={`flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-2xl ${stat.icon_bg} ${stat.icon_color}`}>
+              <DashboardIcon name={stat.icon} size={20} />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-slate-500">
-                {labels[index]}
-              </p>
-              <h3 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
-                {values[index]}
-              </h3>
-              <TrendLine trend={trends[index]} hint={hints[index]} />
+              <p className="truncate text-sm font-medium text-slate-500">{labels[index]}</p>
+              <h3 className="text-2xl xl:text-3xl font-bold leading-tight tracking-tight text-slate-900">{values[index]}</h3>
             </div>
           </div>
+          <TrendLine trend={trends[index]} hint={hints[index]} />
         </article>
       ))}
     </section>
