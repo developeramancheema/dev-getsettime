@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "../Sidebar/Sidebar";
-import MobileSidebar from "../Sidebar/MobilesideBar";
 import Topbar from "./Topbar";
 import BottomBar from "./BottomBar";
 import { SubscriptionBanners } from "../Subscription/SubscriptionBanners";
@@ -27,13 +26,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((prev) => !prev);
-  };
+  // const toggleMobileMenu = () => {
+  //   setIsMobileMenuOpen((prev) => !prev);
+  // };
 
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  // const closeMobileMenu = () => {
+  //   setIsMobileMenuOpen(false);
+  // };
 
   // Close mobile menu when window is resized to desktop size
   useEffect(() => {
@@ -126,30 +125,26 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceSettingsProvider>
     <CreateBookingModalProvider>
-    <div className="flex h-screen relative w-full overflow-hidden">
-      
-      <ScreenGate minWidth={1024}>
-        <Sidebar />
-      </ScreenGate>
+      <div className="flex h-screen relative w-full overflow-hidden">
+        
+        <ScreenGate minWidth={1024}>
+          <Sidebar />
+        </ScreenGate>
 
-      <ScreenGate maxWidth={1023}>
-        <MobileSidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
-      </ScreenGate>
-
-      <div className="flex-1 flex flex-col w-full min-w-0 min-h-0 ml-0 lg:ml-64 transition-all duration-300">
-        <Topbar />
-        <main className="relative flex flex-1 flex-col w-full overflow-x-hidden bg-gray-100 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
-          <div className={`flex flex-1 flex-col overflow-y-auto p-4 lg:p-8 ${isMobileMenuOpen ? "hidden lg:flex" : ""}`}>
-            <div className="w-full max-w-full">
-              <SubscriptionBanners />
-              {children}
+        <div className="flex-1 flex flex-col w-full min-w-0 min-h-0 ml-0 lg:ml-64 transition-all duration-300">
+          <Topbar />
+          <main className="relative flex flex-1 flex-col w-full overflow-x-hidden bg-gray-100 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+            <div className={`flex flex-1 flex-col overflow-y-auto p-4 lg:p-8 ${isMobileMenuOpen ? "hidden lg:flex" : ""}`}>
+              <div className="w-full max-w-full">
+                <SubscriptionBanners />
+                {children}
+              </div>
             </div>
-          </div>
-          <CreateBookingModalHost />
-        </main>
-        <BottomBar onMoreClick={toggleMobileMenu} isMoreOpen={isMobileMenuOpen} />
+            <CreateBookingModalHost />
+          </main>
+          <BottomBar />
+        </div>
       </div>
-    </div>
     </CreateBookingModalProvider>
     </WorkspaceSettingsProvider>
   );

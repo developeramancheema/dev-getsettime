@@ -155,8 +155,8 @@ export default function WorkspaceOverviewCard({
   ];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-5 flex items-center gap-3">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
+      <div className="lg:mb-5 mb-3 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
           <DashboardIcon name="activity" size={20} />
         </div>
@@ -170,27 +170,27 @@ export default function WorkspaceOverviewCard({
 
       <div className="overflow-hidden rounded-2xl border border-slate-200">
         <div className="grid divide-y divide-slate-100 grid-cols-1 lg:grid-cols-3 sm:divide-x sm:divide-y-0">
-        <ScreenGate minWidth={1024}>
-          <MetricTile
-            label="Confirmed Today"
-            value={loading ? "…" : String(confirmed_today)}
-            secondary={confirmed_today_secondary}
-            icon="circleCheck"
-            icon_bg="bg-indigo-50"
-            icon_color="text-indigo-600"
-          />
+          <ScreenGate minWidth={1024}>
+            <MetricTile
+              label="Confirmed Today"
+              value={loading ? "…" : String(confirmed_today)}
+              secondary={confirmed_today_secondary}
+              icon="circleCheck"
+              icon_bg="bg-indigo-50"
+              icon_color="text-indigo-600"
+            />
           </ScreenGate>
 
           <ScreenGate minWidth={1024}>
-          <MetricTile
-            label="Completion Rate"
-            value={loading ? "…" : completion_rate_display}
-            secondary="Completed vs all bookings"
-            trend={loading ? undefined : completion_trend}
-            icon="pieChart"
-            icon_bg="bg-emerald-50"
-            icon_color="text-emerald-600"
-          />
+            <MetricTile
+              label="Completion Rate"
+              value={loading ? "…" : completion_rate_display}
+              secondary="Completed vs all bookings"
+              trend={loading ? undefined : completion_trend}
+              icon="pieChart"
+              icon_bg="bg-emerald-50"
+              icon_color="text-emerald-600"
+            />
           </ScreenGate>
 
           <MetricTile

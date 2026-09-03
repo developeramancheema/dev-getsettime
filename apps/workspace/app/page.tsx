@@ -322,7 +322,7 @@ const Dashboard: React.FC = () => {
         no_shows_hint={NO_SHOWS_HINT[range]}
       />
 
-      <section className="grid gap-6 xl:grid-cols-[1.4fr_0.85fr]">
+      <section className="grid gap-6 grid-cols-1 xl:grid-cols-[1.4fr_0.85fr]">
         <div className="space-y-6 order-2 lg:order-1">
         <ScreenGate minWidth={1024}>
           <WorkspaceOverviewCard
@@ -345,14 +345,14 @@ const Dashboard: React.FC = () => {
           />
 
           <ScreenGate minWidth={1024}>
-          <PlanUsageCard
-            loading={subscription_loading}
-            used={subscription_data?.usage.bookings_this_month ?? 0}
-            limit={subscription_data?.usage.booking_limit ?? 250}
-            plan={subscription_data?.plan ?? null}
-            usage={subscription_data?.usage ?? null}
-            onUpgrade={() => set_show_upgrade_modal(true)}
-          />
+            <PlanUsageCard
+              loading={subscription_loading}
+              used={subscription_data?.usage.bookings_this_month ?? 0}
+              limit={subscription_data?.usage.booking_limit ?? 250}
+              plan={subscription_data?.plan ?? null}
+              usage={subscription_data?.usage ?? null}
+              onUpgrade={() => set_show_upgrade_modal(true)}
+            />
           </ScreenGate>
           
           <ScreenGate maxWidth={1023}>
