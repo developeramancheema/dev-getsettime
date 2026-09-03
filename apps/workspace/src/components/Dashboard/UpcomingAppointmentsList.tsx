@@ -87,12 +87,7 @@ export default function UpcomingAppointmentsList({
           </div>
           <h3 className="text-lg font-bold text-slate-900">Upcoming Appointments</h3>
         </div>
-        <Link
-          href="/calendar"
-          className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-        >
-          View Calendar
-        </Link>
+        <Link href="/calendar" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View Calendar</Link>
       </div>
 
       {loading ? (
@@ -116,9 +111,9 @@ export default function UpcomingAppointmentsList({
               <Link
                 key={booking.id}
                 href={`/bookings/${booking.id}`}
-                className="flex items-center gap-4 rounded-2xl border border-slate-200 p-3 transition hover:border-slate-300 hover:bg-slate-50"
+                className="flex items-center gap-4 lg:rounded-2xl border-b lg:border border-slate-200 p-3 transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-50 leading-tight">
+                <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center lg:rounded-xl border-r border-slate-200 lg:border-r-0 lg:bg-slate-50 leading-tight">
                   <span className="text-sm font-bold text-indigo-600">{time}</span>
                   {period ? (
                     <span className="text-xs font-bold text-slate-700">{period}</span>
@@ -137,8 +132,8 @@ export default function UpcomingAppointmentsList({
                 </span>
                 <DashboardIcon
                   name="chevronRight"
-                  size={16}
-                  className="shrink-0 text-slate-300"
+                  size={18}
+                  className="shrink-0 text-slate-500"
                 />
               </Link>
             );

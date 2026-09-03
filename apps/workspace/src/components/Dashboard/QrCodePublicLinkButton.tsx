@@ -75,7 +75,7 @@ export default function QrCodePublicLinkButton() {
         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <DashboardIcon name="qrCode" size={17} className="text-indigo-600" />
-        QR Code
+        <span className="hidden lg:block">QR Code</span>
       </button>
 
       {open && (

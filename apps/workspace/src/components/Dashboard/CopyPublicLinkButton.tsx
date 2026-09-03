@@ -124,7 +124,7 @@ export default function CopyPublicLinkButton() {
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
-        Public Link
+        <span className="hidden lg:block">Public Link</span>
         <svg
           width={16}
           height={16}
@@ -144,7 +144,7 @@ export default function CopyPublicLinkButton() {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-2 min-w-[220px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+          className="absolute min-[507px]:right-0 top-full z-50 mt-2 min-w-[220px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
         >
           <button
             type="button"
