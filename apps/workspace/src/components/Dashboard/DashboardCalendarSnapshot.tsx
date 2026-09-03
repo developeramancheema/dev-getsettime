@@ -5,6 +5,7 @@ import Link from "next/link";
 import DashboardIcon from "./DashboardIcon";
 import type { Booking } from "@/src/types/booking";
 import { toDateKey } from "@/src/components/Calendar/calendar_utils";
+import ScreenGate from "@/src/components/ScreenGate";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
@@ -148,6 +149,7 @@ export default function DashboardCalendarSnapshot() {
           </div>
           <h3 className="text-lg font-bold text-slate-900">Calendar Snapshot</h3>
         </div>
+        
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -214,11 +216,8 @@ export default function DashboardCalendarSnapshot() {
       </div>
 
       <div className="lg:pt-4 pt-3 text-center">
-        <Link
-          href="/calendar"
-          className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
-        >
-          View full calendar
+        <Link href="/calendar" className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700">
+          View calendar
           <DashboardIcon name="arrow" size={16} />
         </Link>
       </div>

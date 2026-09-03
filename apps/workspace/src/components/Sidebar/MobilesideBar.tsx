@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
@@ -53,23 +53,19 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
 
 function MenuRow({ item }: { item: MenuItem }) {
   return (
-    <Link href={item.href} className="flex items-center gap-3 border-b border-gray-100 px-3 py-2 last:border-b-0 hover:bg-gray-50/80">
+    <Link href={item.href} className="flex items-center gap-3 border-b border-gray-100 py-2 last:border-b-0 hover:bg-gray-50/80">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">{item.icon}</span>
       <span className="flex-1 text-xs sm:text-sm text-gray-800">{item.label}</span>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-neutral-600" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
     </Link>
   );
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "WS";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
-
 export default function MobileSidebar() {
   const { user } = useAuth();
+  const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
+  const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const { workspaceName, general, availability, loading: loadingSettings } = useWorkspaceSettings();
   const { data: subscription } = useSubscription();
 
@@ -105,66 +101,84 @@ export default function MobileSidebar() {
 
   const readinessLabel = readinessPercent >= 80 ? "Ready" : "Setup";
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
+    const metadataAvatar =
+      (metadata.avatar_url as string) ||
+      (metadata.picture as string) ||
+      null;
+
+    const updateAvatar = () => {
+      const savedAvatar = window.localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
+      const normalizedSavedAvatar =
+        savedAvatar && !savedAvatar.startsWith("data:") ? savedAvatar : null;
+      setProfileImage(normalizedSavedAvatar || metadataAvatar);
+    };
+
+    updateAvatar();
+    window.addEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
+    window.addEventListener("storage", updateAvatar);
+
+    return () => {
+      window.removeEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
+      window.removeEventListener("storage", updateAvatar);
+    };
+  }, [user]);
+
+  const appointmentItems: MenuItem[] = [
+    {
+      href: "/availability",
+      label: "Availability",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock3 lucide-clock-3 h-4.5 w-4.5" aria-hidden="true" data-source-pos="107:20-107:52" data-source-name="Icon"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6h4"></path></svg>
+      ),
+    },
+  ];
+
   const setupItems: MenuItem[] = [
-    {
-      href: "/services",
-      label: "Services",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-          <rect width="20" height="14" x="2" y="6" rx="2" />
-        </svg>
-      ),
-    },
-    {
-      href: "/team-members",
-      label: "Providers",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-    },
     {
       href: "/event-type",
       label: "Event Types",
       icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M16 2v4" />
-          <path d="M8 2v4" />
-          <path d="M3 10h18" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-book-open h-4.5 w-4.5" aria-hidden="true" data-source-pos="107:20-107:52" data-source-name="Icon"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
       ),
     },
     {
       href: "/intakeform",
       label: "Forms",
       icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rectangle-ellipsis h-4.5 w-4.5" aria-hidden="true" data-source-pos="107:20-107:52" data-source-name="Icon"><rect width="20" height="12" x="2" y="6" rx="2"></rect><path d="M12 12h.01"></path><path d="M17 12h.01"></path><path d="M7 12h.01"></path></svg>
+      ),
+    },
+    {
+      href: "/departments",
+      label: "Departments",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-building2 lucide-building-2 h-4.5 w-4.5" aria-hidden="true" data-source-pos="107:20-107:52" data-source-name="Icon"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg>
+      ),
+    },
+    {
+      href: "/services",
+      label: "Services",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-life-buoy-icon lucide-life-buoy"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg>
       ),
     },
   ];
 
-  const automationItems: MenuItem[] = [
+  const admincenterItems: MenuItem[] = [
     {
-      href: "/workflows",
-      label: "Workflows",
+      href: "/team-members",
+      label: "Team Members",
       icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users h-4.5 w-4.5" aria-hidden="true" data-source-pos="107:20-107:52" data-source-name="Icon"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>
       ),
     },
     {
       href: "/integrations",
-      label: "Integrations",
+      label: "Workflow Integrations",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
           <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V6.5L15.5 2z" />
@@ -175,49 +189,10 @@ export default function MobileSidebar() {
       ),
     },
     {
-      href: "/notifications",
-      label: "Reminders",
+      href: "/contacts",
+      label: "Contacts",
       icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-        </svg>
-      ),
-    },
-  ];
-
-  const adminItems: MenuItem[] = [
-    {
-      href: "/team-members",
-      label: "Team Members",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-    },
-    {
-      href: "/billings",
-      label: "Billing & Plans",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <rect width="20" height="14" x="2" y="5" rx="2" />
-          <line x1="2" x2="22" y1="10" y2="10" />
-        </svg>
-      ),
-    },
-    {
-      href: "/bookings",
-      label: "Reports",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <line x1="12" x2="12" y1="20" y2="10" />
-          <line x1="18" x2="18" y1="20" y2="4" />
-          <line x1="6" x2="6" y1="20" y2="16" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-contact h-4.5 w-4.5" aria-hidden="true" data-source-pos="107:20-107:52" data-source-name="Icon"><path d="M16 2v2"></path><path d="M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"></path><path d="M8 2v2"></path><circle cx="12" cy="11" r="3"></circle><rect x="3" y="4" width="18" height="18" rx="2"></rect></svg>
       ),
     },
     {
@@ -232,78 +207,80 @@ export default function MobileSidebar() {
     },
   ];
 
-  const intelligenceItems: MenuItem[] = [
-    {
-      href: "/integrations",
-      label: "Workspace Health",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
-        </svg>
-      ),
-    },
-    {
-      href: "/settings",
-      label: "AI Setup Assistant",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="m15 4 1 1 1-1" />
-          <path d="m15 4-1 1-1-1" />
-          <path d="M9 20h6" />
-          <path d="M12 20V8" />
-          <path d="m6.5 8 1.5-3 1.5 3" />
-          <path d="m15.5 8-1.5-3-1.5 3" />
-        </svg>
-      ),
-    },
-    {
-      href: "/bookings/new",
-      label: "Quick Book with AI",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-          <path d="M12 7v14" />
-          <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
-        </svg>
-      ),
-    },
-  ];
+  // const intelligenceItems: MenuItem[] = [
+  //   {
+  //     href: "/integrations",
+  //     label: "Workspace Health",
+  //     icon: (
+  //       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+  //         <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
+  //       </svg>
+  //     ),
+  //   },
+  //   {
+  //     href: "/settings",
+  //     label: "AI Setup Assistant",
+  //     icon: (
+  //       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+  //         <path d="m15 4 1 1 1-1" />
+  //         <path d="m15 4-1 1-1-1" />
+  //         <path d="M9 20h6" />
+  //         <path d="M12 20V8" />
+  //         <path d="m6.5 8 1.5-3 1.5 3" />
+  //         <path d="m15.5 8-1.5-3-1.5 3" />
+  //       </svg>
+  //     ),
+  //   },
+  //   {
+  //     href: "/bookings/new",
+  //     label: "Quick Book with AI",
+  //     icon: (
+  //       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+  //         <path d="M12 7v14" />
+  //         <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+  //       </svg>
+  //     ),
+  //   },
+  // ];
 
-  const sections: MenuSection[] = [{ title: "Setup", items: setupItems }];
+  const sections: MenuSection[] = [{ title: "Appointments", items: appointmentItems }];
   if (!isStaff) {
     sections.push(
-      { title: "Automation", items: automationItems },
-      { title: "Admin", items: adminItems },
-      { title: "Intelligence", items: intelligenceItems }
+      { title: "Setup", items: setupItems },
+      { title: "Admin Center", items: admincenterItems },
+      // { title: "Intelligence", items: intelligenceItems }
     );
   }
 
-  //if (!isOpen) return null;
-
   return (
     <div className="-mx-4 -my-4 overflow-y-auto bg-slate-50 lg:-mx-8 lg:-my-8">
-      <div className="space-y-4 px-4 py-5 pb-6">
+      <div className="space-y-2.5 px-4 py-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">More</h1>
-          <p className="mt-1 text-sm text-slate-500">Manage your workspace and settings.</p>
+          <p className="text-sm text-slate-500">Manage your workspace and settings.</p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-2.5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
-              {getInitials(displayName)}
+              {profileImage ? (
+                  <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-sm font-medium">{user?.email ? user.email.charAt(0).toUpperCase() : "U"}</span>
+                )}
             </div>
             <div className="min-w-0 flex-1">
               <Link href="/settings" className="flex items-center gap-1">
-                <span className="truncate text-[15px] font-semibold text-slate-900">{workspaceLabel}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true">
+                <span className="truncate text-sm font-medium text-neutral-900">{workspaceLabel}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-neutral-600" aria-hidden="true">
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               </Link>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700">
+              <div className="mt-0.5 flex flex-wrap gap-1.5">
+                <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                   {planLabel}
                 </span>
-                <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+                <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
                   {roleLabel}
                 </span>
               </div>
@@ -313,11 +290,9 @@ export default function MobileSidebar() {
         </div>
 
         {sections.map((section) => (
-          <div key={section.title}>
-            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              {section.title}
-            </p>
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div key={section.title} className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+            <p className="mb-1 text-xs font-medium uppercase text-neutral-500">{section.title}</p>
+            <div className="overflow-hidden">
               {section.items.map((item) => (
                 <MenuRow key={`${section.title}-${item.label}`} item={item} />
               ))}
@@ -328,26 +303,15 @@ export default function MobileSidebar() {
         <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H3z" />
-                <path d="M21 11h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3z" />
-                <path d="M12 11a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2z" />
-                <path d="M12 3v2" />
-                <path d="M12 19v2" />
-              </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-headset-icon lucide-headset h-4.5 w-4.5"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-900">Need help?</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
-                Visit our Help Center or contact support for assistance.
-              </p>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-neutral-900">Need help?</p>
+              <p className="text-xs text-neutral-600">Visit our Help Center or contact support for assistance.</p>
             </div>
-            <a
-              href="mailto:support@getsettime.com"
-              className="shrink-0 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
-            >
+            <Link href="" target="_blank" className="shrink-0 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50">
               Contact Support
-            </a>
+            </Link>
           </div>
         </div>
       </div>

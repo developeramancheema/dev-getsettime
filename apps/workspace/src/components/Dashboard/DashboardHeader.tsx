@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-export default function DashboardHeader({
+export default function   DashboardHeader({
   user_name,
   subtitle,
   actions,

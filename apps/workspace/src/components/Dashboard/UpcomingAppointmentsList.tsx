@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import DashboardIcon from "./DashboardIcon";
 import type { Booking } from "@/src/types/booking";
+import ScreenGate from "@/src/components/ScreenGate";
 
 type StatusBadge = {
   label: string;
@@ -87,7 +88,9 @@ export default function UpcomingAppointmentsList({
           </div>
           <h3 className="text-lg font-bold text-slate-900">Upcoming Appointments</h3>
         </div>
+        <ScreenGate minWidth={1024}>
         <Link href="/calendar" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View Calendar</Link>
+        </ScreenGate>
       </div>
 
       {loading ? (
