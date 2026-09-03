@@ -140,8 +140,8 @@ export default function DashboardCalendarSnapshot() {
   })}, ${week_days[6].getFullYear()}`;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-4 flex items-center justify-between gap-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
+      <div className="mb-2 lg:mb-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
@@ -168,7 +168,7 @@ export default function DashboardCalendarSnapshot() {
         </div>
       </div>
 
-      <p className="mb-4 text-sm font-bold text-slate-700">{range_label}</p>
+      <p className="lg:mb-4 mb-2 text-sm font-bold text-slate-700">{range_label}</p>
 
       <div className="overflow-hidden rounded-xl border border-slate-200">
         <div className="grid grid-cols-7 divide-x divide-slate-200">
@@ -192,7 +192,7 @@ export default function DashboardCalendarSnapshot() {
       </div>
       
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-4">
+      <div className="lg:mt-5 mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-3">
         {loading ? (
           <span className="text-xs font-semibold text-slate-400">Loading…</span>
         ) : (
@@ -213,7 +213,7 @@ export default function DashboardCalendarSnapshot() {
         )}
       </div>
 
-      <div className="pt-4 text-center">
+      <div className="lg:pt-4 pt-3 text-center">
         <Link
           href="/calendar"
           className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"

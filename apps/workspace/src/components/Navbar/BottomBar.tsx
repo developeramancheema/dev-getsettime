@@ -4,14 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCreateBookingModal } from "@/src/providers/CreateBookingModalProvider";
 
-interface BottomBarProps {
-  onMoreClick: () => void;
-  isMoreOpen: boolean;
-}
-
-const PRIMARY_NAV_IDS = ["dashboard", "bookings", "calendar"] as const;
-
-
 function pathnameToActiveMenu(pathname: string): string {
   if (pathname === "/") return "dashboard";
   const paths: Record<string, string> = {
@@ -28,6 +20,7 @@ function pathnameToActiveMenu(pathname: string): string {
     "/contacts": "contacts",
     "/settings": "settings",
     "/profile": "profile",
+    "/more": "more",
   };
   for (const [path, menu] of Object.entries(paths)) {
     if (pathname === path || pathname.startsWith(path + "/")) return menu;
@@ -57,13 +50,10 @@ function NavItem({
   );
 }
 
-export default function BottomBar({ onMoreClick, isMoreOpen }: BottomBarProps) {
+export default function BottomBar() {
   const { open: open_create_booking } = useCreateBookingModal();
   const pathname = usePathname();
   const activeMenu = pathnameToActiveMenu(pathname);
-  const isMoreActive =
-    isMoreOpen ||
-    (!!activeMenu && !PRIMARY_NAV_IDS.includes(activeMenu as (typeof PRIMARY_NAV_IDS)[number]));
 
   return (
     <nav
@@ -83,6 +73,7 @@ export default function BottomBar({ onMoreClick, isMoreOpen }: BottomBarProps) {
             </svg>
           }
         />
+        
         <NavItem
           href="/bookings"
           label="Bookings"
@@ -102,15 +93,17 @@ export default function BottomBar({ onMoreClick, isMoreOpen }: BottomBarProps) {
             </svg>
           }
         />
+
         <button 
          type="button" 
          onClick={open_create_booking} 
-         className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors ${ isMoreActive ? "text-indigo-600" : "text-gray-600 hover:text-gray-900"}`} 
+         className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors text-gray-600 hover:text-gray-900`} 
          aria-label="Create Booking">
           <span className={`h-10 w-10 bg-indigo-600 text-white rounded-full flex items-center justify-center`}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           </span>
         </button>
+
         <NavItem
           href="/calendar"
           label="Calendar"
@@ -126,27 +119,19 @@ export default function BottomBar({ onMoreClick, isMoreOpen }: BottomBarProps) {
             </svg>
           }
         />
-        <button
-          type="button"
-          onClick={onMoreClick}
-          className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors ${
-            isMoreActive ? "text-indigo-600" : "text-gray-600 hover:text-gray-900"
-          }`}
-          aria-expanded={isMoreOpen}
-          aria-label="More menu"
-        >
-          <span className={`h-6 w-6 ${isMoreActive ? "text-indigo-600" : "text-gray-700"}`}>
+
+        <NavItem
+          href="/more"
+          label="More"
+          isActive={activeMenu === "more"}
+          icon={
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
               <path d="M4 6h16" />
               <path d="M4 12h16" />
               <path d="M4 18h16" />
             </svg>
-          </span>
-          <span>More</span>
-          {isMoreActive && (
-            <span className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-indigo-600" />
-          )}
-        </button>
+          }
+        />
       </div>
     </nav>
   );

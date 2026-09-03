@@ -79,8 +79,8 @@ export default function UpcomingAppointmentsList({
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-5 flex items-center justify-between gap-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
+      <div className="lg:mb-5 mb-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
@@ -99,7 +99,7 @@ export default function UpcomingAppointmentsList({
           No upcoming appointments.
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="lg:space-y-3 space-y-2">
           {items.map((booking) => {
             const badge = badge_for_status(booking.status);
             const guest =
@@ -111,7 +111,7 @@ export default function UpcomingAppointmentsList({
               <Link
                 key={booking.id}
                 href={`/bookings/${booking.id}`}
-                className="flex items-center gap-4 lg:rounded-2xl border-b lg:border border-slate-200 p-3 transition hover:border-slate-300 hover:bg-slate-50"
+                className="flex items-center gap-4 lg:rounded-2xl border-b lg:border border-slate-200 lg:p-3 p-2 transition hover:border-slate-300 hover:bg-slate-50"
               >
                 <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center lg:rounded-xl border-r border-slate-200 lg:border-r-0 lg:bg-slate-50 leading-tight">
                   <span className="text-sm font-bold text-indigo-600">{time}</span>
@@ -139,7 +139,7 @@ export default function UpcomingAppointmentsList({
             );
           })}
 
-          <div className="pt-3 text-center">
+          <div className="lg:pt-3 text-center">
             <Link
               href="/bookings"
               className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"

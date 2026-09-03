@@ -3,14 +3,9 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../../providers/AuthProvider";
-import { useWorkspaceSettings } from "../../hooks/useWorkspaceSettings";
+import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { useSubscription } from "@/src/hooks/useSubscription";
 import { formatRoleLabel, ROLE_STAFF } from "@/src/constants/roles";
-
-interface MobileSidebarProps {
-  isOpen: boolean;
-  onClose?: () => void;
-}
 
 interface MenuItem {
   href: string;
@@ -56,9 +51,9 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
   );
 }
 
-function MenuRow({ item, onNavigate }: { item: MenuItem; onNavigate: () => void }) {
+function MenuRow({ item }: { item: MenuItem }) {
   return (
-    <Link href={item.href} onClick={onNavigate} className="flex items-center gap-3 border-b border-gray-100 px-3 py-2 last:border-b-0 hover:bg-gray-50/80">
+    <Link href={item.href} className="flex items-center gap-3 border-b border-gray-100 px-3 py-2 last:border-b-0 hover:bg-gray-50/80">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">{item.icon}</span>
       <span className="flex-1 text-xs sm:text-sm text-gray-800">{item.label}</span>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
@@ -73,10 +68,10 @@ function getInitials(name: string): string {
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
-export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
+export default function MobileSidebar() {
   const { user } = useAuth();
   const { workspaceName, general, availability, loading: loadingSettings } = useWorkspaceSettings();
-  const { data: subscription } = useSubscription(isOpen);
+  const { data: subscription } = useSubscription();
 
   const isStaff = user?.user_metadata?.role === ROLE_STAFF;
   const role = (user?.user_metadata?.role as string | undefined) ?? undefined;
@@ -109,8 +104,6 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   }, [accountName, general, availability, subscription, loadingSettings]);
 
   const readinessLabel = readinessPercent >= 80 ? "Ready" : "Setup";
-
-  const handleNavigate = () => onClose?.();
 
   const setupItems: MenuItem[] = [
     {
@@ -284,10 +277,10 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
     );
   }
 
-  if (!isOpen) return null;
+  //if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-x-0 top-16 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-30 overflow-y-auto bg-slate-50 lg:hidden" role="dialog" aria-modal="true" aria-label="More menu">
+    <div className="-mx-4 -my-4 overflow-y-auto bg-slate-50 lg:-mx-8 lg:-my-8">
       <div className="space-y-4 px-4 py-5 pb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">More</h1>
@@ -300,7 +293,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               {getInitials(displayName)}
             </div>
             <div className="min-w-0 flex-1">
-              <Link href="/settings" onClick={handleNavigate} className="flex items-center gap-1">
+              <Link href="/settings" className="flex items-center gap-1">
                 <span className="truncate text-[15px] font-semibold text-slate-900">{workspaceLabel}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true">
                   <path d="m9 18 6-6-6-6" />
@@ -326,7 +319,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             </p>
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               {section.items.map((item) => (
-                <MenuRow key={`${section.title}-${item.label}`} item={item} onNavigate={handleNavigate} />
+                <MenuRow key={`${section.title}-${item.label}`} item={item} />
               ))}
             </div>
           </div>

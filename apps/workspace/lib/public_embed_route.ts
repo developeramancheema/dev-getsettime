@@ -26,6 +26,7 @@ const EMBED_ROUTE_RESERVED_FIRST_SEGMENTS = new Set([
   'change-password',
   'roles-permissions',
   'booking-preview',
+  'more',
   'api',
   '_next',
 ]);
