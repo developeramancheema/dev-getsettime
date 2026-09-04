@@ -1,5 +1,5 @@
 "use client";
-
+import ScreenGate from "@/src/components/ScreenGate";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LuCalendarDays as CalendarDays,
@@ -842,7 +842,7 @@ export default function BookingCalendar() {
   return (
     <div className="min-h-screen bg-slate-50/40">
       <div className="mx-auto space-y-4">
-        <header className="flex flex-col gap-4 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
+        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">
               Booking Calendar
@@ -910,7 +910,8 @@ export default function BookingCalendar() {
                 Provider
               </button>
             </div>
-
+            
+            {/* <ScreenGate minWidth={1024}> */}
             <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
@@ -1115,6 +1116,8 @@ export default function BookingCalendar() {
                 </div>
               )}
             </div>
+            {/* </ScreenGate> */}
+
           </div>
 
           <CalendarFiltersBar
@@ -1140,7 +1143,7 @@ export default function BookingCalendar() {
             className={
               viewMode === "provider"
                 ? "grid gap-5"
-                : "grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]"
+                : "grid gap-5 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]"
             }
           >
             <div className="space-y-4">

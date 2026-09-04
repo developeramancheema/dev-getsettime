@@ -231,20 +231,12 @@ export function CalendarDayGrid({
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <div className="min-w-[940px]">
-          <div
-            className="grid border-b border-slate-200 bg-slate-50"
-            style={{
-              gridTemplateColumns: `88px repeat(${displayColumnCount}, minmax(0, 1fr))`,
-            }}
-          >
+        <div className="w-full">
+          <div className="grid border-b border-slate-200 bg-slate-50" style={{ gridTemplateColumns: `88px repeat(${displayColumnCount}, minmax(0, 1fr))`, }}>
             <div className="px-3 py-3 text-xs font-semibold text-slate-500">Time</div>
             {loading
               ? Array.from({ length: displayColumnCount }, (_, index) => (
-                  <div
-                    key={`loading-header-${index}`}
-                    className="border-l border-slate-200 px-3 py-3"
-                  >
+                  <div key={`loading-header-${index}`} className="border-l border-slate-200 px-3 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-slate-200" />
                       <div className="min-w-0 flex-1 space-y-1.5">
