@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { BookingPreviewPanel } from "@/src/components/Booking/BookingPreviewPanel";
 import DashboardIcon from "./DashboardIcon";
 import type { Booking } from "@/src/types/booking";
-import ScreenGate from "@/src/components/ScreenGate";
 
 type StatusBadge = {
   label: string;
@@ -31,16 +31,36 @@ function badge_for_status(status: string | null | undefined): StatusBadge {
   return { label: "Pending", className: "bg-amber-50 text-amber-700" };
 }
 
-function format_time(start_at: string | null): { time: string; period: string } {
-  if (!start_at) return { time: "—", period: "" };
-  const parts = new Date(start_at)
+function is_same_local_day(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function format_schedule(start_at: string | null): {
+  date_label: string;
+  time: string;
+  period: string;
+} {
+  if (!start_at) return { date_label: "", time: "—", period: "" };
+  const date = new Date(start_at);
+  const parts = date
     .toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     })
     .split(" ");
-  return { time: parts[0] ?? "—", period: parts[1] ?? "" };
+  const date_label = is_same_local_day(date, new Date())
+    ? "Today"
+    : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return {
+    date_label,
+    time: parts[0] ?? "—",
+    period: parts[1] ?? "",
+  };
 }
 
 /** Active (pending/confirmed/null) and still in the future — matches the "Upcoming" stat. */
@@ -66,6 +86,8 @@ export default function UpcomingAppointmentsList({
   bookings: Booking[];
   loading: boolean;
 }) {
+  const [preview_booking, set_preview_booking] = useState<Booking | null>(null);
+
   const items = useMemo(
     () =>
       bookings
@@ -80,17 +102,20 @@ export default function UpcomingAppointmentsList({
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
-      <div className="lg:mb-5 mb-3 flex items-center justify-between gap-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+      <div className="mb-5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
           </div>
           <h3 className="text-lg font-bold text-slate-900">Upcoming Appointments</h3>
         </div>
-        <ScreenGate minWidth={1024}>
-        <Link href="/calendar" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View Calendar</Link>
-        </ScreenGate>
+        <Link
+          href="/calendar"
+          className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+        >
+          View Calendar
+        </Link>
       </div>
 
       {loading ? (
@@ -102,25 +127,33 @@ export default function UpcomingAppointmentsList({
           No upcoming appointments.
         </div>
       ) : (
-        <div className="lg:space-y-3 space-y-2">
+        <div className="space-y-3">
           {items.map((booking) => {
             const badge = badge_for_status(booking.status);
             const guest =
               booking.invitee_name?.trim() ||
               booking.contacts?.name?.trim() ||
               "Guest";
-            const { time, period } = format_time(booking.start_at);
+            const { date_label, time, period } = format_schedule(
+              booking.start_at,
+            );
             return (
-              <Link
+              <button
+                type="button"
                 key={booking.id}
-                href={`/bookings/${booking.id}`}
-                className="flex items-center gap-4 lg:rounded-2xl border-b lg:border border-slate-200 lg:p-3 p-2 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={() => set_preview_booking(booking)}
+                className="flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center lg:rounded-xl border-r border-slate-200 lg:border-r-0 lg:bg-slate-50 leading-tight">
-                  <span className="text-sm font-bold text-indigo-600">{time}</span>
-                  {period ? (
-                    <span className="text-xs font-bold text-slate-700">{period}</span>
+                <div className="flex h-[4.25rem] w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-xl bg-slate-50 px-1 py-1 leading-tight">
+                  {date_label ? (
+                    <span className="text-sm font-bold text-indigo-600">
+                      {date_label}
+                    </span>
                   ) : null}
+                  <span className="text-xs font-bold text-slate-700">
+                    {time}
+                    {period ? ` ${period}` : ""}
+                  </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-900">{guest}</p>
@@ -135,14 +168,14 @@ export default function UpcomingAppointmentsList({
                 </span>
                 <DashboardIcon
                   name="chevronRight"
-                  size={18}
-                  className="shrink-0 text-slate-500"
+                  size={16}
+                  className="shrink-0 text-slate-300"
                 />
-              </Link>
+              </button>
             );
           })}
 
-          <div className="lg:pt-3 text-center">
+          <div className="pt-3 text-center">
             <Link
               href="/bookings"
               className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
@@ -153,6 +186,11 @@ export default function UpcomingAppointmentsList({
           </div>
         </div>
       )}
+      <BookingPreviewPanel
+        open={preview_booking != null}
+        onClose={() => set_preview_booking(null)}
+        booking={preview_booking}
+      />
     </div>
   );
 }

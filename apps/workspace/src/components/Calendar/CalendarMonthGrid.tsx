@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { RefObject } from "react";
-import Link from "next/link";
+import { BookingPreviewPanel } from "@/src/components/Booking/BookingPreviewPanel";
 import type { Booking } from "@/src/types/booking";
 import { formatTime } from "@/src/utils/date";
 import type { CalendarCell } from "@/src/components/Calendar/calendar_utils";
@@ -33,8 +34,10 @@ export function CalendarMonthGrid({
   todayCellRef,
 }: CalendarMonthGridProps) {
   const todayKey = toDateKey(today);
+  const [preview_booking, set_preview_booking] = useState<Booking | null>(null);
 
   return (
+    <>
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
         {WEEK_DAYS.map((day) => (
@@ -110,12 +113,13 @@ export function CalendarMonthGrid({
                             booking.event_types?.title?.trim() || "Appointment";
 
                           return (
-                            <Link
+                            <button
+                              type="button"
                               key={booking.id}
-                              href={`/bookings/${booking.id}`}
                               title={`${timeLabel} ${serviceLabel}`}
+                              onClick={() => set_preview_booking(booking)}
                               className={cn(
-                                "flex w-full items-center gap-1 truncate rounded-md px-1.5 py-2 text-left text-[11px] leading-tight transition",
+                                "flex w-full cursor-pointer items-center gap-1 truncate rounded-md px-1.5 py-2 text-left text-[11px] leading-tight transition",
                                 chipClass.chip,
                               )}
                             >
@@ -130,7 +134,7 @@ export function CalendarMonthGrid({
                               <span className="truncate font-medium text-slate-800">
                                 {serviceLabel}
                               </span>
-                            </Link>
+                            </button>
                           );
                         })}
 
@@ -149,5 +153,11 @@ export function CalendarMonthGrid({
         ))}
       </div>
     </div>
+    <BookingPreviewPanel
+      open={preview_booking != null}
+      onClose={() => set_preview_booking(null)}
+      booking={preview_booking}
+    />
+    </>
   );
 }
