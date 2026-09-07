@@ -461,7 +461,7 @@ export function CalendarSidebar({
         </div>
       )}
 
-      {(viewMode === "week" || viewMode === "day") && (
+      {/* {(viewMode === "week" || viewMode === "day") && (
         <div
           ref={appointmentDetailsRef}
           tabIndex={-1}
@@ -554,15 +554,8 @@ export function CalendarSidebar({
             </div>
           )}
 
-          {/* <Link
-            href="/bookings"
-            className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-          >
-            View full week agenda
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link> */}
         </div>
-      )}
+      )} */}
     </aside>
   );
 }

@@ -9,6 +9,7 @@ export type EventType = {
 export type Department = {
   id: string;
   name: string;
+  meta_data?: { color?: string | null } | null;
 };
 
 export type TeamMemberDisplay = {

@@ -26,6 +26,7 @@ import { CalendarDayGrid } from "@/src/components/Calendar/CalendarDayGrid";
 import { CalendarMonthGrid } from "@/src/components/Calendar/CalendarMonthGrid";
 import { CalendarWeekGrid } from "@/src/components/Calendar/CalendarWeekGrid";
 import { CalendarSidebar } from "@/src/components/Calendar/CalendarSidebar";
+import { BookingPreviewPanel } from "@/src/components/Booking/BookingPreviewPanel";
 import {
   buildCalendarCells,
   CALENDAR_STATUS_LEGEND,
@@ -597,6 +598,7 @@ export default function BookingCalendar() {
     return [...providerSet.entries()].map(([key, label]) => ({ key, label }));
   }, [currentWeekBookings, providerFilter, providerOptions]);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [preview_booking, set_preview_booking] = useState<Booking | null>(null);
   const selectedBooking = useMemo(() => {
     if (!selectedBookingId) return null;
     return (
@@ -606,6 +608,11 @@ export default function BookingCalendar() {
       null
     );
   }, [selectedBookingId, currentDayBookings, currentWeekBookings, currentMonthBookings]);
+
+  const handle_select_booking = useCallback((booking: Booking) => {
+    setSelectedBookingId(booking.id);
+    set_preview_booking(booking);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -1160,7 +1167,7 @@ export default function BookingCalendar() {
                   providerColumns={dayProviderColumns}
                   loading={loading}
                   timezoneLabel={timezoneLabel}
-                  onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                  onSelectBooking={handle_select_booking}
                   selectedBookingId={selectedBookingId ?? undefined}
                 />
               ) : (
@@ -1171,7 +1178,7 @@ export default function BookingCalendar() {
                   providerColumns={providerColumns}
                   loading={loading}
                   timezoneLabel={timezoneLabel}
-                  onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                  onSelectBooking={handle_select_booking}
                   selectedBookingId={selectedBookingId ?? undefined}
                 />
               )}
@@ -1226,13 +1233,18 @@ export default function BookingCalendar() {
                 loadingUpcoming={loading}
                 onCreateBooking={open_create_booking}
                 selectedBooking={selectedBooking}
-                onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                onSelectBooking={handle_select_booking}
                 appointmentDetailsRef={appointmentDetailsRef}
               />
             )}
           </div>
         </section>
       </div>
+      <BookingPreviewPanel
+        open={preview_booking != null}
+        onClose={() => set_preview_booking(null)}
+        booking={preview_booking}
+      />
     </div>
   );
 }

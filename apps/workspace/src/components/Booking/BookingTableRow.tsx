@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   LuEye as Eye,
   LuSquarePen as SquarePen,
@@ -66,11 +64,9 @@ export function BookingTableRow({
   onSelectChange,
   isLast = false,
 }: BookingTableRowProps) {
-  const router = useRouter();
 
   const handleRowClick = () => {
     onView();
-    router.push(`/bookings/${displayBooking.id}`);
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
@@ -182,15 +178,15 @@ export function BookingTableRow({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-end gap-2">
-          <Link
-            href={`/bookings/${displayBooking.id}`}
+          <button
+            type="button"
             onClick={onView}
             className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 cursor-pointer"
             aria-label="View booking"
           >
             <Eye className="h-4 w-4" />
             View
-          </Link>
+          </button>
           <button
             onClick={onEdit}
             className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"

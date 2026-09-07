@@ -82,11 +82,27 @@ export function useDepartments() {
       try {
         const { data: result, error } = await supabase
           .from('departments')
-          .select('id, name')
+          .select('id, name, meta_data')
           .order('name');
         if (cancelled) return;
         if (!error && result) {
-          setData(result.map((d) => ({ id: String(d.id), name: d.name })));
+          setData(
+            result.map((d) => {
+              const raw_meta = d.meta_data;
+              const color =
+                raw_meta &&
+                typeof raw_meta === 'object' &&
+                !Array.isArray(raw_meta) &&
+                typeof (raw_meta as { color?: unknown }).color === 'string'
+                  ? (raw_meta as { color: string }).color
+                  : null;
+              return {
+                id: String(d.id),
+                name: d.name,
+                meta_data: { color },
+              };
+            })
+          );
         }
       } catch {
         if (!cancelled) setData([]);
