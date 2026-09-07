@@ -56,12 +56,14 @@ body{
   table tr {
     display: block;
     margin-bottom: 1em;
+    background-color: #f1f5f980;
+    border-radius: 12px;
+    overflow: hidden;
   }
 
   table td {
-    border-bottom: 1px solid #ddd;
     display: block; 
-    /* text-align: right; */
+    text-align: right;
   }
 
   table td::before {

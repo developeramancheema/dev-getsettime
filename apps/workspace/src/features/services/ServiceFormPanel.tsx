@@ -398,8 +398,8 @@ export function ServiceFormPanel({
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
-        <div className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-1 flex-col overflow-y-scroll pb-16 lg:pb-0 overscroll-contain">
+        <div className="flex flex-col">
           <div className="flex-1 overflow-y-auto px-5 py-5">
             {error_message ? (
               <div
