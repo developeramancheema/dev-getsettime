@@ -27,6 +27,7 @@ import {
 import BookingForm from "./BookingForm";
 import { BookingFilters } from "./BookingFilters";
 import { BookingTableRow, type DisplayBooking } from "./BookingTableRow";
+import { BookingPreviewPanel } from "./BookingPreviewPanel";
 import { StatusBadge } from "./StatusBadge";
 import { Pagination } from "@app/ui";
 import { BookingTableSkeleton } from "./BookingTableSkeleton";
@@ -100,6 +101,10 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
     pending: number;
     cancelled: number;
   } | null>(null);
+  const [preview_booking, set_preview_booking] = useState<Booking | null>(null);
+  const [preview_booking_id, set_preview_booking_id] = useState<string | null>(
+    null
+  );
   const initialFetchDone = useRef(false);
 
   const debouncedFilter = useDebouncedValue(filter, 300);
@@ -487,7 +492,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
     setRescheduleInProgress(false);
   }, []);
 
-  /** When navigating to `/bookings/[id]`, keep the same viewed / reschedule-ack behavior as the old modal close. */
+  /** Mark viewed / reschedule-ack, then open the booking preview panel. */
   const handleBeforeViewBooking = useCallback(
     (b: Pick<DisplayBooking, "id" | "is_viewed" | "is_reschedule_viewed" | "status">) => {
       const needsRescheduleAck =
@@ -497,6 +502,18 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       }
     },
     [markBookingAsViewed]
+  );
+
+  const handleViewBooking = useCallback(
+    (
+      display: Pick<DisplayBooking, "id" | "is_viewed" | "is_reschedule_viewed" | "status">,
+      actual?: Booking
+    ) => {
+      handleBeforeViewBooking(display);
+      set_preview_booking(actual ?? null);
+      set_preview_booking_id(display.id);
+    },
+    [handleBeforeViewBooking]
   );
 
   const displayBookings = useMemo<DisplayBooking[]>(
@@ -811,7 +828,9 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
                         onSelectChange={(checked) =>
                           toggleSelect(displayBooking.id, checked)
                         }
-                        onView={() => handleBeforeViewBooking(displayBooking)}
+                        onView={() =>
+                          handleViewBooking(displayBooking, actualBooking)
+                        }
                         onEdit={() =>
                           actualBooking && handleEdit(actualBooking)
                         }
@@ -980,8 +999,31 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
 
                         </div>
 
-                      </div>
-                    </Link>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleViewBooking(displayBooking, actualBooking)
+                      }
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View
+                    </button>
+                    <button
+                      onClick={() => actualBooking && handleEdit(actualBooking)}
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+                    >
+                      <SquarePen className="h-4 w-4" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(displayBooking.id)}
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </button>
                   </div>
               );
             })
@@ -1027,6 +1069,15 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
           <AlertModal message={alertModal.message} onClose={() => setAlertModal(null)} />
         )}
       </section>
+      <BookingPreviewPanel
+        open={preview_booking_id != null}
+        onClose={() => {
+          set_preview_booking(null);
+          set_preview_booking_id(null);
+        }}
+        booking={preview_booking}
+        bookingId={preview_booking_id}
+      />
     </div>
   );
 };

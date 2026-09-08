@@ -29,6 +29,7 @@ import { CalendarMobileWeekStrip } from "@/src/components/Calendar/CalendarMobil
 import { CalendarMobileWeekBookings } from "@/src/components/Calendar/CalendarMobileWeekBookings";
 import { CalendarMobileDayBookings } from "@/src/components/Calendar/CalendarMobileDayBookings";
 import { CalendarSidebar } from "@/src/components/Calendar/CalendarSidebar";
+import { BookingPreviewPanel } from "@/src/components/Booking/BookingPreviewPanel";
 import {
   buildCalendarCells,
   CALENDAR_STATUS_LEGEND,
@@ -600,6 +601,7 @@ export default function BookingCalendar() {
     return [...providerSet.entries()].map(([key, label]) => ({ key, label }));
   }, [currentWeekBookings, providerFilter, providerOptions]);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [preview_booking, set_preview_booking] = useState<Booking | null>(null);
   const selectedBooking = useMemo(() => {
     if (!selectedBookingId) return null;
     return (
@@ -609,6 +611,11 @@ export default function BookingCalendar() {
       null
     );
   }, [selectedBookingId, currentDayBookings, currentWeekBookings, currentMonthBookings]);
+
+  const handle_select_booking = useCallback((booking: Booking) => {
+    setSelectedBookingId(booking.id);
+    set_preview_booking(booking);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -1245,34 +1252,20 @@ export default function BookingCalendar() {
                   providerColumns={dayProviderColumns}
                   loading={loading}
                   timezoneLabel={timezoneLabel}
-                  onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                  onSelectBooking={handle_select_booking}
                   selectedBookingId={selectedBookingId ?? undefined}
                 />
               ) : (
-                <>
-                  <ScreenGate maxWidth={1023}>
-                    <CalendarMobileWeekBookings
-                      selectedDate={viewDate}
-                      bookings={currentDayBookings}
-                      loading={loading}
-                      onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
-                      selectedBookingId={selectedBookingId ?? undefined}
-                      onGoToToday={() => setViewDate(start_of_day(new Date()))}
-                    />
-                  </ScreenGate>
-                  <ScreenGate minWidth={1024}>
-                    <CalendarWeekGrid
-                      viewMode="week"
-                      weekStart={viewDate}
-                      bookings={currentWeekBookings}
-                      providerColumns={providerColumns}
-                      loading={loading}
-                      timezoneLabel={timezoneLabel}
-                      onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
-                      selectedBookingId={selectedBookingId ?? undefined}
-                    />
-                  </ScreenGate>
-                </>
+                <CalendarWeekGrid
+                  viewMode="week"
+                  weekStart={viewDate}
+                  bookings={currentWeekBookings}
+                  providerColumns={providerColumns}
+                  loading={loading}
+                  timezoneLabel={timezoneLabel}
+                  onSelectBooking={handle_select_booking}
+                  selectedBookingId={selectedBookingId ?? undefined}
+                />
               )}
 
               <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-slate-200 pt-3">
@@ -1325,13 +1318,18 @@ export default function BookingCalendar() {
                 loadingUpcoming={loading}
                 onCreateBooking={open_create_booking}
                 selectedBooking={selectedBooking}
-                onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                onSelectBooking={handle_select_booking}
                 appointmentDetailsRef={appointmentDetailsRef}
               />
             )}
           </div>
         </section>
       </div>
+      <BookingPreviewPanel
+        open={preview_booking != null}
+        onClose={() => set_preview_booking(null)}
+        booking={preview_booking}
+      />
     </div>
   );
 }
