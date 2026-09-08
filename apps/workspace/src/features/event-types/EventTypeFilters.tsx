@@ -96,16 +96,16 @@ export function EventTypeFilters({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => on_format_filter_change(tab.value)}
-                className={`relative px-3 py-2 text-sm font-semibold transition ${
+                className={`relative px-4 py-2 text-[13px] font-medium transition border rounded-lg ${
                   selected
-                    ? "text-violet-700"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "text-indigo-600 border-indigo-300 bg-indigo-50"
+                    : "text-slate-500 hover:text-slate-800 border-slate-200"
                 }`}
               >
                 {tab.label}
-                {selected ? (
+                {/* {selected ? (
                   <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-violet-600" />
-                ) : null}
+                ) : null} */}
               </button>
             );
           })}
@@ -173,7 +173,7 @@ export function EventTypeFilters({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-3">
             <div className="min-w-0">
               <label
                 htmlFor="event-type-status-filter"

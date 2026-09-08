@@ -903,7 +903,7 @@ export default function ServicesPage() {
 
   return (
     <>
-    <div className={classNames( "min-h-screen transition-[margin] duration-300 ease-in-out", (showAddDepartmentPanel || panelAnimatedOpen) &&
+    <div className={classNames( "transition-[margin] duration-300 ease-in-out", (showAddDepartmentPanel || panelAnimatedOpen) &&
           "hidden lg:block lg:mr-[28rem]" )}>
       <div className="mx-auto space-y-5">
         {/* Top header */}
@@ -956,6 +956,7 @@ export default function ServicesPage() {
           </div>
         </div>
 
+        <ScreenGate minWidth={640}>
         {/* Stats row */}
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-3">
           <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -998,6 +999,7 @@ export default function ServicesPage() {
             </div>
           </div>
         </div>
+        </ScreenGate>
 
         {/* All Services */}
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
@@ -1247,13 +1249,13 @@ export default function ServicesPage() {
                             <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Duration">
                               {service.duration} min
                             </td>
-                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Assigned Consultants">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100 flex justify-between w-full" data-label="Assigned Consultants">
                               {assigned.length === 0 ? (
                                 <span className="text-sm text-slate-400">
                                   Unassigned
                                 </span>
                               ) : (
-                                <div className="flex min-w-0 justify-end items-center gap-2.5">
+                                <div className="flex items-center max-[1301px]:justify-end gap-2.5">
                                   <div className="flex shrink-0 items-center">
                                     {assigned.slice(0, 3).map((doctor, index) => (
                                       <div
@@ -1306,7 +1308,7 @@ export default function ServicesPage() {
                             </td>
                             {showRowActions ? (
                               <td className="text-sm px-4 py-3.5" data-label="Action">
-                                <div className="relative flex justify-end items-center gap-1.5">
+                                <div className="relative flex items-center max-[1301px]:justify-end gap-1.5">
                                   <button
                                     type="button"
                                     onClick={() => openEditService(service)}

@@ -87,6 +87,7 @@ import {
 } from "@/src/features/departments/DepartmentPanelPrimitives";
 import type { event_type_format } from "@/src/types/event_types";
 import type { event_type_format_filter_value } from "@/src/features/event-types/EventTypeFilters";
+import ScreenGate from "@/src/components/ScreenGate";
 
 interface EventType {
   id: number;
@@ -121,7 +122,7 @@ const EVENT_TYPES_PAGE_SIZE = 10;
 
 const CARD_GRADIENTS = [
   "from-cyan-500 to-sky-600",
-  "from-violet-500 to-indigo-600",
+  "from-indigo-500 to-indigo-600",
   "from-emerald-500 to-teal-600",
   "from-amber-500 to-orange-600",
   "from-rose-500 to-pink-600",
@@ -216,7 +217,7 @@ function event_type_format_list_label(format: event_type_format): string {
 function event_type_format_badge_class(format: event_type_format): string {
   if (format === "group_class") return "bg-sky-50 text-sky-700";
   if (format === "recurring") return "bg-emerald-50 text-emerald-700";
-  return "bg-violet-50 text-violet-700";
+  return "bg-indigo-50 text-indigo-700";
 }
 
 export default function EventTypes() {
@@ -1326,7 +1327,7 @@ export default function EventTypes() {
                 <button
                   type="button"
                   onClick={handleNewEvent}
-                  className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                  className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Event Type
@@ -1335,11 +1336,12 @@ export default function EventTypes() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-4">
+          <ScreenGate minWidth={640}>
+          <div className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
               <div className="md:flex md:items-center md:gap-3">
                 <div className="flex items-center gap-2 md:contents">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 md:h-10 md:w-10">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 md:h-10 md:w-10">
                     <CalendarDays className="h-4 w-4 md:h-5 md:w-5" />
                   </div>
                   <p className="text-xl font-bold text-slate-900 md:hidden">{total_event_types}</p>
@@ -1411,6 +1413,7 @@ export default function EventTypes() {
               </div>
             </div>
           </div>
+          </ScreenGate>
 
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-visible">
             <div className="border-b border-slate-200 p-4 sm:px-5">
@@ -1455,19 +1458,22 @@ export default function EventTypes() {
               </div>
             ) : (
               <>
-                <EventTypeListMobileCards
-                  items={paginated_items}
-                  format_duration_label={format_duration_short}
-                  get_status={parse_event_type_status}
-                  get_status_label={event_type_status_label}
-                  on_row_click={(item) => {
-                    if (isStaffUser) return;
-                    handleEdit(item as EventType);
-                  }}
-                />
+                <ScreenGate maxWidth={1023}>
+                  <EventTypeListMobileCards
+                    items={paginated_items}
+                    format_duration_label={format_duration_short}
+                    get_status={parse_event_type_status}
+                    get_status_label={event_type_status_label}
+                    on_row_click={(item) => {
+                      if (isStaffUser) return;
+                      handleEdit(item as EventType);
+                    }}
+                  />
+                </ScreenGate>
 
-                <div className="hidden overflow-x-auto overflow-y-visible md:block">
-                  <table className="w-full min-w-[980px] border-collapse">
+                <ScreenGate minWidth={1024}>
+                <div className="overflow-x-auto max-[1301px]:p-3">
+                  <table className="w-full">
                     <thead className="bg-slate-50">
                       <tr>
                         <th className="border-b border-slate-200 px-4 py-3 text-left">
@@ -1478,7 +1484,7 @@ export default function EventTypes() {
                               if (el) el.indeterminate = some_page_selected;
                             }}
                             onChange={toggle_select_all_page}
-                            className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                             aria-label="Select all event types on this page"
                           />
                         </th>
@@ -1529,17 +1535,17 @@ export default function EventTypes() {
                             key={item.id}
                             className="border-b border-slate-100 transition hover:bg-slate-50/80"
                           >
-                            <td className="px-4 py-4">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Select">
                               <input
                                 type="checkbox"
                                 checked={selected}
                                 onChange={() => toggle_select_row(item.id)}
-                                className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 aria-label={`Select ${item.title}`}
                               />
                             </td>
-                            <td className="px-4 py-4">
-                              <div className="flex items-start gap-3">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Event Type">
+                              <div className="flex items-center max-[1301px]:justify-end gap-3">
                                 <div
                                   className={cn(
                                     "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
@@ -1560,7 +1566,7 @@ export default function EventTypes() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Format">
                               <span
                                 className={cn(
                                   "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
@@ -1570,14 +1576,14 @@ export default function EventTypes() {
                                 {event_type_format_list_label(format)}
                               </span>
                             </td>
-                            <td className="px-4 py-4 text-sm text-slate-700">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Duration">
                               {format_duration_short(item.duration_minutes)}
                             </td>
-                            <td className="px-4 py-4 text-sm text-slate-700">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Capacity">
                               {capacity}
                             </td>
-                            <td className="px-4 py-4">
-                              <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Team / Provider">
+                              <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
                                 <ProviderAvatar
                                   name={provider_label === "—" ? "Provider" : provider_label}
                                   initials={provider_initials(
@@ -1589,7 +1595,7 @@ export default function EventTypes() {
                                 <span className="truncate">{provider_label}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Status">
                               <span
                                 className={cn(
                                   "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
@@ -1602,7 +1608,7 @@ export default function EventTypes() {
                               </span>
                             </td>
                             {!isStaffUser ? (
-                              <td className="px-4 py-4">
+                              <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Action">
                                 <div className="flex items-center justify-end">
                                   <EventTypeActionsMenu
                                     open={open_menu_id === item.id}
@@ -1638,6 +1644,7 @@ export default function EventTypes() {
                     </tbody>
                   </table>
                 </div>
+                </ScreenGate>
 
                 <div className="border-t border-slate-200 px-4 py-3">
                   <Pagination

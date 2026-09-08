@@ -43,7 +43,7 @@ function format_icon_wrap_class(
   }
   if (format === "group_class") return "bg-sky-50 text-sky-600";
   if (format === "recurring") return "bg-emerald-50 text-emerald-600";
-  return "bg-violet-50 text-violet-600";
+  return "bg-indigo-50 text-indigo-600";
 }
 
 function FormatIcon({ format }: { format: event_type_format }) {
@@ -64,7 +64,7 @@ export function EventTypeListMobileCards({
   on_row_click,
 }: EventTypeListMobileCardsProps) {
   return (
-    <div className="space-y-3 p-2 md:hidden">
+    <div className="space-y-3 p-4">
       {items.map((item) => {
         const status = get_status(item.status);
         const status_label = get_status_label(status);

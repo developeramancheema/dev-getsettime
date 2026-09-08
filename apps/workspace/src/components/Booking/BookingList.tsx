@@ -33,6 +33,7 @@ import { Pagination } from "@app/ui";
 import { BookingTableSkeleton } from "./BookingTableSkeleton";
 import { AlertModal } from "@/src/components/ui/AlertModal";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
+import { PortalActionsMenu } from "@/src/components/ui/PortalActionsMenu";
 import { BOOKINGS_LIST_REFRESH_EVENT } from "@/src/constants/booking";
 import ScreenGate from "@/src/components/ScreenGate";
 
@@ -86,6 +87,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   const [loading, setLoading] = useState(false);
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ id: string } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [mobileActionsId, setMobileActionsId] = useState<string | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [alertModal, setAlertModal] = useState<{ message: string } | null>(null);
@@ -252,6 +254,20 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
     debouncedSort,
     fetchBookings,
   ]);
+
+  useEffect(() => {
+    if (!mobileActionsId) return;
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-portal-actions-menu]")) {
+        return;
+      }
+      setMobileActionsId(null);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [mobileActionsId]);
 
   const handleDeleteClick = useCallback((id: string) => {
     setDeleteConfirmModal({ id });
@@ -790,8 +806,8 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
+            <div className="overflow-x-auto max-[1301px]:p-3">
+              <table className="w-full">
                 <thead className="bg-slate-50/80">
                   <tr className="text-left text-sm text-slate-600">
                     <th className="px-6 py-4 font-semibold">
@@ -845,6 +861,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
         </div>
         </ScreenGate>
 
+        <ScreenGate maxWidth={1023}>
         {/* Mobile / tablet cards */}
         <div className="space-y-2">
           
@@ -897,7 +914,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
               const isSelected = selectedIds.has(displayBooking.id);
               return (
                   <div key={displayBooking.id} className={`cursor-pointer rounded-2xl bg-white p-4 shadow-md transition`}>
-                    <Link href={`/bookings/${displayBooking.id}`} onClick={(e) => { e.stopPropagation(); handleBeforeViewBooking(displayBooking); }}>
                       <div className="mb-4 flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3">
                             <input
@@ -953,7 +969,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
                                   </span>
                                 </div>
 
-                                <StatusBadge status={displayBooking.status} />
                               </ScreenGate>
                             </div>
                           </div>
@@ -972,63 +987,98 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
                             </div>
                           </ScreenGate>
                         
-                        <div className="flex flex-col z-9999 relative">
-                          <ScreenGate maxWidth={639}>
-                            <Link href={`/bookings/${displayBooking.id}`} onClick={(e) => { e.stopPropagation(); handleBeforeViewBooking(displayBooking); }} className="inline-flex cursor-pointer items-center gap-2 rounded-xl text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
-                              <span className="flex items-center justify-center text-slate-600">
-                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                              </span>
-                            </Link>
-                          </ScreenGate>
+                          <div className="flex flex-col items-end">
+                              <StatusBadge status={displayBooking.status} className="w-fit" />
+                              <div className="mt-2">
+                                <PortalActionsMenu
+                                  open={mobileActionsId === displayBooking.id}
+                                  onToggle={() =>
+                                    setMobileActionsId((prev) =>
+                                      prev === displayBooking.id
+                                        ? null
+                                        : displayBooking.id
+                                    )
+                                  }
+                                  estimatedHeight={140}
+                                >
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setMobileActionsId(null);
+                                      handleViewBooking(
+                                        displayBooking,
+                                        actualBooking
+                                      );
+                                    }}
+                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    View
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setMobileActionsId(null);
+                                      if (actualBooking) handleEdit(actualBooking);
+                                    }}
+                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                  >
+                                    <SquarePen className="h-3.5 w-3.5" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setMobileActionsId(null);
+                                      handleDeleteClick(displayBooking.id);
+                                    }}
+                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    Delete
+                                  </button>
+                                </PortalActionsMenu>
+                              </div>
+                          </div>
 
-                          <ScreenGate minWidth={640}>
-                            <StatusBadge status={displayBooking.status} />
-                            
-                            <div className="mt-4 flex flex-wrap gap-2 z-9999 relative w-full">
-                              {/* <Link href={`/bookings/${displayBooking.id}`} onClick={(e) => { e.stopPropagation(); handleBeforeViewBooking(displayBooking); }} className="inline-flex cursor-pointer items-center gap-2 rounded-xl text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
-                                <Eye className="h-4 w-4" />
-                              </Link> */}
-                              <button onClick={(e) => { e.stopPropagation(); actualBooking && handleEdit(actualBooking); }} className="block cursor-pointer rounded-xl text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 z-9999 relative">
-                                <SquarePen className="h-4 w-4" />
-                              </button>
-                              <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(displayBooking.id); }} className="block cursor-pointer rounded-xl text-sm font-medium text-rose-700 transition hover:bg-rose-100 z-9999 relative">
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </ScreenGate>
-
-                        </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleViewBooking(displayBooking, actualBooking)
-                      }
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </button>
-                    <button
-                      onClick={() => actualBooking && handleEdit(actualBooking)}
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
-                    >
-                      <SquarePen className="h-4 w-4" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(displayBooking.id)}
-                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </button>
+                          {/* <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleViewBooking(displayBooking, actualBooking)
+                              }
+                              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
+                            >
+                              <Eye className="h-4 w-4" />
+                              View
+                            </button>
+                            <button
+                              onClick={() => actualBooking && handleEdit(actualBooking)}
+                              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+                            >
+                              <SquarePen className="h-4 w-4" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(displayBooking.id)}
+                              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </button>
+                          </div> */}
+                      </div>
                   </div>
+
+                  
               );
             })
           )}
         </div>
+        </ScreenGate>
 
         <Pagination
           currentPage={currentPage}

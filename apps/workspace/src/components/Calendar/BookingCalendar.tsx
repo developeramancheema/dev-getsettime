@@ -1228,7 +1228,7 @@ export default function BookingCalendar() {
                       selectedDate={viewDate}
                       bookings={currentDayBookings}
                       loading={loading}
-                      onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                      onSelectBooking={handle_select_booking}
                       selectedBookingId={selectedBookingId ?? undefined}
                       onGoToToday={() => setViewDate(start_of_day(new Date()))}
                     />
@@ -1240,7 +1240,7 @@ export default function BookingCalendar() {
                       providerColumns={dayProviderColumns}
                       loading={loading}
                       timezoneLabel={timezoneLabel}
-                      onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                      onSelectBooking={handle_select_booking}
                       selectedBookingId={selectedBookingId ?? undefined}
                     />
                   </ScreenGate>
@@ -1256,16 +1256,30 @@ export default function BookingCalendar() {
                   selectedBookingId={selectedBookingId ?? undefined}
                 />
               ) : (
-                <CalendarWeekGrid
-                  viewMode="week"
-                  weekStart={viewDate}
-                  bookings={currentWeekBookings}
-                  providerColumns={providerColumns}
-                  loading={loading}
-                  timezoneLabel={timezoneLabel}
-                  onSelectBooking={handle_select_booking}
-                  selectedBookingId={selectedBookingId ?? undefined}
-                />
+                <>
+                  <ScreenGate maxWidth={1023}>
+                    <CalendarMobileWeekBookings
+                      selectedDate={viewDate}
+                      bookings={currentDayBookings}
+                      loading={loading}
+                      onSelectBooking={handle_select_booking}
+                      selectedBookingId={selectedBookingId ?? undefined}
+                      onGoToToday={() => setViewDate(start_of_day(new Date()))}
+                    />
+                  </ScreenGate>
+                  <ScreenGate minWidth={1024}>
+                    <CalendarWeekGrid
+                      viewMode="week"
+                      weekStart={viewDate}
+                      bookings={currentWeekBookings}
+                      providerColumns={providerColumns}
+                      loading={loading}
+                      timezoneLabel={timezoneLabel}
+                      onSelectBooking={handle_select_booking}
+                      selectedBookingId={selectedBookingId ?? undefined}
+                    />
+                  </ScreenGate>
+                </>
               )}
 
               <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-slate-200 pt-3">

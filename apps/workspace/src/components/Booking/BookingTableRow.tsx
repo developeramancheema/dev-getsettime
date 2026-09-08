@@ -91,13 +91,13 @@ export function BookingTableRow({
       tabIndex={0}
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
-      className={`cursor-pointer transition hover:bg-slate-50/70 ${
+      className={`cursor-pointer transition hover:bg-slate-50/70 border border-slate-100 last:border-b-0 ${
         selected ? 'bg-indigo-50/50' : ''
       } ${isLast ? '' : 'border-b border-slate-100'}`}
       aria-label={`View booking for ${displayBooking.name}`}
     >
       <td
-        className="px-6 py-5 align-middle"
+        className="text-sm px-6 py-5 align-middle border-b border-slate-100"
         data-label="Select"
         onClick={(e) => e.stopPropagation()}
       >
@@ -110,8 +110,8 @@ export function BookingTableRow({
         />
       </td>
 
-      <td className="px-6 py-5 align-middle" data-label="Name">
-        <div className="flex items-center gap-3">
+      <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Name">
+        <div className="flex items-center max-[1301px]:justify-end gap-3">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-600">
             <UserRound className="h-4 w-4" />
           </div>
@@ -137,7 +137,7 @@ export function BookingTableRow({
       </td>
 
       <td
-        className="px-6 py-5 align-middle text-sm"
+        className="text-sm px-6 py-5 align-middle border-b border-slate-100"
         data-label="Date-Time"
       >
         <div className="flex flex-col">
@@ -153,7 +153,7 @@ export function BookingTableRow({
         </div>
       </td>
 
-      <td className="px-6 py-5 align-middle" data-label="Service Provider">
+      <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Service Provider">
         <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700">
           <BriefcaseMedical className="h-3.5 w-3.5" />
           {service_provider_display}
@@ -161,13 +161,14 @@ export function BookingTableRow({
       </td>
 
       <td
-        className="px-6 py-5 align-middle text-sm"
+        className="px-6 py-5 align-middle text-sm border-b border-slate-100"
         data-label="Created At / Status"
       >
-        <div className="flex flex-col gap-1">
+        <div className="flex gap-1 max-[1301px]:justify-end">
           <span className="whitespace-nowrap font-medium text-slate-800">
             {displayBooking.created_at}
           </span>
+          
           <StatusBadge status={displayBooking.status} className="w-fit" />
         </div>
       </td>
