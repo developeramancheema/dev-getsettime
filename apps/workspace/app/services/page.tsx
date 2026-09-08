@@ -5,16 +5,22 @@ import { createPortal } from "react-dom";
 import {
   LuBuilding2 as Building2,
   LuChevronDown as ChevronDown,
+  LuChevronRight as ChevronRight,
+  LuClock3 as Clock3,
+  LuHeartPulse as HeartPulse,
   LuLayoutGrid as LayoutGrid,
   LuPlus as Plus,
   LuSearch as Search,
   LuBoxes as Boxes,
+  LuSparkles as Sparkles,
+  LuStethoscope as Stethoscope,
   LuUserRound as UserRound,
   LuUsers as Users,
   LuX as X,
   LuPencil as Pencil,
   LuTrash2 as Trash2,
   LuPower as Power,
+  LuSmile as Smile,
 } from "react-icons/lu";
 import { Pagination, usePagination } from "@app/ui";
 import { supabase } from "@/lib/supabaseClient";
@@ -31,6 +37,10 @@ import { currencySymbol } from "@/src/constants/currency";
 import { AddDepartmentPanel } from "@/src/features/departments/AddDepartmentPanel";
 import { get_department_gradient } from "@/src/features/departments/department_colors";
 import {
+  EVENT_TYPE_FORMAT_OPTIONS,
+  parse_event_type_format,
+} from "@/src/features/event-types/event_type_format";
+import {
   ServiceFilters,
   type service_status_filter,
 } from "@/src/features/services/ServiceFilters";
@@ -46,6 +56,7 @@ import type {
 import { useServiceDepartmentDoctors } from "@/src/features/services/useServiceDepartmentDoctors";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
+import ScreenGate from "@/src/components/ScreenGate";
 
 type DepartmentStatus = "active" | "inactive";
 type ServiceStatus = service_status;
@@ -148,6 +159,30 @@ function formatCurrency(
   return `${symbol}${value.toFixed(2)}`;
 }
 
+const SERVICE_CARD_ICONS = [
+  { Icon: Stethoscope, wrap: "bg-sky-50 text-sky-600" },
+  { Icon: Sparkles, wrap: "bg-violet-50 text-violet-600" },
+  { Icon: HeartPulse, wrap: "bg-orange-50 text-orange-600" },
+  { Icon: Smile, wrap: "bg-blue-50 text-blue-600" },
+  { Icon: Boxes, wrap: "bg-emerald-50 text-emerald-600" },
+] as const;
+
+function getServiceCardIcon(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash + seed.charCodeAt(i) * (i + 1)) % SERVICE_CARD_ICONS.length;
+  }
+  return SERVICE_CARD_ICONS[hash] ?? SERVICE_CARD_ICONS[0];
+}
+
+function eventTypeFormatLabel(value: unknown): string {
+  const format = parse_event_type_format(value);
+  return (
+    EVENT_TYPE_FORMAT_OPTIONS.find((option) => option.value === format)?.label ??
+    "One-to-one"
+  );
+}
+
 export default function ServicesPage() {
   const { user, loading: authLoading } = useAuth();
   const { general } = useWorkspaceSettings();
@@ -167,6 +202,9 @@ export default function ServicesPage() {
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [eventTypeFormatByServiceId, setEventTypeFormatByServiceId] = useState<
+    Record<string, string>
+  >({});
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | null>(
     null
   );
@@ -236,16 +274,39 @@ export default function ServicesPage() {
     return (data.services ?? []) as Service[];
   }, [getAuthToken]);
 
+  const fetchEventTypeFormatsByService = useCallback(async () => {
+    const token = await getAuthToken();
+    if (!token) return {} as Record<string, string>;
+    const response = await fetch("/api/event-types", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) return {} as Record<string, string>;
+    const data = await response.json();
+    const rows = (data.data ?? []) as Array<{
+      service_id?: string | null;
+      event_type_format?: string | null;
+    }>;
+    const map: Record<string, string> = {};
+    for (const row of rows) {
+      const serviceId = row.service_id?.trim();
+      if (!serviceId || map[serviceId]) continue;
+      map[serviceId] = eventTypeFormatLabel(row.event_type_format);
+    }
+    return map;
+  }, [getAuthToken]);
+
   const loadAll = useCallback(
     async (opts?: { silent?: boolean; selectId?: number | null }) => {
       if (!opts?.silent) setInitialLoading(true);
       try {
-        const [depts, svcs] = await Promise.all([
+        const [depts, svcs, formatMap] = await Promise.all([
           fetchDepartments(),
           fetchServices(),
+          fetchEventTypeFormatsByService(),
         ]);
         setDepartments(depts);
         setServices(svcs);
+        setEventTypeFormatByServiceId(formatMap);
         setSelectedDepartmentId((prev) => {
           if (opts && "selectId" in opts) {
             return opts.selectId ?? null;
@@ -260,7 +321,7 @@ export default function ServicesPage() {
         if (!opts?.silent) setInitialLoading(false);
       }
     },
-    [fetchDepartments, fetchServices]
+    [fetchDepartments, fetchServices, fetchEventTypeFormatsByService]
   );
 
   useEffect(() => {
@@ -842,13 +903,8 @@ export default function ServicesPage() {
 
   return (
     <>
-    <div
-      className={classNames(
-        "min-h-screen transition-[margin] duration-300 ease-in-out",
-        (showAddDepartmentPanel || panelAnimatedOpen) &&
-          "hidden lg:block lg:mr-[28rem]"
-      )}
-    >
+    <div className={classNames( "min-h-screen transition-[margin] duration-300 ease-in-out", (showAddDepartmentPanel || panelAnimatedOpen) &&
+          "hidden lg:block lg:mr-[28rem]" )}>
       <div className="mx-auto space-y-5">
         {/* Top header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -862,6 +918,8 @@ export default function ServicesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+
+            <ScreenGate minWidth={1024}>
             <button
               type="button"
               onClick={() => setShowBookingImpact(true)}
@@ -871,6 +929,7 @@ export default function ServicesPage() {
               <LayoutGrid className="h-4 w-4" />
               View booking impact
             </button>
+            </ScreenGate>
 
             {!isLoggedInServiceProvider && !isStaffUser && (
               <button
@@ -898,7 +957,7 @@ export default function ServicesPage() {
         </div>
 
         {/* Stats row */}
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-3">
           <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
               <Building2 className="h-5 w-5" />
@@ -941,7 +1000,7 @@ export default function ServicesPage() {
         </div>
 
         {/* All Services */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
           <div className="mb-4">
             <ServiceFilters
               leading={
@@ -972,7 +1031,8 @@ export default function ServicesPage() {
               on_duration_filter_change={setDurationFilter}
             />
           </div>
-
+          
+          <ScreenGate minWidth={1024}>
           {/* Department tabs */}
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {isPageLoading ? (
@@ -1100,13 +1160,15 @@ export default function ServicesPage() {
               </>
             )}
           </div>
+          </ScreenGate>
 
-          {/* Services table */}
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          {/* Services list - Desktop view */}
+          <ScreenGate minWidth={1024}>
+          <div className="overflow-hidden rounded-xl">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] border-collapse">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/80">
+                  <tr className="border border-slate-100 bg-slate-50/80">
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Department
                     </th>
@@ -1136,10 +1198,7 @@ export default function ServicesPage() {
                     <>
                       {paginatedServices.length === 0 && (
                         <tr>
-                          <td
-                            colSpan={showRowActions ? 6 : 5}
-                            className="px-4 py-10 text-center"
-                          >
+                          <td colSpan={showRowActions ? 6 : 5} className="px-4 py-10 text-center">
                             <p className="text-sm font-medium text-slate-700">
                               No services found
                             </p>
@@ -1159,14 +1218,10 @@ export default function ServicesPage() {
                         const deptName = getServiceDepartmentName(service);
                         const serviceDepartment = getServiceDepartment(service);
                         return (
-                          <tr
-                            key={service.id}
-                            className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
-                          >
-                            <td className="px-4 py-3.5">
+                          <tr key={service.id} className="border border-slate-100 last:border-b-0 hover:bg-slate-50/60 ">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Department">
                               {serviceDepartment ? (
-                                <span
-                                  className={classNames(
+                                <span className={classNames(
                                     "inline-flex rounded-full bg-gradient-to-br px-2.5 py-1 text-xs font-medium text-white",
                                     get_department_gradient(serviceDepartment)
                                   )}
@@ -1179,7 +1234,7 @@ export default function ServicesPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Service">
                               <p className="text-sm font-semibold text-slate-900">
                                 {service.name}
                               </p>
@@ -1189,16 +1244,16 @@ export default function ServicesPage() {
                                 </p>
                               )}
                             </td>
-                            <td className="px-4 py-3.5 text-sm text-slate-600">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Duration">
                               {service.duration} min
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Assigned Consultants">
                               {assigned.length === 0 ? (
                                 <span className="text-sm text-slate-400">
                                   Unassigned
                                 </span>
                               ) : (
-                                <div className="flex min-w-0 items-center gap-2.5">
+                                <div className="flex min-w-0 justify-end items-center gap-2.5">
                                   <div className="flex shrink-0 items-center">
                                     {assigned.slice(0, 3).map((doctor, index) => (
                                       <div
@@ -1239,7 +1294,7 @@ export default function ServicesPage() {
                                 </div>
                               )}
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Status">
                               <span
                                 className={classNames(
                                   "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
@@ -1250,12 +1305,12 @@ export default function ServicesPage() {
                               </span>
                             </td>
                             {showRowActions ? (
-                              <td className="px-4 py-3.5">
-                                <div className="relative flex items-center gap-1.5">
+                              <td className="text-sm px-4 py-3.5" data-label="Action">
+                                <div className="relative flex justify-end items-center gap-1.5">
                                   <button
                                     type="button"
                                     onClick={() => openEditService(service)}
-                                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                    className="flex gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                     Edit
@@ -1325,6 +1380,208 @@ export default function ServicesPage() {
               )}
             </div>
           </div>
+          </ScreenGate>
+
+          {/* Services list - Mobile view */}
+          <ScreenGate maxWidth={1023}>
+            <div className="space-y-3">
+              {isPageLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={`service-card-skeleton-${index}`}
+                    className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-slate-100"
+                  />
+                ))
+              ) : paginatedServices.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-700">
+                    No services found
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {allDepartmentServices.length === 0
+                      ? selectedDepartment
+                        ? "Add the first service for this department."
+                        : "Add the first service to get started."
+                      : "Try changing the search or status filter."}
+                  </p>
+                </div>
+              ) : (
+                paginatedServices.map((service) => {
+                  const assigned = service.meta_data?.service_providers ?? [];
+                  const deptName = getServiceDepartmentName(service);
+                  const { Icon, wrap } = getServiceCardIcon(service.id || service.name);
+                  const visibleAvatars = assigned.slice(0, 2);
+                  const overflowCount = Math.max(0, assigned.length - visibleAvatars.length);
+                  const statusLabel =
+                    service.status === "active"
+                      ? "Active"
+                      : serviceStatusLabel(service.status);
+                  const eventTypeFormat =
+                    eventTypeFormatByServiceId[service.id] ?? null;
+
+                  return (
+                    <div key={service.id} className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_-18px_rgba(15,23,42,0.35)]">
+                      <div className={classNames( "flex w-full items-start gap-3 text-left", showRowActions ? "cursor-pointer" :  "cursor-default" )}>
+                        <div className={classNames( "flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl", wrap )}>
+                          {/* <Icon className="h-5 w-5" aria-hidden /> */}
+                          <span className={classNames( "text-sm sm:text-md font-bold", wrap )}>{service.name.charAt(0).toUpperCase()}</span>
+                        </div>
+
+                        <div className="w-full flex justify-between">
+                          <div className="flex w-full justify-between gap-2">
+                            
+                            <div className="w-[60%] flex sm:flex-row flex-col justify-between gap-1.5">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-slate-900">
+                                  {service.name}
+                                </p>
+                                <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-500">
+                                  <span className="inline-flex items-center gap-1">
+                                    <Clock3 className="h-3.5 w-3.5" aria-hidden />
+                                    {service.duration} min
+                                  </span>
+                                  <span aria-hidden>•</span>
+                                  <span>{deptName}</span>
+                                </p>
+                                {eventTypeFormat ? (
+                                    <>
+                                      <span className={classNames( "inline-flex rounded-md mt-2 px-2.5 py-0.5 text-xs", wrap )}>{eventTypeFormat}</span>
+                                    </>
+                                  ) : null}
+                              </div>
+
+                              <div className="min-w-0">
+                                {assigned.length === 0 ? (
+                                  <p className="text-xs text-slate-400">Unassigned</p>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 flex-row flex-wrap sm:flex-col">
+                                    <div className="flex items-center">
+                                      {visibleAvatars.map((doctor, index) => (
+                                        <div
+                                          key={doctor.id}
+                                          className={classNames(
+                                            "relative rounded-full ring-2 ring-white",
+                                            index > 0 && "-ml-2"
+                                          )}
+                                          style={{ zIndex: visibleAvatars.length - index }}
+                                        >
+                                          <ProviderAvatar
+                                            name={doctor.name}
+                                            initials={providerInitials(doctor.name)}
+                                            avatarUrl={providerAvatarById.get(doctor.id)}
+                                            size="sm"
+                                          />
+                                        </div>
+                                      ))}
+                                      {overflowCount > 0 && (
+                                        <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[10px] font-semibold text-sky-700 ring-2 ring-white">
+                                          +{overflowCount}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-slate-500">
+                                      {assigned.length}{" "}
+                                      {assigned.length === 1 ? "provider" : "providers"}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+
+                            <div className="flex shrink-0 items-start gap-1.5">
+                              <div className="flex items-center flex-col gap-1.5">
+                                <span className={classNames( "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", serviceStatusBadgeClass(service.status) )}>{statusLabel}</span>
+                              
+                                <span className="text-sm font-bold text-slate-900">
+                                  {formatCurrency(service.price, currencySign)}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                {showRowActions ? (
+                                  <PortalActionsMenu
+                                    open={rowMenuId === `mobile-${service.id}`}
+                                    onToggle={() =>
+                                      setRowMenuId((prev) =>
+                                        prev === `mobile-${service.id}`
+                                          ? null
+                                          : `mobile-${service.id}`
+                                      )
+                                    }
+                                  >
+                                    <button
+                                      type="button"
+                                      role="menuitem"
+                                      disabled={busyAction}
+                                      onClick={() => {
+                                        setRowMenuId(null);
+                                        openEditService(service);
+                                      }}
+                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                      Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      role="menuitem"
+                                      disabled={busyAction}
+                                      onClick={() => {
+                                        setRowMenuId(null);
+                                        handleToggleServiceStatus(service);
+                                      }}
+                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                                    >
+                                      <Power className="h-3.5 w-3.5" />
+                                      {service.status === "active"
+                                        ? "Set private"
+                                        : "Set public"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      role="menuitem"
+                                      disabled={busyAction}
+                                      onClick={() => {
+                                        setRowMenuId(null);
+                                        setServiceToDelete(service);
+                                      }}
+                                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                      Delete
+                                    </button>
+                                  </PortalActionsMenu>
+                                ) : null}
+                              </div>
+
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+
+              <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
+                {isPageLoading ? (
+                  <ServicePaginationSkeleton />
+                ) : (
+                  <Pagination
+                    currentPage={servicesPage}
+                    totalPages={servicesTotalPages}
+                    totalItems={servicesTotalItems}
+                    itemsPerPage={SERVICES_PAGE_SIZE}
+                    onPageChange={handleServicesPageChange}
+                    loading={busyAction}
+                    itemLabel="services"
+                  />
+                )}
+              </div>
+            </div>
+          </ScreenGate>
         </section>
       </div>
     </div>

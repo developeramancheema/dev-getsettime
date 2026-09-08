@@ -1,14 +1,14 @@
 'use client';
 
 const STATUS_STYLES: Record<string, string> = {
-  confirmed: 'bg-green-100 text-green-700',
-  pending: 'bg-yellow-100 text-yellow-700',
-  cancelled: 'bg-slate-100 text-slate-700',
-  completed: 'bg-blue-100 text-blue-700',
+  confirmed: 'bg-blue-100 text-blue-700',
+  pending: 'bg-amber-100 text-amber-700',
+  cancelled: 'bg-red-100 text-red-700',
+  completed: 'bg-emerald-100 text-emerald-700',
   emergency: 'bg-orange-100 text-orange-700',
-  reschedule: 'bg-red-100 text-red-700',
-  'no-show': 'bg-amber-100 text-amber-800',
-  deleted: 'bg-zinc-200 text-zinc-600',
+  reschedule: 'bg-indigo-100 text-indigo-700',
+  'no-show': 'bg-violet-100 text-violet-800',
+  deleted: 'bg-slate-200 text-slate-600',
 };
 
 const DEFAULT_STYLE = 'bg-red-100 text-red-700';
