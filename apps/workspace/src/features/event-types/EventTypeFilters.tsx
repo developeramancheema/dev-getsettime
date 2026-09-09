@@ -10,6 +10,7 @@ import {
 } from "react-icons/lu";
 import type { event_type_service_provider_option } from "@/src/features/event-types/EventTypeFormLayout";
 import type { event_type_format } from "@/src/types/event_types";
+import ScreenGate from "@/src/components/ScreenGate";
 
 type visibility_filter_value = "all" | "private" | "public";
 type status_filter_value = "" | "active" | "draft";
@@ -111,7 +112,8 @@ export function EventTypeFilters({
           })}
         </div>
 
-        <div className="hidden w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 md:flex lg:max-w-xl lg:flex-1 lg:justify-end">
+        <ScreenGate minWidth={1024}>
+        <div className="w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 flex lg:max-w-xl lg:flex-1 lg:justify-end">
           <div className="relative min-h-11 w-full min-w-0 sm:flex-1">
             <div
               className="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center text-slate-400"
@@ -157,6 +159,7 @@ export function EventTypeFilters({
             </button>
           </div>
         </div>
+        </ScreenGate>
       </div>
 
       {show_advanced ? (

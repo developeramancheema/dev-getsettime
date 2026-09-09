@@ -1336,7 +1336,7 @@ export default function EventTypes() {
             </div>
           </div>
 
-          <ScreenGate minWidth={640}>
+          <ScreenGate minWidth={768}>
           <div className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
               <div className="md:flex md:items-center md:gap-3">
@@ -1416,6 +1416,7 @@ export default function EventTypes() {
           </ScreenGate>
 
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-visible">
+          
             <div className="border-b border-slate-200 p-4 sm:px-5">
               <EventTypeFilters
                 search={search}
@@ -1678,8 +1679,8 @@ export default function EventTypes() {
 
       <aside
         className={cn(
-          "fixed top-16 right-0 bottom-0 z-40 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
-          "w-full max-md:w-full md:!w-[50vw]",
+          "asd fixed top-16 right-0 bottom-0 z-40 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
+          "w-full max-md:w-full lg:!w-[60vw]",
           "transform transition-transform duration-300 ease-in-out will-change-transform",
           panel_animated_open
             ? "translate-x-0"
@@ -1703,7 +1704,7 @@ export default function EventTypes() {
                 </button>
               </div>
 
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
+              <div className="flex min-h-0 h-full flex-1 flex-col overflow-x-scroll pb-[60px] lg:pb-0">
                 {editingId !== null ? (
                   <EventTypeEditForm
                     key={editingId}
@@ -1767,7 +1768,7 @@ export default function EventTypes() {
             onClick={() => set_settings_open(false)}
             className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
           />
-          <div className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl">
+          <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">

@@ -70,10 +70,10 @@ export function DepartmentFilters({
   };
 
   return (
-    <div className="w-full min-w-0">
-      <div className="flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        {leading ? <div className="min-w-0 shrink-0">{leading}</div> : null}
-        <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:max-w-3xl lg:flex-1 lg:justify-end">
+    <div className="w-full">
+      <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        {leading ? <div className="basis-1/3">{leading}</div> : null}
+        <div className="basis-2/3 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:max-w-3xl lg:flex-1 lg:justify-end">
           <div className="relative min-h-11 w-full min-w-0 sm:w-1/2 sm:flex-none">
             <input
               type="search"
@@ -137,7 +137,7 @@ export function DepartmentFilters({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid max-[450px]:grid-cols-1 grid-cols-3 gap-3 md:grid-cols-3 lg:grid-cols-3">
             <div className="min-w-0">
               <label
                 htmlFor="department-status-filter"

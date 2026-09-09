@@ -70,8 +70,8 @@ export function ServiceFilters({
   return (
     <div className="w-full min-w-0">
       <div className="flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        {leading ? <div className="min-w-0 shrink-0">{leading}</div> : null}
-        <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:max-w-3xl lg:flex-1 lg:justify-end">
+        {leading ? <div className="basis-1/3">{leading}</div> : null}
+        <div className="basis-2/3 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:max-w-3xl lg:flex-1 lg:justify-end">
           <div className="relative min-h-11 w-full min-w-0 sm:w-1/2 sm:flex-none">
             <input
               type="search"

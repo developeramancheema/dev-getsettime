@@ -6,6 +6,7 @@ import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { sync_settings_response } from "@/src/lib/workspace_shell_sync";
 import type { WorkspaceSettings } from "@/src/types/workspace";
+import ScreenGate from "@/src/components/ScreenGate";
 
 interface CustomField {
   id: string;
@@ -449,6 +450,7 @@ export default function RoutingForm({ dark = false }) {
           </div>
         </div>
 
+        <ScreenGate minWidth={1024}>
         <div className="grid gap-3 md:grid-cols-3">
           <FormsStatCard
             icon="clipboard"
@@ -472,6 +474,7 @@ export default function RoutingForm({ dark = false }) {
             helper="Created by you"
           />
         </div>
+        </ScreenGate>
 
         <form onSubmit={handleIntakeFormSubmit} className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-start">

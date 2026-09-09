@@ -956,7 +956,7 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        <ScreenGate minWidth={640}>
+        <ScreenGate minWidth={768}>
         {/* Stats row */}
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-3">
           <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -1249,7 +1249,7 @@ export default function ServicesPage() {
                             <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Duration">
                               {service.duration} min
                             </td>
-                            <td className="text-sm px-4 py-3.5 border-b border-slate-100 flex justify-between w-full" data-label="Assigned Consultants">
+                            <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Assigned Consultants">
                               {assigned.length === 0 ? (
                                 <span className="text-sm text-slate-400">
                                   Unassigned

@@ -2221,7 +2221,7 @@ export function EventTypeFormLayout({
           // Wizard must never save via native submit (Enter key or Next→Save click-through).
           e.preventDefault();
         }}
-        className="relative flex h-full min-h-0 flex-col"
+        className="relative flex overflow-x-scroll flex-col h-full"
         aria-describedby={
           [
             formError ? "event-type-form-error" : null,
@@ -2231,7 +2231,7 @@ export function EventTypeFormLayout({
             .join(" ") || undefined
         }
       >
-        <div className="flex min-h-0 flex-1 overflow-hidden">
+        <div className="flex flex-1 h-full overflow-x-scroll">
           <nav
             aria-label="Event type steps"
             className="hidden w-52 shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50/80 py-4 sm:block lg:w-56"
@@ -2269,7 +2269,7 @@ export function EventTypeFormLayout({
             </ol>
           </nav>
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 flex-col overflow-x-scroll">
             <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
               <div className="mb-3 flex gap-1 overflow-x-auto pb-1 sm:hidden">
                 {EVENT_TYPE_PANEL_STEPS.map((step, index) => {
@@ -2581,7 +2581,7 @@ export function EventTypeFormLayout({
                       <span className="mb-2 block text-sm font-medium text-slate-700">
                         Event type format<span className="text-red-500">*</span>
                       </span>
-                      <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="grid gap-3 xl:grid-cols-3">
                         {EVENT_TYPE_FORMAT_OPTIONS.map((option) => {
                           const selected = value.event_type_format === option.value;
                           return (

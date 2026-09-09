@@ -57,6 +57,8 @@ import {
 import { useServiceProviders, useUserDepartments } from "@/src/hooks/useBookingLookups";
 import { useAuth } from "@/src/providers/AuthProvider";
 import type { ServiceProvider } from "@/src/types/booking-entities";
+import ScreenGate from "@/src/components/ScreenGate";
+
 
 /** Public=active, Private=private, Draft=draft; inactive kept for legacy rows. */
 type DepartmentStatus = "active" | "private" | "draft" | "inactive";
@@ -967,7 +969,7 @@ export default function DepartmentsPage() {
         )}
       >
         <div className="mx-auto space-y-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-4 flex-row flex-wrap items-start sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                 Departments
@@ -991,13 +993,9 @@ export default function DepartmentsPage() {
             ) : null}
           </div>
 
-          <div
-            className={classNames(
-              "grid gap-3 sm:grid-cols-2",
-              showFullDoctorFlow ? "xl:grid-cols-4" : "xl:grid-cols-3"
-            )}
-          >
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <ScreenGate minWidth={768}> 
+          <div className={classNames( "grid gap-3 sm:grid-cols-4", showFullDoctorFlow ? "xl:grid-cols-4" : "xl:grid-cols-3" )}>
+            <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
                 <Building2 className="h-5 w-5" />
               </div>
@@ -1013,7 +1011,7 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                 <Boxes className="h-5 w-5" />
               </div>
@@ -1025,7 +1023,7 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
                 <Users className="h-5 w-5" />
               </div>
@@ -1046,7 +1044,7 @@ export default function DepartmentsPage() {
             </div>
 
             {showFullDoctorFlow && (
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
                   <Lock className="h-5 w-5" />
                 </div>
@@ -1063,6 +1061,7 @@ export default function DepartmentsPage() {
               </div>
             )}
           </div>
+          </ScreenGate>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
             <div className="mb-4">
@@ -1097,9 +1096,15 @@ export default function DepartmentsPage() {
               />
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="overflow-hidden rounded-xl">
+              
+              {/* <ScreenGate maxWidth={1023}> 
+                <div></div>
+              </ScreenGate> */}
+
+              {/* <ScreenGate minWidth={1024}>  */}
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px] border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50/80">
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1158,8 +1163,8 @@ export default function DepartmentsPage() {
                               key={dep.id}
                               className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
                             >
-                              <td className="px-4 py-3.5">
-                                <div className="flex items-start gap-3">
+                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Department">
+                                <div className="flex max-[1301px]:justify-end gap-2.5">
                                   <div
                                     className={classNames(
                                       "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
@@ -1186,13 +1191,13 @@ export default function DepartmentsPage() {
                                 </div>
                               </td>
 
-                              <td className="px-4 py-3.5">
+                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Provider">
                                 {assigned.length === 0 ? (
                                   <span className="text-sm text-slate-400">
                                     Unassigned
                                   </span>
                                 ) : (
-                                  <div className="flex min-w-0 items-center gap-2.5">
+                                  <div className="flex items-center max-[1301px]:justify-end gap-2.5">
                                     <div className="flex shrink-0 items-center">
                                       {assigned.slice(0, 3).map((doctor, index) => (
                                         <div
@@ -1232,7 +1237,7 @@ export default function DepartmentsPage() {
                                 )}
                               </td>
 
-                              <td className="px-4 py-3.5">
+                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Services">
                                 {services.length === 0 ? (
                                   <span className="text-sm text-slate-400">
                                     No services
@@ -1245,7 +1250,7 @@ export default function DepartmentsPage() {
                                 )}
                               </td>
 
-                              <td className="px-4 py-3.5">
+                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Status">
                                 <span
                                   className={classNames(
                                     "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
@@ -1257,8 +1262,8 @@ export default function DepartmentsPage() {
                               </td>
 
                               {showRowActions && (
-                                <td className="px-4 py-3.5">
-                                  <div className="relative flex items-center gap-1.5">
+                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Action">
+                                  <div className="relative flex items-center max-[1301px]:justify-end gap-2.5">
                                     <button
                                       type="button"
                                       onClick={() => openEditDepartment(dep)}
@@ -1324,6 +1329,8 @@ export default function DepartmentsPage() {
                   </tbody>
                 </table>
               </div>
+              {/* </ScreenGate> */}
+
 
               <div className="border-t border-slate-200 px-4 py-3">
                 {isPageLoading ? (
