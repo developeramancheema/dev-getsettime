@@ -25,6 +25,7 @@ import { RequestIntegrationModal } from "@/src/components/ui/RequestIntegrationM
 import { UpgradePlanModal } from "@/src/components/Subscription/UpgradePlanModal";
 import { useSubscription } from "@/src/hooks/useSubscription";
 import DashboardIcon from "@/src/components/Dashboard/DashboardIcon";
+import ScreenGate from "@/src/components/ScreenGate";
 
 type NotificationChannel = "Email" | "SMS" | "WhatsApp" | "System";
 
@@ -327,7 +328,7 @@ function StatCard({
           <p className={`mt-0.5 text-2xl font-bold leading-none py-2 text-slate-950 ${valueClassName ?? ""}`}>{value}</p>
           <p className="mt-1 truncate text-xs font-medium text-slate-400">{helper}</p>
         </div>
-        <div className="text-slate-400" aria-hidden>
+        {/* <div className="text-slate-400" aria-hidden>
           <svg
             width="16"
             height="16"
@@ -338,7 +339,7 @@ function StatCard({
           >
             <path d="M9 6 15 12 9 18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </div>
+        </div> */}
       </div>
     </div>
   );
@@ -824,11 +825,11 @@ export function IntegrationsNotificationsView() {
       <section className="mx-auto space-y-6">
         <div className="rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm md:px-6">
           <div className="flex items-start gap-4">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
-              <LayoutIcon name="zap" size={45} />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <LayoutIcon name="zap" size={20} />
             </div>
             <div className="min-w-0">
-              <h1 className="text-[30px] font-bold leading-tight tracking-tight text-slate-900 md:text-[30px]">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                 Integrations &amp; Notifications
               </h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
@@ -838,8 +839,9 @@ export function IntegrationsNotificationsView() {
             </div>
           </div>
         </div>
-
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        
+        <ScreenGate minWidth={768}>
+        <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-4">
           <StatCard
             icon="calendar"
             iconClassName="bg-violet-50 text-violet-600 ring-violet-100"
@@ -872,6 +874,7 @@ export function IntegrationsNotificationsView() {
             valueClassName={stats.healthClass}
           />
         </div>
+        </ScreenGate>
 
         {message && (
           <div
@@ -885,8 +888,8 @@ export function IntegrationsNotificationsView() {
           </div>
         )}
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.95fr)] lg:items-start lg:max-[1349px]:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)]">
-          <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 lg:items-start">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Connected Apps</h2>
@@ -913,7 +916,7 @@ export function IntegrationsNotificationsView() {
                 <p className="text-lg font-bold text-slate-950">No integrations found</p>
               </div>
             ) : (
-              <div className="grid gap-3">
+              <div className="grid sm:grid-cols-2  md:grid-cols-1 gap-3">
                 {items.map((it) => {
                   const connected = it.connected;
                   const comingSoon = it.comingSoon;
@@ -935,11 +938,11 @@ export function IntegrationsNotificationsView() {
                       }`}
                     >
                       <div className="flex items-start gap-3 min-[1350px]:gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white min-[1350px]:h-16 min-[1350px]:w-16">
+                        <div className="size-10 shrink-0 items-center justify-center rounded-xl bg-white">
                           {it.id === "google_calendar" || it.id === "zoom" ? (
                             <IntegrationBrandIcon id={it.id} />
                           ) : (
-                            <LayoutIcon name="calendar" size={20} className="min-[1350px]:!h-6 min-[1350px]:!w-6" />
+                            <LayoutIcon name="calendar" size={20} className="w-20 h-20" />
                           )}
                         </div>
 
@@ -960,33 +963,35 @@ export function IntegrationsNotificationsView() {
                               {comingSoon ? "Coming Soon" : connected ? "Connected" : "Not connected"}
                             </span>
                           </div>
+                      
+                          <p className="mt-2 text-xs leading-5 break-words text-slate-500 min-[1350px]:mt-1 min-[1350px]:text-sm">
+                            {it.desc}
+                          </p>
+
+                          <div className="mt-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] text-slate-500 min-[1350px]:mt-3 min-[1350px]:px-3 min-[1350px]:py-2.5 min-[1350px]:text-xs">
+                            {connected && it.id === "google_calendar" && integrations.google_calendar_email ? (
+                              <span className="block truncate font-medium text-slate-700">
+                                {integrations.google_calendar_email}
+                              </span>
+                            ) : connected ? (
+                              <span className="font-medium text-slate-600">Account linked</span>
+                            ) : (
+                              <span className="font-medium text-slate-600">Connect account to enable sync</span>
+                            )}
+                            <span className="mt-1 flex items-center gap-1.5 text-slate-500">
+                              <span
+                                className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                                  connected ? "bg-emerald-500" : "bg-slate-300"
+                                }`}
+                                aria-hidden
+                              />
+                              {connected ? "Status: ready for bookings" : "Not synced"}
+                            </span>
+                          </div>
+
                         </div>
                       </div>
 
-                      <p className="mt-2 text-xs leading-5 break-words text-slate-500 min-[1350px]:mt-1 min-[1350px]:text-sm">
-                        {it.desc}
-                      </p>
-
-                      <div className="mt-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] text-slate-500 min-[1350px]:mt-3 min-[1350px]:px-3 min-[1350px]:py-2.5 min-[1350px]:text-xs">
-                        {connected && it.id === "google_calendar" && integrations.google_calendar_email ? (
-                          <span className="block truncate font-medium text-slate-700">
-                            {integrations.google_calendar_email}
-                          </span>
-                        ) : connected ? (
-                          <span className="font-medium text-slate-600">Account linked</span>
-                        ) : (
-                          <span className="font-medium text-slate-600">Connect account to enable sync</span>
-                        )}
-                        <span className="mt-1 flex items-center gap-1.5 text-slate-500">
-                          <span
-                            className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                              connected ? "bg-emerald-500" : "bg-slate-300"
-                            }`}
-                            aria-hidden
-                          />
-                          {connected ? "Status: ready for bookings" : "Not synced"}
-                        </span>
-                      </div>
 
                       <div className="mt-2 flex items-stretch gap-2 min-[1350px]:mt-3">
                         <button
@@ -1022,7 +1027,7 @@ export function IntegrationsNotificationsView() {
             )}
           </section>
 
-          <section id="workspace-notifications" className="min-w-0 scroll-mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <section id="workspace-notifications" className="col-span-1 xl:col-span-2 scroll-mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Notification Automations</h2>
@@ -1052,10 +1057,7 @@ export function IntegrationsNotificationsView() {
                   const channel = meta?.channel ?? "Email";
                   const chMeta = CHANNEL_META[channel];
                   return (
-                    <div
-                      key={flow.id}
-                      className="grid grid-cols-1 items-stretch gap-2 md:grid-cols-[minmax(0,1fr)_8.5rem]"
-                    >
+                    <div key={flow.id} className="grid grid-cols-1 items-stretch gap-2 min-[1280px]:grid-cols-[minmax(0,1fr)_8.5rem]">
                       <article className="grid min-w-0 grid-cols-[minmax(0,1fr)_3rem] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-slate-300 min-[1350px]:grid-cols-[minmax(0,1fr)_auto_auto_3rem]">
                         <div className="flex min-w-0 items-start gap-3">
                           <div
@@ -1064,7 +1066,7 @@ export function IntegrationsNotificationsView() {
                             <ChannelTypeIcon channel={channel} />
                           </div>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <h3 className="text-[15px] font-semibold text-slate-900">{flow.name}</h3>
                               <span
                                 className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
@@ -1112,10 +1114,12 @@ export function IntegrationsNotificationsView() {
                           </button>
                         </div>
                       </article>
-
-                      <div className="max-md:hidden">
+                      
+                      <ScreenGate minWidth={1280}>
+                      <div className="">
                         <ChannelBlock channel={channel} />
                       </div>
+                      </ScreenGate>
                     </div>
                   );
                 })}
@@ -1128,8 +1132,8 @@ export function IntegrationsNotificationsView() {
           id="workspace-request-integration"
           className="scroll-mt-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm md:p-5"
         >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
               <div className="flex h-15 w-15 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-indigo-500 shadow-sm">
                 <LayoutIcon name="sparkles" size={30} />
               </div>
@@ -1143,7 +1147,7 @@ export function IntegrationsNotificationsView() {
             <button
               type="button"
               onClick={() => setRequestModalOpen(true)}
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
             >
               Request New Integration
               <svg

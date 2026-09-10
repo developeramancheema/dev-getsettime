@@ -684,7 +684,7 @@ export function AddDepartmentPanel({
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
-              <div className="flex h-full min-h-0 flex-col">
+              <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
                 <div className="flex-1 overflow-y-auto px-5 py-5">
                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     <PanelSection

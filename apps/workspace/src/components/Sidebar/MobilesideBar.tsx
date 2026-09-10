@@ -55,7 +55,7 @@ function MenuRow({ item }: { item: MenuItem }) {
   return (
     <Link href={item.href} className="flex items-center gap-3 border-b border-gray-100 py-2 last:border-b-0 hover:bg-gray-50/80">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">{item.icon}</span>
-      <span className="flex-1 text-xs sm:text-sm text-gray-800">{item.label}</span>
+      <span className="flex-1 text-sm text-gray-800">{item.label}</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-neutral-600" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
     </Link>
   );

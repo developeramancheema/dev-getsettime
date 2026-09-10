@@ -33,11 +33,7 @@ export function DepartmentTableRowsSkeleton({
   return (
     <>
       {Array.from({ length: rows }).map((_, i) => (
-        <tr
-          key={i}
-          className="border-b border-slate-100 last:border-b-0"
-          aria-hidden
-        >
+        <tr key={i} className="border-b border-slate-100 last:border-b-0">
           <td className="px-4 py-3.5">
             <div className="flex items-start gap-3">
               <SkeletonBar className="mt-0.5 h-9 w-9 shrink-0 rounded-xl" />

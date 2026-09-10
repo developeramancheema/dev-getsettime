@@ -47,6 +47,7 @@ import {
 } from "@/src/constants/roles";
 import { splitDepartmentSelectionByName } from "@/lib/invite_department_assignment";
 import { userActsAsServiceProviderFromMetadata } from "@/lib/service_provider_role";
+import ScreenGate from "@/src/components/ScreenGate";
 
 interface Department {
   id: number;
@@ -933,8 +934,8 @@ export default function TeamMembersPage() {
       )}
 
       <div className="mx-auto">
-          <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.25)]">
-            <div className="border-b border-slate-100 bg-gradient-to-r from-sky-50 via-white to-indigo-50 px-5 py-5 md:px-7 md:py-6">
+          <section className="relative space-y-4">
+            <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 px-5 py-5 md:px-7 md:py-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur">
@@ -951,7 +952,7 @@ export default function TeamMembersPage() {
                   </div>
                 </div>
                 {canManageMembers && (
-                  <div className="flex flex-col gap-3 sm:flex-row">
+                  <div className="flex gap-3 lg:justify-end flex-row flex-wrap">
                     <button
                       type="button"
                       onClick={handleInviteMember}
@@ -971,8 +972,9 @@ export default function TeamMembersPage() {
                   </div>
                 )}
               </div>
-
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              
+              <ScreenGate minWidth={1024}>
+              <div className="mt-6 grid gap-4 md:grid-cols-3 xl:grid-cols-5">
                 {(
                   [
                     ["Total Members", teamStats.total, LuUsers, "bg-slate-100 text-slate-700"],
@@ -1010,10 +1012,12 @@ export default function TeamMembersPage() {
                   </div>
                 ))}
               </div>
+              </ScreenGate>
+
             </div>
 
-            <div className="p-5 md:p-7">
-              <div className="mb-5 flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+            <div className="bg-white rounded-2xl shadow-lg p-5 md:p-7">
+              <div className="mb-5 flex w-full min-w-0 flex-col gap-3 min-[900px]:flex-row lg:flex-col xl:flex-row min-[900px]:items-center lg:items-start sm:gap-3">
                 <div className="relative min-h-12 w-full min-w-0 sm:min-w-[12rem] sm:flex-1">
                   <div
                     className="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-slate-400"
@@ -1029,7 +1033,7 @@ export default function TeamMembersPage() {
                     className="box-border h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white pl-12 pr-3 text-sm font-normal leading-normal text-slate-900 shadow-none outline-none focus:ring-2 focus:ring-sky-200"
                   />
                 </div>
-                <div className="flex w-full min-w-0 shrink-0 flex-nowrap justify-start gap-2 overflow-x-auto overflow-y-hidden pb-1 pt-0.5 [scrollbar-gutter:stable] sm:w-auto sm:pb-0 sm:pt-0">
+                <div className="flex w-full shrink-0 flex-nowrap justify-start gap-2 overflow-x-auto overflow-y-hidden pb-1 pt-0.5 [scrollbar-gutter:stable] sm:w-auto sm:pb-0 sm:pt-0 pb-2">
                   {STATUS_FILTER_CHIPS.map((chip) => {
                     const isActive = statusFilter === chip.id;
                     return (
@@ -1114,14 +1118,14 @@ export default function TeamMembersPage() {
                     return (
                       <div
                         key={member.id}
-                        className={`group rounded-[24px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] ${
+                        className={`group rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] ${
                           member.deactivated ? "opacity-70" : ""
                         }`}
                       >
-                        <div className="p-5 md:p-6">
-                          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                            <div className="flex min-w-0 flex-1 gap-4">
-                              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-lg font-semibold text-white shadow-sm">
+                        <div className="p-4 md:p-6">
+                          <div className="flex gap-5 flex-row xl:items-start xl:justify-between">
+                            <div className="flex flex-1 gap-3">
+                              <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-sm sm:text-lg font-semibold text-white shadow-sm">
                                 {member.name.charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0 flex-1">
@@ -1164,10 +1168,14 @@ export default function TeamMembersPage() {
                                         : `Added ${formatMemberAddedDate(member.created_at)}`}
                                     </span>
                                   </div>
+                                  
+                                  <ScreenGate minWidth={640}>
                                   <div className="flex min-w-0 items-center gap-2">
                                     <LuClock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
                                     <span>{formatWeeklyBookingsLabel(member.bookings_this_week ?? 0)}</span>
                                   </div>
+                                  </ScreenGate>
+                                  
                                 </div>
 
                                 <div className="mt-4 flex flex-wrap gap-2">
@@ -1200,7 +1208,8 @@ export default function TeamMembersPage() {
                                     {getStatusLabel(ui)}
                                   </span>
                                 </div>
-
+                                
+                                <ScreenGate minWidth={640}>
                                 {teamMemberActsAsServiceProvider(member) &&
                                   displayDeptIds.length > 0 && (
                                   <div className="mt-2 flex max-h-48 flex-wrap gap-2 overflow-y-auto pr-1">
@@ -1220,6 +1229,8 @@ export default function TeamMembersPage() {
                                     })}
                                   </div>
                                 )}
+                                </ScreenGate>
+
                               </div>
                             </div>
 
@@ -1232,6 +1243,7 @@ export default function TeamMembersPage() {
                                   </span>
                                 ) : (
                                   <>
+                                  <ScreenGate minWidth={1280}>
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -1280,6 +1292,9 @@ export default function TeamMembersPage() {
                                           : "Deactivate"}
                                       </button>
                                     )}
+                                    </ScreenGate>
+
+                                    <ScreenGate maxWidth={1279}>
                                     <div className="relative">
                                       <button
                                         type="button"
@@ -1290,7 +1305,7 @@ export default function TeamMembersPage() {
                                               : member.id
                                           )
                                         }
-                                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
+                                        className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
                                         aria-label="More actions"
                                         aria-expanded={openActionsId === member.id}
                                       >
@@ -1298,7 +1313,7 @@ export default function TeamMembersPage() {
                                       </button>
                                       {openActionsId === member.id && (
                                         <div
-                                          className="absolute right-0 top-12 z-20 w-56 rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+                                          className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
                                           role="menu"
                                         >
                                           <button
@@ -1348,6 +1363,8 @@ export default function TeamMembersPage() {
                                         </div>
                                       )}
                                     </div>
+                                    </ScreenGate>
+
                                   </>
                                 )}
                               </div>

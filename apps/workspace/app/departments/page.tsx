@@ -963,7 +963,7 @@ export default function DepartmentsPage() {
     <>
       <div
         className={classNames(
-          "min-h-screen transition-[margin] duration-300 ease-in-out",
+          "transition-[margin] duration-300 ease-in-out",
           (layoutPanelOpen || panelAnimatedOpen) &&
             "hidden lg:block lg:mr-[28rem]"
         )}
@@ -1098,238 +1098,563 @@ export default function DepartmentsPage() {
 
             <div className="overflow-hidden rounded-xl">
               
-              {/* <ScreenGate maxWidth={1023}> 
-                <div></div>
-              </ScreenGate> */}
+              {/* Mobile View */}
+              <ScreenGate maxWidth={1023}> 
+                <div className="w-full">
 
-              {/* <ScreenGate minWidth={1024}>  */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/80">
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Department
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Department consultants
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Services
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Status
-                      </th>
-                      {showRowActions && (
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          Action
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
+                  <div className="space-y-2 md:pt-2">
                     {isPageLoading ? (
                       <DepartmentTableRowsSkeleton showActions={showRowActions} />
                     ) : (
                       <>
+                        {/* Empty State */}
                         {paginatedDepartments.length === 0 && (
-                          <tr>
-                            <td
-                              colSpan={showRowActions ? 5 : 4}
-                              className="px-4 py-10 text-center"
-                            >
-                              <p className="text-sm font-medium text-slate-700">
-                                {isLoggedInServiceProvider
-                                  ? "No assigned departments yet"
-                                  : "No departments found"}
-                              </p>
-                              <p className="mt-1 text-sm text-slate-500">
-                                {isLoggedInServiceProvider
-                                  ? "Choose a department from Quick Suggestions when adding."
-                                  : departments.length === 0
-                                    ? "Add your first department to get started."
-                                    : "Try changing the search or status filter."}
-                              </p>
-                            </td>
-                          </tr>
+                          <div
+                            className="
+                              rounded-xl
+                              border border-slate-200
+                              bg-white
+                              px-4 py-10
+                              text-center
+                            "
+                          >
+                            <p className="text-sm font-medium text-slate-700">
+                              {isLoggedInServiceProvider
+                                ? "No assigned departments yet"
+                                : "No departments found"}
+                            </p>
+
+                            <p className="mt-1 text-sm text-slate-500">
+                              {isLoggedInServiceProvider
+                                ? "Choose a department from Quick Suggestions when adding."
+                                : departments.length === 0
+                                  ? "Add your first department to get started."
+                                  : "Try changing the search or status filter."}
+                            </p>
+                          </div>
                         )}
 
+                        {/* Department Cards */}
                         {paginatedDepartments.map((dep) => {
                           const assigned = getDepartmentDoctors(dep.id);
                           const services = getDepartmentServices(dep.id);
                           const doctorCount = getDepartmentDoctorCount(dep.id);
 
                           return (
-                            <tr
-                              key={dep.id}
-                              className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
-                            >
-                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Department">
-                                <div className="flex max-[1301px]:justify-end gap-2.5">
+                            <div key={dep.id} className="group">
+                              <div className="relative flex w-full items-start md:items-center justify-between rounded-xl border border-slate-200  px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-sm">
+                                <div className="flex items-start sm:items-center gap-3 pr-4">
+                                  {/* Icon */}
                                   <div
                                     className={classNames(
-                                      "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                                      "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm",
                                       get_department_gradient(dep)
                                     )}
                                   >
-                                    <FaUserDoctor className="h-4 w-4" />
+                                    <FaUserDoctor className="h-5 w-5" />
                                   </div>
+
+                                  {/* Content */}
                                   <div className="min-w-0">
                                     <p className="truncate text-sm font-semibold text-slate-900">
                                       {dep.name}
                                     </p>
+
                                     {dep.description ? (
                                       <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
                                         {dep.description}
                                       </p>
                                     ) : (
-                                      <p className="mt-0.5 text-xs text-slate-400">
-                                        {doctorCount} consultant
-                                        {doctorCount !== 1 ? "s" : ""}
-                                      </p>
+                                      // <p className="mt-0.5 text-xs text-slate-400">
+                                      //   {doctorCount} consultant
+                                      //   {doctorCount !== 1 ? "s" : ""}
+                                      // </p>
+                                      <div className="flex shrink-0 flex-col justify-center">
+                                        {services.length === 0 ? (
+                                          <p className="mt-0.5 text-xs text-slate-400">
+                                            No services
+                                          </p>
+                                        ) : (
+                                          <p className="mt-0.5 text-sm text-slate-400">
+                                            {services.length} service
+                                            {services.length !== 1 ? "s" : ""}
+                                          </p>
+                                        )}
+                                      </div>
                                     )}
-                                  </div>
-                                </div>
-                              </td>
 
-                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Provider">
-                                {assigned.length === 0 ? (
-                                  <span className="text-sm text-slate-400">
-                                    Unassigned
-                                  </span>
-                                ) : (
-                                  <div className="flex items-center max-[1301px]:justify-end gap-2.5">
-                                    <div className="flex shrink-0 items-center">
-                                      {assigned.slice(0, 3).map((doctor, index) => (
-                                        <div
-                                          key={doctor.id}
-                                          className={classNames(
-                                            "relative rounded-full ring-2 ring-white",
-                                            index > 0 && "-ml-2"
-                                          )}
-                                          style={{ zIndex: assigned.length - index }}
-                                        >
-                                          <ProviderAvatar
-                                            name={doctor.name}
-                                            initials={provider_initials(doctor.name)}
-                                            avatarUrl={providerAvatarById.get(doctor.id)}
-                                            size="sm"
-                                          />
-                                        </div>
-                                      ))}
-                                      {assigned.length > 3 && (
-                                        <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
-                                          +{assigned.length - 3}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className="min-w-0 text-sm leading-snug text-slate-800">
-                                      {assigned[0]?.name}
-                                      {assigned.length > 1 ? (
-                                        <>
-                                          <br />
-                                          <span className="text-xs text-slate-500">
-                                            +{assigned.length - 1} more
+                                    <ScreenGate maxWidth={639}>
+                                      {/* Assigned mobile */}
+                                      <div className="flex shrink-0 items-center gap-3">
+                                        {assigned.length === 0 ? (
+                                          <span className="text-xs text-slate-400">
+                                            Unassigned
                                           </span>
-                                        </>
-                                      ) : null}
-                                    </p>
-                                  </div>
-                                )}
-                              </td>
-
-                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Services">
-                                {services.length === 0 ? (
-                                  <span className="text-sm text-slate-400">
-                                    No services
-                                  </span>
-                                ) : (
-                                  <p className="text-sm text-slate-700">
-                                    {services.length} service
-                                    {services.length !== 1 ? "s" : ""}
-                                  </p>
-                                )}
-                              </td>
-
-                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Status">
-                                <span
-                                  className={classNames(
-                                    "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
-                                    departmentStatusBadgeClass(dep.status)
-                                  )}
-                                >
-                                  {departmentStatusLabel(dep.status)}
-                                </span>
-                              </td>
-
-                              {showRowActions && (
-                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Action">
-                                  <div className="relative flex items-center max-[1301px]:justify-end gap-2.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => openEditDepartment(dep)}
-                                      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-                                    >
-                                      <Pencil className="h-3.5 w-3.5" />
-                                      Edit
-                                    </button>
-                                    <PortalActionsMenu
-                                      open={rowMenuId === dep.id}
-                                      onToggle={() =>
-                                        setRowMenuId((prev) =>
-                                          prev === dep.id ? null : dep.id
-                                        )
-                                      }
-                                    >
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        disabled={busyAction}
-                                        onClick={() => {
-                                          setRowMenuId(null);
-                                          void toggleDepartmentStatus(dep);
-                                        }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                                      >
-                                        {dep.status === "inactive" ? (
-                                          <>
-                                            <Power className="h-3.5 w-3.5" />
-                                            Activate
-                                          </>
                                         ) : (
                                           <>
-                                            <PowerOff className="h-3.5 w-3.5" />
-                                            Inactivate
+                                            <div className="flex shrink-0 items-center">
+                                              {assigned.slice(0, 3).map((doctor, index) => (
+                                                <div
+                                                  key={doctor.id}
+                                                  className={classNames(
+                                                    "relative rounded-full ring-2 ring-white",
+                                                    index > 0 && "-ml-2"
+                                                  )}
+                                                  style={{
+                                                    zIndex: assigned.length - index,
+                                                  }}
+                                                >
+                                                  <ProviderAvatar
+                                                    name={doctor.name}
+                                                    initials={provider_initials(doctor.name)}
+                                                    avatarUrl={providerAvatarById.get(doctor.id)}
+                                                    size="sm"
+                                                  />
+                                                </div>
+                                              ))}
+
+                                              {assigned.length > 3 && (
+                                                <span
+                                                  className="
+                                                    relative -ml-2
+                                                    flex h-7 w-7
+                                                    items-center justify-center
+                                                    rounded-full
+                                                    bg-slate-100
+                                                    text-[10px] font-semibold
+                                                    text-slate-600
+                                                    ring-2 ring-white
+                                                  "
+                                                >
+                                                  +{assigned.length - 3}
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            <div className="min-w-0">
+                                              <p className="truncate text-xs font-medium text-slate-700">
+                                                {assigned[0]?.name}
+                                              </p>
+
+                                              {assigned.length > 1 && (
+                                                <p className="text-[11px] text-slate-400">
+                                                  +{assigned.length - 1} more
+                                                </p>
+                                              )}
+                                            </div>
                                           </>
                                         )}
-                                      </button>
+                                      </div>
+                                    </ScreenGate>
+
+                                  </div>
+                                </div>
+                                
+                                <ScreenGate minWidth={640}>
+                                  {/* Assigned */}
+                                  <div className="flex shrink-0 items-center gap-3 px-4">
+                                    {assigned.length === 0 ? (
+                                      <span className="text-xs text-slate-400">
+                                        Unassigned
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <div className="flex shrink-0 items-center">
+                                          {assigned.slice(0, 3).map((doctor, index) => (
+                                            <div
+                                              key={doctor.id}
+                                              className={classNames(
+                                                "relative rounded-full ring-2 ring-white",
+                                                index > 0 && "-ml-2"
+                                              )}
+                                              style={{
+                                                zIndex: assigned.length - index,
+                                              }}
+                                            >
+                                              <ProviderAvatar
+                                                name={doctor.name}
+                                                initials={provider_initials(doctor.name)}
+                                                avatarUrl={providerAvatarById.get(doctor.id)}
+                                                size="sm"
+                                              />
+                                            </div>
+                                          ))}
+
+                                          {assigned.length > 3 && (
+                                            <span
+                                              className="
+                                                relative -ml-2
+                                                flex h-7 w-7
+                                                items-center justify-center
+                                                rounded-full
+                                                bg-slate-100
+                                                text-[10px] font-semibold
+                                                text-slate-600
+                                                ring-2 ring-white
+                                              "
+                                            >
+                                              +{assigned.length - 3}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <div className="min-w-0">
+                                          <p className="truncate text-sm font-medium text-slate-700">
+                                            {assigned[0]?.name}
+                                          </p>
+
+                                          {assigned.length > 1 && (
+                                            <p className="text-xs text-slate-400">
+                                              +{assigned.length - 1} more
+                                            </p>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </ScreenGate>
+
+                                {/* ACTION */}
+                                {showRowActions && (
+                                  <div className="flex shrink-0 flex-col items-end justify-end gap-2">
+                                    {/* STATUS */}
+                                    <div className="">
+                                      <span
+                                        className={classNames(
+                                          "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium",
+                                          departmentStatusBadgeClass(dep.status)
+                                        )}
+                                      >
+                                        {departmentStatusLabel(dep.status)}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex gap-2">
                                       <button
                                         type="button"
-                                        role="menuitem"
-                                        disabled={
-                                          busyAction || departments.length === 1
-                                        }
-                                        onClick={() => {
-                                          setRowMenuId(null);
-                                          handleDeleteDepartmentClick(dep.id);
-                                        }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                        onClick={() => openEditDepartment(dep)}
+                                        className="
+                                          inline-flex h-8 items-center gap-1.5
+                                          rounded-lg
+                                          border border-blue-200
+                                          bg-blue-50
+                                          px-2.5
+                                          text-xs font-medium text-blue-700
+                                          transition
+                                          hover:bg-blue-100
+                                        "
                                       >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        Delete
+                                        <Pencil className="h-3.5 w-3.5" />
+
+                                        <span className="max-[1100px]:hidden">
+                                          Edit
+                                        </span>
                                       </button>
-                                    </PortalActionsMenu>
+
+                                      <PortalActionsMenu
+                                        open={rowMenuId === dep.id}
+                                        onToggle={() =>
+                                          setRowMenuId((prev) =>
+                                            prev === dep.id ? null : dep.id
+                                          )
+                                        }
+                                      >
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={busyAction}
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            void toggleDepartmentStatus(dep);
+                                          }}
+                                          className="
+                                            flex w-full items-center gap-2
+                                            rounded-lg px-3 py-2
+                                            text-sm text-slate-700
+                                            hover:bg-slate-50
+                                            disabled:opacity-60
+                                          "
+                                        >
+                                          {dep.status === "inactive" ? (
+                                            <>
+                                              <Power className="h-3.5 w-3.5" />
+                                              Activate
+                                            </>
+                                          ) : (
+                                            <>
+                                              <PowerOff className="h-3.5 w-3.5" />
+                                              Inactivate
+                                            </>
+                                          )}
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={
+                                            busyAction || departments.length === 1
+                                          }
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            handleDeleteDepartmentClick(dep.id);
+                                          }}
+                                          className="
+                                            flex w-full items-center gap-2
+                                            rounded-lg px-3 py-2
+                                            text-sm text-red-600
+                                            hover:bg-red-50
+                                            disabled:opacity-60
+                                          "
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                          Delete
+                                        </button>
+                                      </PortalActionsMenu>
+                                    </div>
+
                                   </div>
-                                </td>
-                              )}
-                            </tr>
+                                )}
+
+                              </div>
+
+                            </div>
                           );
                         })}
                       </>
                     )}
-                  </tbody>
-                </table>
-              </div>
-              {/* </ScreenGate> */}
+                  </div>
+                </div>
+              </ScreenGate>
+              
+              {/* Desktop View */}
+              <ScreenGate minWidth={1024}> 
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 bg-slate-50/80">
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Department
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Department consultants
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Services
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Status
+                        </th>
+                        {showRowActions && (
+                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Action
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isPageLoading ? (
+                        <DepartmentTableRowsSkeleton showActions={showRowActions} />
+                      ) : (
+                        <>
+                          {paginatedDepartments.length === 0 && (
+                            <tr>
+                              <td
+                                colSpan={showRowActions ? 5 : 4}
+                                className="px-4 py-10 text-center"
+                              >
+                                <p className="text-sm font-medium text-slate-700">
+                                  {isLoggedInServiceProvider
+                                    ? "No assigned departments yet"
+                                    : "No departments found"}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {isLoggedInServiceProvider
+                                    ? "Choose a department from Quick Suggestions when adding."
+                                    : departments.length === 0
+                                      ? "Add your first department to get started."
+                                      : "Try changing the search or status filter."}
+                                </p>
+                              </td>
+                            </tr>
+                          )}
+
+                          {paginatedDepartments.map((dep) => {
+                            const assigned = getDepartmentDoctors(dep.id);
+                            const services = getDepartmentServices(dep.id);
+                            const doctorCount = getDepartmentDoctorCount(dep.id);
+
+                            return (
+                              <tr
+                                key={dep.id}
+                                className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
+                              >
+                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Department">
+                                  <div className="flex max-[1301px]:justify-end gap-2.5">
+                                    <div
+                                      className={classNames(
+                                        "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                                        get_department_gradient(dep)
+                                      )}
+                                    >
+                                      <FaUserDoctor className="h-4 w-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-slate-900">
+                                        {dep.name}
+                                      </p>
+                                      {dep.description ? (
+                                        <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                                          {dep.description}
+                                        </p>
+                                      ) : (
+                                        <p className="mt-0.5 text-xs text-slate-400">
+                                          {doctorCount} consultant
+                                          {doctorCount !== 1 ? "s" : ""}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Provider">
+                                  {assigned.length === 0 ? (
+                                    <span className="text-sm text-slate-400">
+                                      Unassigned
+                                    </span>
+                                  ) : (
+                                    <div className="flex items-center max-[1301px]:justify-end gap-2.5">
+                                      <div className="flex shrink-0 items-center">
+                                        {assigned.slice(0, 3).map((doctor, index) => (
+                                          <div
+                                            key={doctor.id}
+                                            className={classNames(
+                                              "relative rounded-full ring-2 ring-white",
+                                              index > 0 && "-ml-2"
+                                            )}
+                                            style={{ zIndex: assigned.length - index }}
+                                          >
+                                            <ProviderAvatar
+                                              name={doctor.name}
+                                              initials={provider_initials(doctor.name)}
+                                              avatarUrl={providerAvatarById.get(doctor.id)}
+                                              size="sm"
+                                            />
+                                          </div>
+                                        ))}
+                                        {assigned.length > 3 && (
+                                          <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
+                                            +{assigned.length - 3}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="min-w-0 text-sm leading-snug text-slate-800">
+                                        {assigned[0]?.name}
+                                        {assigned.length > 1 ? (
+                                          <>
+                                            <br />
+                                            <span className="text-xs text-slate-500">
+                                              +{assigned.length - 1} more
+                                            </span>
+                                          </>
+                                        ) : null}
+                                      </p>
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Services">
+                                  {services.length === 0 ? (
+                                    <span className="text-sm text-slate-400">
+                                      No services
+                                    </span>
+                                  ) : (
+                                    <p className="text-sm text-slate-700">
+                                      {services.length} service
+                                      {services.length !== 1 ? "s" : ""}
+                                    </p>
+                                  )}
+                                </td>
+
+                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Status">
+                                  <span
+                                    className={classNames(
+                                      "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+                                      departmentStatusBadgeClass(dep.status)
+                                    )}
+                                  >
+                                    {departmentStatusLabel(dep.status)}
+                                  </span>
+                                </td>
+
+                                {showRowActions && (
+                                  <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Action">
+                                    <div className="relative flex items-center max-[1301px]:justify-end gap-2.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditDepartment(dep)}
+                                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                        Edit
+                                      </button>
+                                      <PortalActionsMenu
+                                        open={rowMenuId === dep.id}
+                                        onToggle={() =>
+                                          setRowMenuId((prev) =>
+                                            prev === dep.id ? null : dep.id
+                                          )
+                                        }
+                                      >
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={busyAction}
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            void toggleDepartmentStatus(dep);
+                                          }}
+                                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                                        >
+                                          {dep.status === "inactive" ? (
+                                            <>
+                                              <Power className="h-3.5 w-3.5" />
+                                              Activate
+                                            </>
+                                          ) : (
+                                            <>
+                                              <PowerOff className="h-3.5 w-3.5" />
+                                              Inactivate
+                                            </>
+                                          )}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={
+                                            busyAction || departments.length === 1
+                                          }
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            handleDeleteDepartmentClick(dep.id);
+                                          }}
+                                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                          Delete
+                                        </button>
+                                      </PortalActionsMenu>
+                                    </div>
+                                  </td>
+                                )}
+                              </tr>
+                            );
+                          })}
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </ScreenGate>
 
 
               <div className="border-t border-slate-200 px-4 py-3">
@@ -1350,6 +1675,7 @@ export default function DepartmentsPage() {
             </div>
           </section>
 
+          <ScreenGate minWidth={1024}>
           {showFullDoctorFlow && (
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -1407,6 +1733,8 @@ export default function DepartmentsPage() {
               </div>
             </div>
           )}
+          </ScreenGate>
+
         </div>
       </div>
 
@@ -1437,7 +1765,7 @@ export default function DepartmentsPage() {
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
-              <div className="flex h-full min-h-0 flex-col">
+              <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
                 <div className="flex-1 overflow-y-auto px-5 py-5">
                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     <PanelSection number={1} title="Basic Details">
