@@ -56,7 +56,7 @@ import {
   EventTypeAddServicePanel,
   type event_type_created_service,
 } from "@/src/features/event-types/EventTypeAddServicePanel";
-import { EventTypeDateTimeField } from "@/src/features/event-types/EventTypeDateTimeField";
+import { DateTimePicker } from "@/src/components/molecules/DateTimePicker";
 import { EventTypeRecurrenceSeriesSchedule } from "@/src/features/event-types/EventTypeRecurrenceSeriesSchedule";
 import { copy_text_to_clipboard } from "@/src/utils/public_booking_link";
 import { supabase } from "@/lib/supabaseClient";
@@ -2441,7 +2441,7 @@ export function EventTypeFormLayout({
                           <span className="mb-2 block text-sm font-medium text-slate-700">
                             Start date & time<span className="text-red-500">*</span>
                           </span>
-                          <EventTypeDateTimeField
+                          <DateTimePicker
                             value={value.recurrence.custom_availability_start}
                             min={editingId == null ? now_datetime_local() : undefined}
                             onChange={(next_start) => {
@@ -2472,7 +2472,7 @@ export function EventTypeFormLayout({
                           <span className="mb-2 block text-sm font-medium text-slate-700">
                             End date & time<span className="text-red-500">*</span>
                           </span>
-                          <EventTypeDateTimeField
+                          <DateTimePicker
                             value={value.recurrence.custom_availability_end}
                             min={
                               value.recurrence.custom_availability_start ||

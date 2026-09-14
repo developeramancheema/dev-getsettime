@@ -2,13 +2,12 @@
 
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { LuChevronDown } from "react-icons/lu";
-import { EventTypeDateField } from "@/src/features/event-types/EventTypeDateField";
-import { EventTypeDateTimeField } from "@/src/features/event-types/EventTypeDateTimeField";
-import { EventTypeTimeField } from "@/src/features/event-types/EventTypeTimeField";
+import { DateTimePicker } from "@/src/components/molecules/DateTimePicker";
 import {
   datetime_local_from_date_and_time,
   format_iso_date_label,
   format_iso_date_long,
+  now_datetime_local,
   parse_datetime_local_input,
 } from "@/src/features/event-types/event_type_availability";
 import {
@@ -135,7 +134,9 @@ export function EventTypeRecurrenceSeriesSchedule({
           <span className="mb-2 block text-sm font-medium text-slate-700">
             Time<span className="text-red-500">*</span>
           </span>
-          <EventTypeTimeField
+          <DateTimePicker
+            date={false}
+            time
             value={recurrence.start_time}
             onChange={(next_time) => {
               if (next_time.trim()) {
@@ -201,7 +202,9 @@ export function EventTypeRecurrenceSeriesSchedule({
             <span className="mb-2 block text-sm font-medium text-slate-700">
               Time<span className="text-red-500">*</span>
             </span>
-            <EventTypeTimeField
+            <DateTimePicker
+              date={false}
+              time
               value={recurrence.start_time}
               onChange={(next_time) => {
                 if (next_time.trim()) {
@@ -226,11 +229,12 @@ export function EventTypeRecurrenceSeriesSchedule({
           <span className="mb-2 block text-sm font-medium text-slate-700">
             Date & time<span className="text-red-500">*</span>
           </span>
-          <EventTypeDateTimeField
+          <DateTimePicker
             value={datetime_local_from_date_and_time(
               recurrence.start_date,
               recurrence.start_time
             )}
+            min={now_datetime_local()}
             onChange={(next_datetime) => {
               const parsed = parse_datetime_local_input(next_datetime);
               if (!parsed) {
@@ -269,7 +273,9 @@ export function EventTypeRecurrenceSeriesSchedule({
           <span className="mb-2 block text-sm font-medium text-slate-700">
             Start date<span className="text-red-500">*</span>
           </span>
-          <EventTypeDateField
+          <DateTimePicker
+            date
+            time={false}
             value={recurrence.start_date}
             readOnly={custom_availability}
             onChange={(next_start) => {
@@ -330,7 +336,9 @@ export function EventTypeRecurrenceSeriesSchedule({
               <span className="text-sm font-medium text-slate-800">On date</span>
             </label>
             <div className="min-w-[12rem] flex-1">
-              <EventTypeDateField
+              <DateTimePicker
+                date
+                time={false}
                 value={recurrence.end_date}
                 min={recurrence.start_date || undefined}
                 max={

@@ -4,6 +4,9 @@ export type EventType = {
   duration_minutes?: number | null;
   owner_id?: string | null;
   status?: 'active' | 'draft' | null;
+  department_id?: number | string | null;
+  service_id?: string | null;
+  service_provider_ids?: string[] | null;
 };
 
 export type Department = {

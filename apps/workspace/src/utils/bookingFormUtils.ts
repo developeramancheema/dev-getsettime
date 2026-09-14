@@ -109,3 +109,84 @@ export function filterBookableEventTypes<T extends { status?: unknown }>(
     (et) => et.status == null || et.status === 'active'
   );
 }
+
+/** Event type fields that constrain booking department and provider. */
+export type event_type_assignment_fields = {
+  department_id?: string | number | null;
+  service_id?: string | number | null;
+  service_provider_ids?: unknown;
+  owner_id?: string | null;
+};
+
+export function eventTypeAssignedDepartmentId(
+  eventType: event_type_assignment_fields | null | undefined
+): string | null {
+  if (eventType?.department_id == null || eventType.department_id === '') {
+    return null;
+  }
+  return String(eventType.department_id);
+}
+
+export function parseEventTypeProviderIds(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.map((value) => String(value).trim()).filter(Boolean);
+  }
+  if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.map((value) => String(value).trim()).filter(Boolean);
+      }
+    } catch {
+      return raw.split(',').map((part) => part.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+/** Assigned hosts: `service_provider_ids` when set, otherwise `owner_id`. Empty means no restriction. */
+export function eventTypeAssignedProviderIds(
+  eventType: event_type_assignment_fields | null | undefined
+): string[] {
+  if (!eventType) return [];
+  const from_list = parseEventTypeProviderIds(eventType.service_provider_ids);
+  if (from_list.length > 0) return from_list;
+  const owner = eventType.owner_id?.trim();
+  return owner ? [owner] : [];
+}
+
+export function isDepartmentAssignedToEventType(
+  departmentId: string,
+  eventType: event_type_assignment_fields | null | undefined
+): boolean {
+  if (!departmentId) return true;
+  const assigned = eventTypeAssignedDepartmentId(eventType);
+  if (!assigned) return true;
+  return assigned === String(departmentId);
+}
+
+export function isProviderAssignedToEventType(
+  providerId: string,
+  eventType: event_type_assignment_fields | null | undefined
+): boolean {
+  if (!providerId) return true;
+  const assigned = eventTypeAssignedProviderIds(eventType);
+  if (assigned.length === 0) return true;
+  return assigned.includes(providerId);
+}
+
+/** Workspace owners with no department list act in every department (booking edit). */
+export function providerAssignedToDepartment(
+  provider: {
+    departments?: number[];
+    is_workspace_owner?: boolean;
+  },
+  departmentId: string
+): boolean {
+  if (!departmentId) return true;
+  const ids = provider.departments ?? [];
+  if (provider.is_workspace_owner === true && ids.length === 0) return true;
+  const department_number = Number(departmentId);
+  if (!Number.isFinite(department_number)) return false;
+  return memberActsInDepartment(ids, department_number);
+}
