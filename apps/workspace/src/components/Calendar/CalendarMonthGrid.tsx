@@ -69,7 +69,7 @@ export function CalendarMonthGrid({
                   className={cn(
                     "min-h-[140px] border-r border-slate-200 p-2 last:border-r-0",
                     isToday
-                      ? "bg-blue-50/60 ring-2 ring-inset ring-blue-500"
+                      ? "bg-indigo-50/60 ring-2 ring-inset ring-blue-500"
                       : isCurrentMonth
                         ? "bg-white"
                         : "bg-slate-50/80",
@@ -80,7 +80,7 @@ export function CalendarMonthGrid({
                       className={cn(
                         "inline-flex h-7 min-w-[28px] items-center justify-center rounded-full px-1.5 text-sm font-semibold",
                         isToday
-                          ? "bg-blue-600 text-white"
+                          ? "bg-indigo-600 text-white"
                           : isCurrentMonth
                             ? "text-slate-800"
                             : "text-slate-400",
@@ -139,7 +139,7 @@ export function CalendarMonthGrid({
                         })}
 
                         {dayBookings.length > 3 && (
-                          <div className="px-1 pt-0.5 text-[11px] font-semibold text-blue-600">
+                          <div className="px-1 pt-0.5 text-[11px] font-semibold text-indigo-600">
                             +{dayBookings.length - 3} more
                           </div>
                         )}

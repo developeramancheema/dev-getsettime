@@ -112,7 +112,7 @@ const WORKFLOW_META: Record<string, { channel: NotificationChannel; timing: stri
 };
 
 const CHANNEL_META: Record<NotificationChannel, { className: string }> = {
-  Email: { className: "bg-blue-50 text-blue-700 ring-blue-100" },
+  Email: { className: "bg-indigo-50 text-indigo-700 ring-blue-100" },
   SMS: { className: "bg-cyan-50 text-cyan-700 ring-cyan-100" },
   WhatsApp: { className: "bg-emerald-50 text-emerald-700 ring-emerald-100" },
   System: { className: "bg-violet-50 text-violet-700 ring-violet-100" },
@@ -269,7 +269,7 @@ function LayoutIcon({
 function PanelHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">{eyebrow}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">{eyebrow}</p>
       <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{title}</h2>
       <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
     </div>
@@ -825,7 +825,7 @@ export function IntegrationsNotificationsView() {
       <section className="mx-auto space-y-6">
         <div className="rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm md:px-6">
           <div className="flex items-start gap-4">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 ring-1 ring-blue-100">
               <LayoutIcon name="zap" size={20} />
             </div>
             <div className="min-w-0">
@@ -860,7 +860,7 @@ export function IntegrationsNotificationsView() {
           />
           <StatCard
             icon="messageSquare"
-            iconClassName="bg-blue-50 text-blue-600 ring-blue-100"
+            iconClassName="bg-indigo-50 text-indigo-600 ring-blue-100"
             label="Channels"
             value={workflowsLoading ? "—" : String(stats.channels)}
             helper="Email, SMS, WhatsApp, System"
@@ -900,7 +900,7 @@ export function IntegrationsNotificationsView() {
               {/* <button
                 type="button"
                 onClick={() => setRequestModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
               >
                 <span className="text-sm leading-none">+</span> Add App
               </button> */}
@@ -1008,7 +1008,7 @@ export function IntegrationsNotificationsView() {
                           className={`w-full rounded-lg px-2 py-1.5 text-center text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 min-[1350px]:py-2 min-[1350px]:text-sm ${
                             connected
                               ? "border border-slate-200 text-slate-700 hover:bg-slate-50"
-                              : "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-indigo-600 text-white hover:bg-indigo-700"
                           }`}
                         >
                               {comingSoon
@@ -1038,7 +1038,7 @@ export function IntegrationsNotificationsView() {
               {/* <button
                 type="button"
                 onClick={() => setRequestModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
               >
                 <span className="text-sm leading-none">+</span> New Rule
               </button> */}
@@ -1147,7 +1147,7 @@ export function IntegrationsNotificationsView() {
             <button
               type="button"
               onClick={() => setRequestModalOpen(true)}
-              className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
             >
               Request New Integration
               <svg

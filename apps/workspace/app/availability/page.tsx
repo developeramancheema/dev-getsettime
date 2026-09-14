@@ -1191,11 +1191,7 @@ export default function Availability() {
     "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
-    <section
-      className={`mr-auto space-y-6 transition-[margin] duration-300 ease-in-out ${
-        layoutPanelOpen ? "hidden lg:block lg:mr-[28rem]" : ""
-      }`}
-    >
+    <section className={`mr-auto space-y-6 transition-[margin] duration-300 ease-in-out`}>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">

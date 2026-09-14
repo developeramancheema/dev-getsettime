@@ -249,8 +249,8 @@ export function AddExceptionPanel({
     <>
       <aside
         className={classNames(
-          "fixed top-16 right-0 bottom-0 z-30 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[28rem]",
-          "transform transition-transform duration-300 ease-in-out will-change-transform",
+          "fixed top-16 right-0 bottom-0 z-80 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[28rem]",
+          "transform transition-transform duration-300 ease-in-out will-change-transform mb-0",
           panelAnimatedOpen
             ? "translate-x-0"
             : "pointer-events-none translate-x-full"
@@ -258,7 +258,7 @@ export function AddExceptionPanel({
         aria-hidden={!panelVisible}
       >
         {panelVisible ? (
-          <div className="flex h-full min-h-0 flex-col">
+          <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
             <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
               <h2 className="text-lg font-bold text-slate-900">
                 {isEdit ? "Edit Exception" : "Add Exception"}

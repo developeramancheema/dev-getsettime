@@ -57,7 +57,7 @@ export default function BottomBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-999 border-t border-gray-200 bg-white lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Main navigation"
     >

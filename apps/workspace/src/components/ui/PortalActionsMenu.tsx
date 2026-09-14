@@ -127,7 +127,7 @@ export function PortalActionsMenu({
             <div
               ref={menuRef}
               data-portal-actions-menu
-              className="fixed z-[100] w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+              className="fixed z-[50] w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
               style={{
                 top: menuPosition.top,
                 left: menuPosition.left,

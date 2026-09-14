@@ -99,7 +99,7 @@ export function CalendarSidebar({
       key: "confirmed",
       label: "Confirmed",
       value: summary.confirmed,
-      className: "bg-blue-50 text-blue-700",
+      className: "bg-indigo-50 text-indigo-700",
     },
     {
       key: "completed",
@@ -220,7 +220,7 @@ export function CalendarSidebar({
   const selectedStatusBadgeClass = (() => {
     const value = (selectedBooking?.status ?? "pending").toLowerCase();
     if (value === "completed") return "bg-emerald-50 text-emerald-700";
-    if (value === "confirmed") return "bg-blue-50 text-blue-700";
+    if (value === "confirmed") return "bg-indigo-50 text-indigo-700";
     if (value === "pending") return "bg-amber-50 text-amber-700";
     if (value === "cancelled") return "bg-rose-50 text-rose-700";
     if (value === "no_show" || value === "no-show" || value === "noshow") {
@@ -287,7 +287,7 @@ export function CalendarSidebar({
                     className={cn(
                       "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
                       relative === "today"
-                        ? "bg-blue-100 text-blue-600"
+                        ? "bg-indigo-100 text-indigo-600"
                         : "bg-slate-100 text-slate-500",
                     )}
                     aria-hidden
@@ -302,7 +302,7 @@ export function CalendarSidebar({
                   <div className="min-w-0 flex-1">
                     {viewMode === "day" ? (
                       <>
-                        <p className="text-sm font-semibold text-blue-700">
+                        <p className="text-sm font-semibold text-indigo-700">
                           {booking.start_at ? formatTime(booking.start_at) : "—"}
                         </p>
                         <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
@@ -316,7 +316,7 @@ export function CalendarSidebar({
                           className={cn(
                             "text-xs font-semibold",
                             relative === "today"
-                              ? "text-blue-600"
+                              ? "text-indigo-600"
                               : "text-slate-500",
                           )}
                         >
@@ -421,7 +421,7 @@ export function CalendarSidebar({
                 href={`/bookings/${booking.id}`}
                 className="grid grid-cols-[72px_minmax(0,1fr)_76px] items-start gap-2 rounded-lg p-1.5 transition hover:bg-slate-50"
               >
-                <p className="text-sm font-semibold text-blue-700">
+                <p className="text-sm font-semibold text-indigo-700">
                   {booking.start_at ? formatTime(booking.start_at) : "—"}
                 </p>
                 <div className="min-w-0">

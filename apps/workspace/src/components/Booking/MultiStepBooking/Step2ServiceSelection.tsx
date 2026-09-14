@@ -92,7 +92,7 @@ export function Step2ServiceSelection({
                 </div>
                 <div
                   className={`relative z-10 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors flex-shrink-0 ${
-                    isSelected ? 'bg-blue-100' : 'bg-blue-50 group-hover:bg-blue-100'
+                    isSelected ? 'bg-indigo-100' : 'bg-indigo-50 group-hover:bg-indigo-100'
                   }`}
                 >
                   <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: DEFAULT_ACCENT_COLOR }}>

@@ -67,7 +67,7 @@ export function CalendarMobileWeekStrip({
               onClick={() => onSelectDate(day)}
               className={`flex flex-col items-center justify-center rounded-lg px-0.5 py-1.5 transition ${
                 isSelected
-                  ? "bg-blue-600 text-white shadow-sm"
+                  ? "bg-indigo-600 text-white shadow-sm"
                   : "text-slate-700 hover:bg-slate-50"
               }`}
               aria-pressed={isSelected}

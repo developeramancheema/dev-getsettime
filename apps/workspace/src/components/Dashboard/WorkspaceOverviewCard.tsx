@@ -128,8 +128,8 @@ export default function WorkspaceOverviewCard({
     {
       label: "Google Calendar",
       icon: "calendar",
-      icon_bg: "bg-blue-50",
-      icon_color: "text-blue-600",
+      icon_bg: "bg-indigo-50",
+      icon_color: "text-indigo-600",
       state_label: google_calendar_active ? "Connected" : "Connect",
       active: google_calendar_active,
       href: "/integrations",
@@ -146,8 +146,8 @@ export default function WorkspaceOverviewCard({
     {
       label: "Email Reminders",
       icon: "mail",
-      icon_bg: "bg-blue-50",
-      icon_color: "text-blue-600",
+      icon_bg: "bg-indigo-50",
+      icon_color: "text-indigo-600",
       state_label: email_active ? "Active" : "Set up",
       active: email_active,
       href: "/settings",

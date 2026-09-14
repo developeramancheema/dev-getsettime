@@ -1233,7 +1233,7 @@ export default function RegisterForm() {
               {[1, 2, 3, 4].map((s) => (
                 <div
                   key={s}
-                  className={`h-1.5 flex-1 max-w-[60px] rounded-full ${s <= onboardingStep ? "bg-blue-600" : "bg-gray-200"}`}
+                  className={`h-1.5 flex-1 max-w-[60px] rounded-full ${s <= onboardingStep ? "bg-indigo-600" : "bg-gray-200"}`}
                 />
               ))}
             </div>
@@ -1278,7 +1278,7 @@ export default function RegisterForm() {
                 type="button"
                 onClick={() => handleOnboardingNext()}
                 disabled={onboardingNextDisabled}
-                className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {finishProgressOpen ? "Setting up…" : "Next"}
               </button>
@@ -1675,7 +1675,7 @@ export default function RegisterForm() {
                       type="checkbox"
                       checked={meetingOptions[key]}
                       onChange={(e) => setMeetingOptions((prev) => ({ ...prev, [key]: e.target.checked }))}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <span className="text-gray-700">{label}</span>
                   </label>
@@ -1704,7 +1704,7 @@ export default function RegisterForm() {
                 type="button"
                 onClick={() => handleOnboardingNext()}
                 disabled={onboardingNextDisabled}
-                className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {finishProgressOpen
                   ? "Setting up…"
@@ -1945,7 +1945,7 @@ export default function RegisterForm() {
           <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
                 Sign in
               </Link>
             </p>

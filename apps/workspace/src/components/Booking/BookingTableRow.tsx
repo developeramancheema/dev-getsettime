@@ -121,7 +121,7 @@ export function BookingTableRow({
                 {capitalize_booking_display_label(displayBooking.name)}
               </span>
               {!displayBooking.is_viewed && (
-                <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
                   New
                 </span>
               )}

@@ -345,7 +345,7 @@ export function format_customer_limit(
 }
 
 export const EVENT_TYPE_OVERRIDE_BADGE_CLASSES = [
-  "bg-blue-50 text-blue-700 ring-blue-200",
+  "bg-indigo-50 text-indigo-700 ring-blue-200",
   "bg-emerald-50 text-emerald-700 ring-emerald-200",
   "bg-amber-50 text-amber-700 ring-amber-200",
   "bg-violet-50 text-violet-700 ring-violet-200",

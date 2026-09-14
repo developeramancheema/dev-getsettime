@@ -609,7 +609,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/emergency-booking"
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] hover:shadow-xl hover:shadow-rose-500/25"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -634,7 +634,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
               <ScreenGate minWidth={1024}>
               <button
                 onClick={handleCreate}
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:scale-[1.01] hover:shadow-xl hover:shadow-indigo-500/25"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
               >
                 <Plus className="h-4 w-4" />
                 New Booking

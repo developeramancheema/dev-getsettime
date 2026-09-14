@@ -1337,11 +1337,11 @@ export default function DepartmentsPage() {
                                           inline-flex h-8 items-center gap-1.5
                                           rounded-lg
                                           border border-blue-200
-                                          bg-blue-50
+                                          bg-indigo-50
                                           px-2.5
-                                          text-xs font-medium text-blue-700
+                                          text-xs font-medium text-indigo-700
                                           transition
-                                          hover:bg-blue-100
+                                          hover:bg-indigo-100
                                         "
                                       >
                                         <Pencil className="h-3.5 w-3.5" />
@@ -1592,7 +1592,7 @@ export default function DepartmentsPage() {
                                       <button
                                         type="button"
                                         onClick={() => openEditDepartment(dep)}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-2.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
                                       >
                                         <Pencil className="h-3.5 w-3.5" />
                                         Edit

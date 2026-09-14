@@ -98,7 +98,7 @@ export function ProviderAvatar({
     <span
       className={classNames(
         sizeClass,
-        "flex shrink-0 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700"
+        "flex shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700"
       )}
     >
       {initials}

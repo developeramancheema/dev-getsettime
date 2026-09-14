@@ -316,7 +316,7 @@ export function EditBookingRulesPanel({
         aria-hidden={!panelVisible}
       >
         {panelVisible ? (
-          <div className="flex h-full min-h-0 flex-col">
+          <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
             <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
               <h2 className="text-lg font-bold text-slate-900">
                 {panel_title(target)}

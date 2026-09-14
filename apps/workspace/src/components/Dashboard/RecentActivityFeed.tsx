@@ -24,7 +24,7 @@ type TypeStyle = {
 
 const TYPE_STYLES: Record<string, TypeStyle> = {
   booking: { icon: "calendar", icon_bg: "bg-emerald-50", icon_color: "text-emerald-600" },
-  contact: { icon: "user", icon_bg: "bg-blue-50", icon_color: "text-blue-600" },
+  contact: { icon: "user", icon_bg: "bg-indigo-50", icon_color: "text-indigo-600" },
   event_type: { icon: "calendarDays", icon_bg: "bg-violet-50", icon_color: "text-violet-600" },
   department: { icon: "stethoscope", icon_bg: "bg-amber-50", icon_color: "text-amber-600" },
   service: { icon: "spark", icon_bg: "bg-cyan-50", icon_color: "text-cyan-600" },

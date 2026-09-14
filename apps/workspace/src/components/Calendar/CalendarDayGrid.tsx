@@ -126,7 +126,7 @@ function positionBookings(bookings: Booking[]): PositionedBooking[] {
 
 function getStatusCardClass(status: string | null | undefined): string {
   const card = getStatusCalendarChipClass(status).chip;
-  if (card.includes("blue")) return "border-blue-200 bg-blue-50";
+  if (card.includes("blue")) return "border-blue-200 bg-indigo-50";
   if (card.includes("emerald")) return "border-emerald-200 bg-emerald-50";
   if (card.includes("amber")) return "border-amber-200 bg-amber-50";
   if (card.includes("rose")) return "border-rose-200 bg-rose-50";

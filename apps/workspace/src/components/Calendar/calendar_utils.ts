@@ -60,7 +60,7 @@ export function buildCalendarCells(viewDate: Date): CalendarCell[] {
 export function getStatusPillClass(status: string | null | undefined): string {
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
-      return "bg-blue-50 text-blue-700 border-blue-200";
+      return "bg-indigo-50 text-indigo-700 border-blue-200";
     case "completed":
       return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case "pending":
@@ -85,8 +85,8 @@ export function getStatusCalendarChipClass(
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
       return {
-        chip: "bg-blue-50 hover:bg-blue-100/80",
-        time: "text-blue-700",
+        chip: "bg-indigo-50 hover:bg-indigo-100/80",
+        time: "text-indigo-700",
       };
     case "completed":
       return {
@@ -126,7 +126,7 @@ export function getStatusCalendarChipClass(
 export function getStatusDotClass(status: string | null | undefined): string {
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
-      return "bg-blue-500";
+      return "bg-indigo-500";
     case "completed":
       return "bg-emerald-500";
     case "pending":

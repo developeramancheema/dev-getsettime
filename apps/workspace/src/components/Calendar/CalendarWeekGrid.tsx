@@ -154,7 +154,7 @@ function positionBookings(bookings: Booking[]): PositionedBooking[] {
 
 function getStatusCardClass(status: string | null | undefined): string {
   const card = getStatusCalendarChipClass(status).chip;
-  if (card.includes("blue")) return "border-blue-200 bg-blue-50";
+  if (card.includes("blue")) return "border-blue-200 bg-indigo-50";
   if (card.includes("emerald")) return "border-emerald-200 bg-emerald-50";
   if (card.includes("amber")) return "border-amber-200 bg-amber-50";
   if (card.includes("rose")) return "border-rose-200 bg-rose-50";
@@ -277,7 +277,7 @@ export function CalendarWeekGrid({
               <div
                 key={column.key}
                 className={`border-l border-slate-200 px-2 py-3 text-center ${
-                  column.isToday ? "bg-blue-50/60" : ""
+                  column.isToday ? "bg-indigo-50/60" : ""
                 }`}
                 title={column.full}
               >
@@ -316,7 +316,7 @@ export function CalendarWeekGrid({
                   <div
                     key={column.key}
                     className={`relative border-l border-slate-200 ${
-                      column.isToday ? "bg-blue-50/30" : "bg-white"
+                      column.isToday ? "bg-indigo-50/30" : "bg-white"
                     }`}
                     style={{ height: `${GRID_HEIGHT}px` }}
                   >

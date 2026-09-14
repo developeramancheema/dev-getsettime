@@ -173,7 +173,7 @@ export default function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
+    <header className="sticky top-0 z-999 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center">
           <div className="lg:hidden">
@@ -262,7 +262,7 @@ export default function Topbar() {
                   )}
                 </div>
                 <div className="px-4 py-2 border-t border-gray-100 text-center">
-                  <Link href="/notifications/all" className="text-xs text-blue-600 hover:text-blue-800" onClick={() => setIsNotificationOpen(false)}>View all notifications</Link>
+                  <Link href="/notifications/all" className="text-xs text-indigo-600 hover:text-indigo-800" onClick={() => setIsNotificationOpen(false)}>View all notifications</Link>
                 </div>
               </div>
             )}
@@ -270,7 +270,7 @@ export default function Topbar() {
 
           <div className="relative">
             <button id="profile-button" onClick={(e) => { e.stopPropagation(); setIsProfileMenuOpen(!isProfileMenuOpen); setIsNotificationOpen(false);}} className="flex items-center space-x-2 cursor-pointer focus:outline-none" aria-expanded={isProfileMenuOpen} aria-haspopup="true">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white overflow-hidden">
+              <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white overflow-hidden">
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
                 ) : (

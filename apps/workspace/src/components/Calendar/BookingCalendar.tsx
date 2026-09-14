@@ -1145,7 +1145,7 @@ export default function BookingCalendar() {
                                     isSelected
                                       ? "bg-indigo-600 text-white"
                                       : isToday
-                                        ? "bg-blue-50 font-semibold text-blue-700 hover:bg-blue-100"
+                                        ? "bg-indigo-50 font-semibold text-indigo-700 hover:bg-indigo-100"
                                         : cell.isCurrentMonth
                                           ? "text-slate-700 hover:bg-slate-100"
                                           : "text-slate-300 hover:bg-slate-50"

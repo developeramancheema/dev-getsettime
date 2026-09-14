@@ -30,6 +30,7 @@ import {
   sync_workspace_response,
 } from "@/src/lib/workspace_shell_sync";
 import type { WorkspaceSettings } from "@/src/types/workspace";
+import ScreenGate from "@/src/components/ScreenGate";
 
 type settings_icon_name =
   | "palette"
@@ -895,15 +896,15 @@ export default function SettingsPage() {
     "flex max-w-full shrink-0 items-center gap-2 truncate border-b border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-500 sm:border-b-0 sm:border-r sm:px-4 sm:py-0 sm:text-sm";
 
   const link_slug_input_class =
-    "h-14 min-w-0 w-full bg-transparent px-4 pr-20 text-base font-medium outline-none disabled:cursor-not-allowed disabled:opacity-60";
+    "h-14 min-w-0 w-full bg-transparent px-4 pr-16 text-base font-medium outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
   const link_action_buttons = (
-    <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
+    <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
       <a
         href={publicBookingUrl ?? undefined}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-50"
+        className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50"
         aria-label="Open booking page"
       >
         <SettingsIcon name="externalLink" className="h-4 w-4" />
@@ -911,7 +912,7 @@ export default function SettingsPage() {
       <button
         type="button"
         onClick={() => void copyWorkspaceLink()}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-50"
+        className="inline-flex h-6 w-6 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50"
         aria-label="Copy booking link"
       >
         <SettingsIcon name={linkCopied ? "check" : "copy"} className="h-4 w-4" />
@@ -939,17 +940,17 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen min-w-0 max-w-full text-slate-900">
-      <div className="mx-auto min-w-0 max-w-full space-y-6">
+    <div className="max-w-full text-slate-900">
+      <div className="mx-auto max-w-full space-y-6">
         <form onSubmit={handleSubmit} className="min-w-0 max-w-full">
           <section className="min-w-0 max-w-full rounded-[2rem]">
-            <div className="bg-blue-600 px-6 py-6 text-white md:px-8">
+            <div className="bg-indigo-600 px-6 py-6 text-white md:px-8 rounded-2xl">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
                   <SettingsIcon name="building" className="mt-0.5 h-5 w-5 shrink-0" />
                   <div>
                     <h1 className="text-xl font-bold md:text-2xl">Workspace Settings</h1>
-                    <p className="mt-1 max-w-2xl text-sm text-blue-100 md:text-base">
+                    <p className="mt-1 max-w-2xl text-sm text-indigo-100 md:text-base">
                       {isReadOnly
                         ? "View workspace profile, booking link, branding, and booking rules."
                         : isServiceProvider
@@ -961,7 +962,7 @@ export default function SettingsPage() {
 
                 <Link
                   href="/change-password"
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
                 >
                   <SettingsIcon name="lock" className="h-4 w-4" />
                   Change Password
@@ -983,12 +984,12 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <div className="grid min-w-0 max-w-full gap-6 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
+            <div className="grid min-w-0 max-w-full gap-6 py-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
               <div className="min-w-0 space-y-5">
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                  <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                  <div className="mb-5 flex gap-3 flex-row flex-wrap items-start justify-between">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                         <SettingsIcon name="user" className="h-5 w-5" />
                       </div>
                       <div>
@@ -1000,13 +1001,13 @@ export default function SettingsPage() {
                         </p>
                       </div>
                     </div>
-                    <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                    <span className="shrink-0 w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                       Active
                     </span>
                   </div>
 
                   <div className="grid gap-5">
-                    <div className="grid gap-5 md:grid-cols-2">
+                    <div className="grid gap-5 sm:grid-cols-3">
                       <label className="block">
                         <span className="mb-2 block text-sm font-bold text-slate-700">
                           Workspace Name
@@ -1021,7 +1022,7 @@ export default function SettingsPage() {
                         />
                       </label>
 
-                      <label className="block">
+                      <label className="col-span-2 block">
                         <span className="mb-2 block text-sm font-bold text-slate-700">
                           {isServiceProvider ? "Provider Link" : "Workspace Link"}
                         </span>
@@ -1100,7 +1101,7 @@ export default function SettingsPage() {
                           href={publicBookingUrl ?? undefined}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex max-w-full items-center gap-1.5 break-all text-sm font-medium text-blue-600 hover:underline"
+                          className="inline-flex max-w-full items-center gap-1.5 break-all text-sm font-medium text-indigo-600 hover:underline"
                         >
                           {previewUrl}
                           <SettingsIcon name="externalLink" className="h-4 w-4" />
@@ -1110,7 +1111,7 @@ export default function SettingsPage() {
                         type="button"
                         onClick={() => void shareBookingPage()}
                         disabled={!publicBookingUrl}
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <SettingsIcon name="share" className="h-4 w-4" />
                         Share
@@ -1175,9 +1176,9 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                   <div className="mb-5 flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                       <SettingsIcon name="palette" className="h-5 w-5" />
                     </div>
                     <div>
@@ -1206,9 +1207,9 @@ export default function SettingsPage() {
                           />
                         </div>
                         <label
-                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-blue-600 transition ${
+                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-indigo-600 transition ${
                             canEditAllSettings
-                              ? "cursor-pointer hover:border-blue-200 hover:bg-blue-50"
+                              ? "cursor-pointer hover:border-blue-200 hover:bg-indigo-50"
                               : "cursor-not-allowed opacity-60"
                           }`}
                         >
@@ -1261,9 +1262,9 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                   <div className="mb-5 flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                       <SettingsIcon name="globe" className="h-5 w-5" />
                     </div>
                     <div>
@@ -1277,7 +1278,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-5">
-                    <div className="grid gap-5 lg:grid-cols-3">
+                    <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
                       <label className="block">
                         <span className="mb-2 block text-sm font-bold text-slate-700">
                           Timezone
@@ -1315,7 +1316,7 @@ export default function SettingsPage() {
                       />
                     </div>
 
-                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-5 grid-cols-2 lg:grid-cols-3">
                       <SelectField
                         label="Language"
                         value={language}
@@ -1337,21 +1338,27 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                  <div className="mb-5">
-                    <h2 className="flex items-center gap-2 text-lg font-bold text-slate-950">
-                      <SettingsIcon
-                        name="shield"
-                        className="h-5 w-5 text-indigo-600"
-                      />{" "}
-                      Booking Rules &amp; Notifications
-                    </h2>
-                    <p className="mt-1 break-words text-sm text-slate-500">
-                      Important SaaS controls for booking flow, reminders, and
-                      customer actions.
-                    </p>
+                <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                  <div className="mb-5 flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                        <SettingsIcon
+                          name="shield"
+                          className="h-5 w-5 text-indigo-600"
+                        />{" "}
+                    </div>
+
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-bold text-slate-950">
+                        Booking Rules &amp; Notifications
+                      </h2>
+                      <p className="mt-1 break-words text-sm text-slate-500">
+                        Important SaaS controls for booking flow, reminders, and
+                        customer actions.
+                      </p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <ToggleRow
                       label="Auto confirm new bookings"
                       value={autoConfirm}
@@ -1391,10 +1398,10 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                   <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                         <SettingsIcon name="palette" className="h-5 w-5" />
                       </div>
                       <div>
@@ -1406,6 +1413,7 @@ export default function SettingsPage() {
                         </p>
                       </div>
                     </div>
+
                     <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
                       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-amber-300/60 ring-2 ring-amber-400/50 ring-offset-2">
                         <SettingsIcon name="sparkles" className="h-4 w-4" />
@@ -1415,7 +1423,7 @@ export default function SettingsPage() {
                         href={publicBookingUrl ?? undefined}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 disabled:pointer-events-none disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 disabled:pointer-events-none disabled:opacity-50"
                         aria-disabled={!publicBookingUrl}
                         onClick={(event) => {
                           if (!publicBookingUrl) event.preventDefault();
@@ -1427,37 +1435,41 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-x-8">
-                    <ColorRow
-                      label="Primary Color"
-                      color={primaryColor}
-                      setColor={setPrimaryColor}
-                      disabled={nonLinkFieldsDisabled}
-                    />
-                    <ColorRow
-                      label="Accent Color (CTA / Highlights)"
-                      labelClassName="w-[8.5rem] sm:w-[9.5rem]"
-                      color={accentColor}
-                      setColor={setAccentColor}
-                      disabled={nonLinkFieldsDisabled}
-                    />
-                    <ToggleRow
-                      label="Use gradient background"
-                      value={useGradientBookingBg}
-                      setValue={setUseGradientBookingBg}
-                      disabled={nonLinkFieldsDisabled}
-                      layout="inline"
-                    />
-                    <ToggleRow
-                      label="Enable rounded UI style (modern look)"
-                      value={roundedUiStyle}
-                      setValue={setRoundedUiStyle}
-                      disabled={nonLinkFieldsDisabled}
-                      layout="inline"
-                    />
+                  <div className="grid gap-4">
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:gap-x-8">
+                      <ColorRow
+                        label="Primary Color"
+                        color={primaryColor}
+                        setColor={setPrimaryColor}
+                        disabled={nonLinkFieldsDisabled}
+                      />
+                      <ColorRow
+                        label="Accent Color (CTA / Highlights)"
+                        color={accentColor}
+                        setColor={setAccentColor}
+                        disabled={nonLinkFieldsDisabled}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-x-8">
+                      <ToggleRow
+                        label="Use gradient background"
+                        value={useGradientBookingBg}
+                        setValue={setUseGradientBookingBg}
+                        disabled={nonLinkFieldsDisabled}
+                        layout="inline"
+                      />
+                      <ToggleRow
+                        label="Enable rounded UI style (modern look)"
+                        value={roundedUiStyle}
+                        setValue={setRoundedUiStyle}
+                        disabled={nonLinkFieldsDisabled}
+                        layout="inline"
+                      />
+                    </div>
                   </div>
 
-                  <div className="mt-5 rounded-2xl bg-blue-50 p-5">
+                  <div className="mt-5 rounded-2xl bg-indigo-50 p-5">
                     <p className="text-sm font-bold text-slate-900">
                       Recommended for MVP
                     </p>
@@ -1474,8 +1486,8 @@ export default function SettingsPage() {
                           key={item}
                           className="flex items-center gap-2.5 text-sm text-slate-700"
                         >
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-                            <SettingsIcon name="check" className="h-3 w-3" />
+                          <span className="flex shrink-0 items-center justify-center text-indigo-600">
+                            <SettingsIcon name="check" className="h-5 w-5" />
                           </span>
                           {item}
                         </div>
@@ -1485,75 +1497,77 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <aside className="min-w-0 space-y-5 lg:sticky lg:top-6 lg:self-start">
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-bold text-slate-950">
-                      Live Booking Preview
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-500">
-                      This is how your booking page looks
-                    </p>
-                  </div>
-
-                  <div
-                    className={`flex flex-col items-center px-5 py-10 text-center text-white ${
-                      roundedUiStyle ? "rounded-3xl" : "rounded-lg"
-                    }`}
-                    style={{
-                      background: useGradientBookingBg
-                        ? `linear-gradient(135deg, ${primaryColor}, ${accentColor})`
-                        : primaryColor,
-                    }}
-                  >
-                    <div
-                      className={`mb-4 flex h-16 w-16 items-center justify-center bg-white/20 text-2xl font-bold text-white shadow-inner ring-1 ring-white/30 ${
-                        roundedUiStyle ? "rounded-full" : "rounded-xl"
-                      }`}
-                      aria-hidden
-                    >
-                      {workspace_name_initial(accountName)}
+              <aside className="min-w-0 space-y-5 lg:sticky lg:top-0 lg:self-start">
+                <div className="grid sm:grid-cols-2 xl:grid-cols-1 gap-5">
+                  <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-bold text-slate-950">
+                        Live Booking Preview
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        This is how your booking page looks
+                      </p>
                     </div>
-                    <h4 className="text-lg font-bold leading-snug">
-                      {accountName.trim() || "Workspace Name"}
-                    </h4>
-                    <p className="mt-2 max-w-xs text-sm font-medium text-white/90">
-                      {tagline.trim() || "Book appointments with ease"}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={open_create_booking}
-                      className={`mt-6 w-full max-w-xs px-4 py-3 text-sm font-bold shadow-lg transition hover:-translate-y-0.5 ${
-                        roundedUiStyle ? "rounded-2xl" : "rounded-md"
-                      }`}
-                      style={{ backgroundColor: "#ffffff", color: primaryColor }}
-                    >
-                      Book Appointment
-                    </button>
-                  </div>
-                </div>
 
-                <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                  <h3 className="text-base font-bold text-slate-950">
-                    Setup Checklist
-                  </h3>
-                  <div className="mt-4 space-y-3">
-                    {checklist_items.map((item) => (
+                    <div
+                      className={`flex flex-col items-center px-5 py-10 text-center text-white ${
+                        roundedUiStyle ? "rounded-2xl" : "rounded-lg"
+                      }`}
+                      style={{
+                        background: useGradientBookingBg
+                          ? `linear-gradient(135deg, ${primaryColor}, ${accentColor})`
+                          : primaryColor,
+                      }}
+                    >
                       <div
-                        key={item.label}
-                        className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold ${
-                          item.done
-                            ? "bg-slate-50 text-slate-700"
-                            : "bg-amber-50 text-amber-900"
+                        className={`mb-4 flex h-16 w-16 items-center justify-center bg-white/20 text-2xl font-bold text-white shadow-inner ring-1 ring-white/30 ${
+                          roundedUiStyle ? "rounded-full" : "rounded-xl"
                         }`}
+                        aria-hidden
                       >
-                        <SettingsIcon
-                          name="check"
-                          className={`h-5 w-5 shrink-0 ${item.done ? "text-emerald-500" : "text-amber-500"}`}
-                        />
-                        {item.label}
+                        {workspace_name_initial(accountName)}
                       </div>
-                    ))}
+                      <h4 className="text-lg font-bold leading-snug">
+                        {accountName.trim() || "Workspace Name"}
+                      </h4>
+                      <p className="mt-2 max-w-xs text-sm font-medium text-white/90">
+                        {tagline.trim() || "Book appointments with ease"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={open_create_booking}
+                        className={`mt-6 w-full max-w-xs px-4 py-3 text-sm font-bold shadow-lg transition hover:-translate-y-0.5 ${
+                          roundedUiStyle ? "rounded-2xl" : "rounded-md"
+                        }`}
+                        style={{ backgroundColor: "#ffffff", color: primaryColor }}
+                      >
+                        Book Appointment
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                    <h3 className="text-base font-bold text-slate-950">
+                      Setup Checklist
+                    </h3>
+                    <div className="mt-4 space-y-3">
+                      {checklist_items.map((item) => (
+                        <div
+                          key={item.label}
+                          className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold ${
+                            item.done
+                              ? "bg-slate-50 text-slate-700"
+                              : "bg-amber-50 text-amber-900"
+                          }`}
+                        >
+                          <SettingsIcon
+                            name="check"
+                            className={`h-5 w-5 shrink-0 ${item.done ? "text-emerald-500" : "text-amber-500"}`}
+                          />
+                          {item.label}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </aside>
@@ -1572,7 +1586,7 @@ export default function SettingsPage() {
             )}
 
             {canSave ? (
-              <div className="bottom-0 border-t border-slate-200 bg-white/90 px-5 py-4 backdrop-blur md:px-8">
+              <div className="relative">
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <button
                     type="button"
@@ -1599,7 +1613,7 @@ export default function SettingsPage() {
           </section>
         </form>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -1670,13 +1684,13 @@ function ToggleRow({
         if (!disabled) setValue(!value);
       }}
       disabled={disabled}
-      className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60 ${
-        value ? "bg-blue-600" : "bg-slate-300"
+      className={`relative inline-flex h-6 w-10 shrink-0 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+        value ? "bg-indigo-600" : "bg-slate-300"
       }`}
     >
       <span
-        className={`pointer-events-none absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-          value ? "translate-x-5" : "translate-x-0"
+        className={`pointer-events-none absolute top-0.5 left-0.2 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+          value ? "translate-x-4.5" : "translate-x-0"
         }`}
       />
     </button>
@@ -1684,7 +1698,7 @@ function ToggleRow({
 
   if (layout === "inline") {
     return (
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="flex gap-3 flex-row sm:items-center sm:justify-between sm:gap-4">
         <span className="min-w-0 text-sm font-bold leading-snug text-slate-800 sm:flex-1">
           {label}
         </span>
@@ -1708,7 +1722,7 @@ function ColorRow({
   color,
   setColor,
   disabled = false,
-  labelClassName = "w-[6.75rem] sm:w-[7.5rem]",
+  labelClassName = "w-fit md:w-[7.5rem]",
 }: {
   label: string;
   color: string;
@@ -1723,14 +1737,14 @@ function ColorRow({
       >
         {label}
       </span>
-      <div className="flex h-11 min-w-0 w-full flex-1 items-stretch gap-1.5 rounded-xl border border-slate-200 bg-white p-1.5">
+      <div className="flex h-11 min-w-0 w-fit items-stretch gap-1.5 rounded-xl border border-slate-200 bg-white p-1.5">
         <label
-          className={`relative min-w-0 flex-[2] overflow-hidden rounded-lg ${
+          className={`relative overflow-hidden rounded-lg ${
             disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
           }`}
         >
           <span
-            className="block h-full w-full rounded-lg"
+            className="block h-full w-[80px] rounded-lg"
             style={{ backgroundColor: color }}
             aria-hidden
           />

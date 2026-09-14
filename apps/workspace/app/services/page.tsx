@@ -124,7 +124,7 @@ function ProviderAvatar({
     <span
       className={classNames(
         sizeClass,
-        "flex shrink-0 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700"
+        "flex shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700"
       )}
     >
       {initials}
@@ -163,7 +163,7 @@ const SERVICE_CARD_ICONS = [
   { Icon: Stethoscope, wrap: "bg-sky-50 text-sky-600" },
   { Icon: Sparkles, wrap: "bg-violet-50 text-violet-600" },
   { Icon: HeartPulse, wrap: "bg-orange-50 text-orange-600" },
-  { Icon: Smile, wrap: "bg-blue-50 text-blue-600" },
+  { Icon: Smile, wrap: "bg-indigo-50 text-indigo-600" },
   { Icon: Boxes, wrap: "bg-emerald-50 text-emerald-600" },
 ] as const;
 
@@ -1312,7 +1312,7 @@ export default function ServicesPage() {
                                   <button
                                     type="button"
                                     onClick={() => openEditService(service)}
-                                    className="flex gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                    className="flex gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                     Edit
@@ -1621,7 +1621,7 @@ export default function ServicesPage() {
           <div className="w-full max-w-5xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-blue-600">Booking impact</p>
+                <p className="text-sm font-medium text-indigo-600">Booking impact</p>
                 <h3 className="mt-1 text-xl font-semibold text-slate-900">
                   Booking visibility
                   {selectedDepartment
@@ -1690,7 +1690,7 @@ export default function ServicesPage() {
                                 {assigned.map((doctor) => (
                                   <span
                                     key={doctor.id}
-                                    className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                                    className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
                                   >
                                     {doctor.name}
                                   </span>

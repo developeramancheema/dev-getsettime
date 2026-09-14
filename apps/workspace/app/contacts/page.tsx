@@ -806,7 +806,7 @@ export default function ContactsCreative() {
                             Source
                           </span>
 
-                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                          <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">
                             {get_contact_source(contact)}
                           </span>
                         </div>
@@ -919,7 +919,7 @@ export default function ContactsCreative() {
                             Source
                           </span>
 
-                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+                          <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700">
                             {get_contact_source(contact)}
                           </span>
                         </div>
@@ -1034,7 +1034,7 @@ export default function ContactsCreative() {
                         </td>
 
                         <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Source">
-                          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                          <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
                             {get_contact_source(contact)}
                           </span>
                         </td>

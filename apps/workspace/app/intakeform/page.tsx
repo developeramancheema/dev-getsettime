@@ -454,7 +454,7 @@ export default function RoutingForm({ dark = false }) {
         <div className="grid gap-3 md:grid-cols-3">
           <FormsStatCard
             icon="clipboard"
-            iconClassName="bg-blue-600 text-white"
+            iconClassName="bg-indigo-600 text-white"
             label="Active Forms"
             value={enabledFieldsCount}
             helper="Currently active"
@@ -480,7 +480,7 @@ export default function RoutingForm({ dark = false }) {
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-start">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                   <Icon name="clipboard" className="h-5 w-5" />
                 </div>
                 <div>
@@ -502,14 +502,14 @@ export default function RoutingForm({ dark = false }) {
                       key={field.key}
                       className="flex items-center gap-3 py-4"
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
                         <Icon name={field.icon} className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-sm font-semibold text-slate-900">{field.label}</h3>
                           {isFileUpload && fileUploadSaving ? (
-                            <span className="text-xs font-medium text-blue-600">Saving…</span>
+                            <span className="text-xs font-medium text-indigo-600">Saving…</span>
                           ) : null}
                         </div>
                         <p className="mt-0.5 text-sm text-slate-500">{field.description}</p>
@@ -520,7 +520,7 @@ export default function RoutingForm({ dark = false }) {
                         aria-label={isLocked ? `${field.label} is always enabled` : `Toggle ${field.label}`}
                         aria-pressed={enabled}
                         disabled={toggleDisabled || isStaffUser}
-                        className={`relative h-6 w-11 shrink-0 rounded-full transition ${enabled ? "bg-blue-600" : "bg-slate-300"} ${isLocked ? "cursor-not-allowed opacity-20" : ""} ${isFileUpload && fileUploadSaving ? "cursor-wait opacity-60" : ""}`}
+                        className={`relative h-6 w-11 shrink-0 rounded-full transition ${enabled ? "bg-indigo-600" : "bg-slate-300"} ${isLocked ? "cursor-not-allowed opacity-20" : ""} ${isFileUpload && fileUploadSaving ? "cursor-wait opacity-60" : ""}`}
                       >
                         <span
                           className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${enabled ? "left-6" : "left-1"}`}
@@ -549,7 +549,7 @@ export default function RoutingForm({ dark = false }) {
                     key={field.key}
                     className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
                   >
-                    <Icon name={field.icon} className="h-4 w-4 shrink-0 text-blue-600" />
+                    <Icon name={field.icon} className="h-4 w-4 shrink-0 text-indigo-600" />
                     <span className="text-sm font-medium text-slate-800">{field.label}</span>
                   </div>
                 ))}
@@ -559,11 +559,11 @@ export default function RoutingForm({ dark = false }) {
                     key={field.id}
                     className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
                   >
-                    <Icon name="file" className="h-4 w-4 shrink-0 text-blue-600" />
+                    <Icon name="file" className="h-4 w-4 shrink-0 text-indigo-600" />
                     <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{field.label}</span>
                     <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2">
                       {field.required && (
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                        <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
                           Required
                         </span>
                       )}
@@ -575,14 +575,14 @@ export default function RoutingForm({ dark = false }) {
                 ))}
               </div>
 
-              <div className="mt-5 rounded-xl bg-blue-50 px-4 py-4">
+              <div className="mt-5 rounded-xl bg-indigo-50 px-4 py-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
                     <Icon name="info" className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-blue-900">Preview as a customer</p>
-                    <p className="mt-1 text-sm leading-6 text-blue-700">
+                    <p className="text-sm font-semibold text-indigo-900">Preview as a customer</p>
+                    <p className="mt-1 text-sm leading-6 text-indigo-700">
                       This is how the form appears before appointment confirmed and can be used for security checks.
                     </p>
                   </div>
@@ -605,7 +605,7 @@ export default function RoutingForm({ dark = false }) {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-50 disabled:opacity-50"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:opacity-50"
                     >
                       <Icon name="arrowUpDown" className="h-4 w-4" />
                       {loading ? "Saving..." : "Save Order"}
@@ -613,7 +613,7 @@ export default function RoutingForm({ dark = false }) {
                     <button
                       type="button"
                       onClick={addCustomFieldInline}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white transition hover:bg-indigo-700"
                     >
                       <Icon name="plus" className="h-4 w-4" />
                       Add Field
@@ -707,7 +707,7 @@ export default function RoutingForm({ dark = false }) {
                       type="button"
                       onClick={() => toggleCustomFieldRequired(field.id)}
                       disabled={isStaffUser}
-                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${field.required ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${field.required ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}
                       aria-label={field.required ? "Mark optional" : "Mark required"}
                     >
                       {field.required ? "Required" : "Optional"}
@@ -716,7 +716,7 @@ export default function RoutingForm({ dark = false }) {
                       type="button"
                       onClick={() => handleEditCustomField(field)}
                       disabled={isStaffUser}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:text-blue-600"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:text-indigo-600"
                       title="Edit field"
                       aria-label="Edit custom field"
                     >

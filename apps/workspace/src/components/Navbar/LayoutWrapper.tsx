@@ -92,7 +92,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <p className="mt-4 text-gray-700 font-medium">Redirecting to sign-in…</p>
           <p className="mt-2 text-sm text-gray-500">
             If you are not redirected,{" "}
-            <Link href="/login" className="text-blue-600 underline hover:text-blue-800">
+            <Link href="/login" className="text-indigo-600 underline hover:text-indigo-800">
               open login
             </Link>
             .
@@ -112,7 +112,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <p className="mt-4 text-gray-700 font-medium">You don&apos;t have access to this page.</p>
           <p className="mt-2 text-sm text-gray-500">
             Redirecting to your dashboard…{" "}
-            <Link href="/" className="text-blue-600 underline hover:text-blue-800">
+            <Link href="/" className="text-indigo-600 underline hover:text-indigo-800">
               go now
             </Link>
             .

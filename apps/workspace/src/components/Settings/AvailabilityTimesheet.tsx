@@ -13,6 +13,7 @@ import { AvailabilityGeneralSkeleton } from '@/src/components/ui/AvailabilityGen
 import { convertWallClockHHmm } from '@/src/utils/timezone';
 import { sync_settings_response } from '@/src/lib/workspace_shell_sync';
 import type { WorkspaceSettings } from '@/src/types/workspace';
+import ScreenGate from "@/src/components/ScreenGate";
 
 type DayName = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -1230,132 +1231,273 @@ const AvailabilityTimesheet = forwardRef<
             : "Set your regular weekly availability. Click on a day to edit its hours and breaks."}
         </p>
 
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 min-[1301px]:p-0">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Day</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Working Hours</th>
-                  <th className="px-4 py-3 font-semibold">Breaks</th>
-                  {!readOnly ? (
-                    <th className="px-4 py-3 font-semibold text-right">Action</th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {DAYS.map((day) => {
-                  const schedule = schedules[day];
-                  const isEditing = editingDay === day;
-                  return (
-                    <tr
-                      key={day}
-                      className={classNames(
-                        "transition-colors",
-                        isEditing ? "bg-indigo-50/40" : "hover:bg-slate-50/80"
-                      )}
-                    >
-                      <td className="px-4 py-3.5">
-                        {readOnly ? (
-                          <span className="text-sm font-semibold text-slate-900">
-                            {DAY_NAMES[day]}
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => openDayPanel(day)}
-                            className="text-left text-sm font-semibold text-slate-900 hover:text-indigo-600"
-                          >
-                            {DAY_NAMES[day]}
-                          </button>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span
+            {/* Mobile view */}
+            <ScreenGate maxWidth={1023}>
+              <div className="relative">
+                <div className="space-y-3">
+                  {DAYS.map((day) => {
+                    const schedule = schedules[day];
+
+                    return (
+                      <div
+                        key={day}
+                        className="grid grid-cols-[38px_38px_minmax(0,1fr)_30px] items-center gap-2"
+                      >
+                        {/* Day */}
+                        <span className="text-[13px] font-semibold text-slate-700">
+                          {DAY_NAMES[day].slice(0, 3)}
+                        </span>
+
+                        {/* Toggle */}
+                        <button
+                          type="button"
+                          aria-label={`Toggle ${DAY_NAMES[day]}`}
+                          aria-pressed={schedule.enabled}
+                          onClick={() => {
+
+                          }}
                           className={classNames(
-                            "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                            "relative h-[20px] w-[32px] rounded-full transition-colors duration-200",
                             schedule.enabled
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                              : "bg-slate-100 text-slate-500 ring-1 ring-slate-200"
+                              ? "bg-indigo-600"
+                              : "bg-slate-300"
                           )}
                         >
-                          {schedule.enabled ? "On" : "Off"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-700">
-                        {schedule.enabled
-                          ? `${formatTimeForDisplayInZones(schedule.startTime, sourceTimezone, displayTimezone)} – ${formatTimeForDisplayInZones(schedule.endTime, sourceTimezone, displayTimezone)}`
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        {schedule.enabled && schedule.breaks.length > 0 ? (
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {schedule.breaks.map((b) => (
-                              <span
-                                key={b.id}
-                                className="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
-                              >
-                                {formatBreakRangeInZones(
-                                  b.start,
-                                  b.end,
-                                  sourceTimezone,
-                                  displayTimezone
-                                )}
-                              </span>
-                            ))}
-                            {!readOnly ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  openDayPanel(day);
-                                  addBreak(day);
-                                }}
-                                className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:bg-white hover:text-indigo-600"
-                                aria-label={`Add break on ${DAY_NAMES[day]}`}
-                              >
-                                <Plus className="h-3.5 w-3.5" />
-                              </button>
-                            ) : null}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-400">
-                              {schedule.enabled ? "No breaks" : "—"}
+                          <span
+                            className={classNames(
+                              "absolute top-[2px] right-0 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
+                              schedule.enabled
+                                ? "translate-x-[0px]"
+                                : "translate-x-[2px]"
+                            )}
+                          />
+                        </button>
+
+                        {/* Working hours */}
+                        <button
+                          type="button"
+                          disabled={readOnly}
+                          onClick={() => {
+                            if (!readOnly) {
+                              openDayPanel(day);
+                            }
+                          }}
+                          className={classNames(
+                            "flex h-[42px] min-w-0 items-center justify-center rounded-lg border bg-white px-2",
+                            "border-slate-200 text-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]",
+                            !readOnly &&
+                              "transition hover:border-indigo-200 hover:bg-indigo-50/30"
+                          )}
+                        >
+                          {schedule.enabled ? (
+                            <span className="truncate text-[13px] font-medium text-slate-700">
+                              {formatTimeForDisplayInZones(
+                                schedule.startTime,
+                                sourceTimezone,
+                                displayTimezone
+                              )}
+
+                              <span className="mx-2 text-slate-400">–</span>
+
+                              {formatTimeForDisplayInZones(
+                                schedule.endTime,
+                                sourceTimezone,
+                                displayTimezone
+                              )}
                             </span>
-                            {schedule.enabled && !readOnly ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  openDayPanel(day);
-                                  addBreak(day);
-                                }}
-                                className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:bg-white hover:text-indigo-600"
-                                aria-label={`Add break on ${DAY_NAMES[day]}`}
-                              >
-                                <Plus className="h-3.5 w-3.5" />
-                              </button>
-                            ) : null}
-                          </div>
-                        )}
-                      </td>
-                      {!readOnly ? (
-                        <td className="px-4 py-3.5 text-right">
+                          ) : (
+                            <span className="text-[13px] font-medium text-slate-400">
+                              Unavailable
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Plus */}
+                        {!readOnly ? (
                           <button
                             type="button"
-                            onClick={() => openDayPanel(day)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                            onClick={() => {
+                              openDayPanel(day);
+                            }}
+                            aria-label={`Edit ${DAY_NAMES[day]}`}
+                            className="flex h-[34px] w-[30px] items-center justify-center rounded-md text-indigo-600 transition hover:bg-indigo-50"
                           >
-                            <Pencil className="h-3.5 w-3.5 text-slate-500" />
-                            Edit
+                            <Plus
+                              strokeWidth={2.5}
+                              className="h-[16px] w-[16px]"
+                            />
                           </button>
+                        ) : (
+                          <div className="w-[30px]" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Timezone */}
+                {/* <button
+                  type="button"
+                  className="
+                    mt-5 flex w-full items-center gap-3
+                    rounded-xl border border-indigo-200
+                    bg-indigo-50/20
+                    px-3 py-3.5 text-left
+                    transition hover:bg-indigo-50/50
+                  "
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-medium text-slate-600">
+                      Timezone
+                    </span>
+
+                    <span className="mt-0.5 block text-[13px] font-semibold text-slate-700">
+                      {displayTimezone}
+                    </span>
+                  </span>
+
+                  <ChevronRight
+                    strokeWidth={2.5}
+                    className="h-[17px] w-[17px] shrink-0 text-slate-600"
+                  />
+                </button> */}
+              </div>
+            </ScreenGate>
+
+            {/* Desktop view */}
+            <ScreenGate minWidth={1024}>
+              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Day</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="px-4 py-3 font-semibold">Working Hours</th>
+                    <th className="px-4 py-3 font-semibold">Breaks</th>
+                    {!readOnly ? (
+                      <th className="px-4 py-3 font-semibold text-right">Action</th>
+                    ) : null}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {DAYS.map((day) => {
+                    const schedule = schedules[day];
+                    const isEditing = editingDay === day;
+                    return (
+                      <tr
+                        key={day}
+                        className={classNames(
+                          "transition-colors",
+                          isEditing ? "bg-indigo-50/40" : "hover:bg-slate-50/80"
+                        )}
+                      >
+                        <td className="px-4 py-3.5" data-label="Day">
+                          {readOnly ? (
+                            <span className="text-sm font-semibold text-slate-900">
+                              {DAY_NAMES[day]}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => openDayPanel(day)}
+                              className="text-left text-sm font-semibold text-slate-900 hover:text-indigo-600"
+                            >
+                              {DAY_NAMES[day]}
+                            </button>
+                          )}
                         </td>
-                      ) : null}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <td className="px-4 py-3.5" data-label="Status">
+                          <span
+                            className={classNames(
+                              "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                              schedule.enabled
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                                : "bg-slate-100 text-slate-500 ring-1 ring-slate-200"
+                            )}
+                          >
+                            {schedule.enabled ? "On" : "Off"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-700" data-label="Working Hours">
+                          {schedule.enabled
+                            ? `${formatTimeForDisplayInZones(schedule.startTime, sourceTimezone, displayTimezone)} – ${formatTimeForDisplayInZones(schedule.endTime, sourceTimezone, displayTimezone)}`
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3.5" data-label="Breaks">
+                          {schedule.enabled && schedule.breaks.length > 0 ? (
+                            <div className="flex items-center max-[1301px]:justify-end gap-2.5">
+                              {schedule.breaks.map((b) => (
+                                <span
+                                  key={b.id}
+                                  className="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+                                >
+                                  {formatBreakRangeInZones(
+                                    b.start,
+                                    b.end,
+                                    sourceTimezone,
+                                    displayTimezone
+                                  )}
+                                </span>
+                              ))}
+                              {!readOnly ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    openDayPanel(day);
+                                    addBreak(day);
+                                  }}
+                                  className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:bg-white hover:text-indigo-600"
+                                  aria-label={`Add break on ${DAY_NAMES[day]}`}
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-400">
+                                {schedule.enabled ? "No breaks" : "—"}
+                              </span>
+                              {schedule.enabled && !readOnly ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    openDayPanel(day);
+                                    addBreak(day);
+                                  }}
+                                  className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:bg-white hover:text-indigo-600"
+                                  aria-label={`Add break on ${DAY_NAMES[day]}`}
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              ) : null}
+                            </div>
+                          )}
+                        </td>
+                        {!readOnly ? (
+                          <td className="px-4 py-3.5 text-right" data-label="Action">
+                            <button
+                              type="button"
+                              onClick={() => openDayPanel(day)}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                            >
+                              <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                              Edit
+                            </button>
+                          </td>
+                        ) : null}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </ScreenGate>
+
           </div>
         </div>
       </div>
@@ -1386,7 +1528,7 @@ const AvailabilityTimesheet = forwardRef<
               </button>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain pb-[60px] lg:pb-0">
               <div className="flex-1 overflow-y-auto px-5 py-5">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-5">
