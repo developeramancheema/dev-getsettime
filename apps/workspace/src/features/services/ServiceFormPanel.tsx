@@ -65,9 +65,9 @@ export type ServiceFormPanelProps = {
 };
 
 const PANEL_FIELD_CLASS =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 const PANEL_SELECT_CLASS =
-  "w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-9 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-9 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
 async function get_access_token(): Promise<string | null> {
   const {
@@ -495,7 +495,7 @@ export function ServiceFormPanel({
                               already_added
                                 ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
                                 : name === item
-                                  ? "border border-violet-300 bg-violet-50 text-violet-700"
+                                  ? "border border-indigo-300 bg-indigo-50 text-indigo-700"
                                   : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
                             )}
                           >
@@ -604,7 +604,7 @@ export function ServiceFormPanel({
                       {doctor_pool.map((doctor) => (
                         <div
                           key={doctor.id}
-                          className="inline-flex items-center gap-2 rounded-xl bg-violet-50 px-2.5 py-1.5"
+                          className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
                         >
                           <ProviderAvatar
                             name={doctor.name}
@@ -612,7 +612,7 @@ export function ServiceFormPanel({
                             avatarUrl={doctor.avatarUrl}
                             size="sm"
                           />
-                          <span className="text-sm font-medium text-violet-900">
+                          <span className="text-sm font-medium text-indigo-900">
                             {doctor.name}
                           </span>
                         </div>
@@ -638,7 +638,7 @@ export function ServiceFormPanel({
                       className={classNames(
                         "flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition",
                         assign_mode === "all"
-                          ? "border-violet-500 bg-violet-50 text-violet-800"
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-800"
                           : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
                       )}
                     >
@@ -646,7 +646,7 @@ export function ServiceFormPanel({
                         className={classNames(
                           "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
                           assign_mode === "all"
-                            ? "border-violet-600 bg-violet-600 text-white"
+                            ? "border-indigo-600 bg-indigo-600 text-white"
                             : "border-slate-300"
                         )}
                       >
@@ -663,7 +663,7 @@ export function ServiceFormPanel({
                       className={classNames(
                         "flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition",
                         assign_mode === "specific"
-                          ? "border-violet-500 bg-violet-50 text-violet-800"
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-800"
                           : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
                       )}
                     >
@@ -671,7 +671,7 @@ export function ServiceFormPanel({
                         className={classNames(
                           "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
                           assign_mode === "specific"
-                            ? "border-violet-600 bg-violet-600 text-white"
+                            ? "border-indigo-600 bg-indigo-600 text-white"
                             : "border-slate-300"
                         )}
                       >
@@ -700,7 +700,7 @@ export function ServiceFormPanel({
                       type="button"
                       onClick={() => set_assigned_menu_open((prev) => !prev)}
                       disabled={doctor_pool.length === 0}
-                      className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                         {assigned_doctor_ids.length === 0 ? (
@@ -716,7 +716,7 @@ export function ServiceFormPanel({
                             return (
                               <span
                                 key={id}
-                                className="inline-flex items-center gap-1 rounded-lg bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-800"
+                                className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-800"
                               >
                                 {doctor.name}
                                 <span
@@ -737,7 +737,7 @@ export function ServiceFormPanel({
                                       );
                                     }
                                   }}
-                                  className="rounded text-violet-500 hover:text-violet-800"
+                                  className="rounded text-indigo-500 hover:text-indigo-800"
                                 >
                                   <X className="h-3 w-3" />
                                 </span>
@@ -766,7 +766,7 @@ export function ServiceFormPanel({
                               className={classNames(
                                 "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm",
                                 checked
-                                  ? "bg-violet-50 text-violet-800"
+                                  ? "bg-indigo-50 text-indigo-800"
                                   : "text-slate-700 hover:bg-slate-50"
                               )}
                             >
@@ -774,7 +774,7 @@ export function ServiceFormPanel({
                                 className={classNames(
                                   "flex h-4 w-4 items-center justify-center rounded border",
                                   checked
-                                    ? "border-violet-600 bg-violet-600 text-white"
+                                    ? "border-indigo-600 bg-indigo-600 text-white"
                                     : "border-slate-300"
                                 )}
                               >
@@ -789,14 +789,14 @@ export function ServiceFormPanel({
                   </div>
                 )}
 
-                <div className="flex items-start gap-2 rounded-xl bg-violet-50 px-3 py-2.5 text-sm text-violet-800">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="flex items-start gap-2 rounded-xl bg-indigo-50 px-3 py-2.5 text-sm text-indigo-800">
+                  <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
                   <p>
                     Consultants are selected once in Department settings. Only
                     department consultants can be assigned here.
                   </p>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm text-slate-500">
                   Only selected consultants will appear on the booking page for
                   this service.
                 </p>
@@ -813,7 +813,7 @@ export function ServiceFormPanel({
                         set_status(e.target.value as service_visibility_status)
                       }
                       aria-label="Visibility"
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-violet-400"
+                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
                     >
                       {SERVICE_VISIBILITY_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -841,7 +841,7 @@ export function ServiceFormPanel({
                 type="button"
                 onClick={handle_save}
                 disabled={save_disabled}
-                className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving ? "Saving…" : is_edit ? "Update Service" : "Save Service"}
               </button>

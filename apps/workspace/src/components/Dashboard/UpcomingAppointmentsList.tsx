@@ -103,7 +103,7 @@ export default function UpcomingAppointmentsList({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
@@ -111,10 +111,11 @@ export default function UpcomingAppointmentsList({
           <h3 className="text-lg font-bold text-slate-900">Upcoming Appointments</h3>
         </div>
         <Link
-          href="/calendar"
-          className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+          href="/bookings"
+          className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
         >
-          View Calendar
+          View all appointments
+          <DashboardIcon name="arrow" size={16} />
         </Link>
       </div>
 
@@ -174,16 +175,6 @@ export default function UpcomingAppointmentsList({
               </button>
             );
           })}
-
-          <div className="pt-3 text-center">
-            <Link
-              href="/bookings"
-              className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
-            >
-              View all appointments
-              <DashboardIcon name="arrow" size={16} />
-            </Link>
-          </div>
         </div>
       )}
       <BookingPreviewPanel

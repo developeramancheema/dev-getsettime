@@ -1125,7 +1125,7 @@ export default function TeamMembersPage() {
                         <div className="p-4 md:p-6">
                           <div className="flex gap-5 flex-row xl:items-start xl:justify-between">
                             <div className="flex flex-1 gap-3">
-                              <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-sm sm:text-lg font-semibold text-white shadow-sm">
+                              <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-indigo-500 text-sm sm:text-lg font-semibold text-white shadow-sm">
                                 {member.name.charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0 flex-1">
@@ -1160,20 +1160,21 @@ export default function TeamMembersPage() {
                                     <LuPhone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
                                     <span>{member.phone?.trim() ? member.phone : "—"}</span>
                                   </div>
-                                  <div className="flex min-w-0 items-center gap-2">
-                                    <LuCalendar className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
-                                    <span>
-                                      {!member.email_confirmed_at
-                                        ? "Pending acceptance"
-                                        : `Added ${formatMemberAddedDate(member.created_at)}`}
-                                    </span>
-                                  </div>
-                                  
-                                  <ScreenGate minWidth={640}>
-                                  <div className="flex min-w-0 items-center gap-2">
-                                    <LuClock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
-                                    <span>{formatWeeklyBookingsLabel(member.bookings_this_week ?? 0)}</span>
-                                  </div>
+
+                                  <ScreenGate minWidth={768}>
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <LuCalendar className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                                      <span>
+                                        {!member.email_confirmed_at
+                                          ? "Pending acceptance"
+                                          : `Added ${formatMemberAddedDate(member.created_at)}`}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <LuClock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                                      <span>{formatWeeklyBookingsLabel(member.bookings_this_week ?? 0)}</span>
+                                    </div>
                                   </ScreenGate>
                                   
                                 </div>

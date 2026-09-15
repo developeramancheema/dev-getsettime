@@ -43,6 +43,7 @@ import type { date_exception } from '@/src/types/date_exceptions';
 import { supabase } from "@/lib/supabaseClient";
 import { sync_settings_response } from '@/src/lib/workspace_shell_sync';
 import type { WorkspaceSettings, provider_availability_entry } from '@/src/types/workspace';
+import ScreenGate from "@/src/components/ScreenGate";
 
 type TabType = 'general' | 'date_exceptions' | 'booking_rules' | 'availability';
 
@@ -1154,13 +1155,14 @@ export default function Availability() {
     if (!isWorkspaceAdminUser) return null;
 
     return (
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row flex-wrap sm:items-center gap-3 sm:gap-4">
         <label
           htmlFor="availability-service-provider"
           className="shrink-0 text-sm font-semibold text-slate-800"
         >
           Provider
         </label>
+
         <div className="relative min-w-[240px] flex-1 sm:max-w-md sm:flex-none">
           <Users className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <select
@@ -1260,7 +1262,7 @@ export default function Availability() {
                 void timesheetRef.current?.saveChanges();
               }}
               disabled={settingsLoading || timesheetBusy}
-              className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center w-fit rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {timesheetBusy ? "Saving..." : "Save changes"}
             </button>
@@ -1417,7 +1419,7 @@ export default function Availability() {
                   </div>
 
                   {/* Availability Grid - Mobile Vertical Layout / Desktop Horizontal Scroll */}
-                  <div className="rounded-2xl overflow-hidden border border-gray-200">
+                  <div className="rounded-2xl overflow-hidden xl:border border-gray-200">
                     {/* Desktop Week View - Horizontal Scroll */}
                     {viewMode === "week" && (
                       <>
@@ -1495,10 +1497,10 @@ export default function Availability() {
                         </div>
 
                         {/* Mobile Vertical Card View */}
-                        <div className="xl:hidden space-y-3 p-3">
+                        <div className="xl:hidden space-y-4">
                           {weekDays.map((day) => { const dayName = format(day, "EEE") as DayName;
                             return (
-                              <div key={dayName} className="border border-gray-200 rounded-lg p-3 bg-white">
+                              <div key={dayName} className="border border-gray-200 rounded-lg p-4 bg-white">
                                 {/* Day Header */}
                                 <div className="flex items-center justify-between mb-3">
                                   <div>
@@ -1514,7 +1516,7 @@ export default function Availability() {
                                 </div>
 
                                 {/* Time Slots Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                                <div className="grid max-[425px]:grid-cols-2 grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2">
                                   {hours.map((h) => {
                                     const active = isTimeSlotActive(dayName, h, day);
                                     const isPast = isPastTimeSlot(day, h);
@@ -1522,7 +1524,7 @@ export default function Availability() {
                                     return (
                                       <div
                                         key={h}
-                                        className={`p-2 rounded-lg text-center text-xs border-2 transition
+                                        className={`p-2 rounded-lg text-center text-xs border-1 transition
                                           ${
                                             isPast || isBooked
                                               ? isBooked 
@@ -1536,7 +1538,7 @@ export default function Availability() {
                                         onClick={() => { if (!isPast && !isBooked) toggleTimeSlot(dayName, h, day); }}
                                       >
                                         <div>{formatHour(h)}</div>
-                                        <div className="text-[10px] leading-tight mt-1">
+                                        <div className="leading-tight mt-1">
                                           {isBooked ? "Booked" : isPast ? "Past" : active ? "Available" : "Unavailable"}
                                         </div>
                                       </div>
@@ -1619,7 +1621,7 @@ export default function Availability() {
                             </div>
 
                             {/* Time Slots Grid */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="grid max-[425px]:grid-cols-2 grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2">
                               {hours.map((h) => {
                                 const active = isTimeSlotActive(dayName, h, currentDate);
                                 const isPast = isPastTimeSlot(currentDate, h);
@@ -1627,7 +1629,7 @@ export default function Availability() {
                                 return (
                                   <div
                                     key={h}
-                                    className={`p-3 rounded-lg text-center border-2 transition
+                                    className={`p-2 rounded-lg text-center text-xs border-1 transition
                                       ${
                                         isPast || isBooked
                                           ? isBooked
@@ -1642,8 +1644,8 @@ export default function Availability() {
                                       if (!isPast && !isBooked) toggleTimeSlot(dayName, h, currentDate);
                                     }}
                                   >
-                                    <div className="text-base font-medium">{formatHour(h)}</div>
-                                    <div className="text-[10px] mt-1">
+                                    <div>{formatHour(h)}</div>
+                                    <div className="leading-tight mt-1">
                                       {isBooked ? "Booked" : isPast ? "Past" : active ? "Available" : "Unavailable"}
                                     </div>
                                   </div>

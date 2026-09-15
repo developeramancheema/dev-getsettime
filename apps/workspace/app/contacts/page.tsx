@@ -613,7 +613,7 @@ export default function ContactsCreative() {
                 <button
                   type="button"
                   onClick={handle_add_contact}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700"
                 >
                   <Icon name="plus" className="h-4 w-4" /> Add Contact
                 </button>
@@ -780,7 +780,7 @@ export default function ContactsCreative() {
                       {/* Header */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-black text-white">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500 text-sm font-black text-white">
                             {get_initials(contact.name ?? "")}
                           </div>
 
@@ -806,7 +806,7 @@ export default function ContactsCreative() {
                             Source
                           </span>
 
-                          <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">
+                          <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-600">
                             {get_contact_source(contact)}
                           </span>
                         </div>
@@ -818,7 +818,7 @@ export default function ContactsCreative() {
                             className={`shrink-0 rounded-xl px-2.5 py-1 text-xs font-bold capitalize ${
                               status === "active"
                                 ? "bg-emerald-50 text-emerald-700"
-                                : "bg-rose-50 text-rose-700"
+                                : "bg-red-50 text-red-700"
                             }`}
                           >
                             {status}
@@ -998,7 +998,7 @@ export default function ContactsCreative() {
                       >
                         <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Contact">
                           <div className="flex items-start max-[1301px]:justify-end gap-2.5">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-black text-white">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500 text-sm font-black text-white">
                               {get_initials(contact.name ?? "")}
                             </div>
 
@@ -1034,7 +1034,7 @@ export default function ContactsCreative() {
                         </td>
 
                         <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Source">
-                          <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
+                          <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
                             {get_contact_source(contact)}
                           </span>
                         </td>
@@ -1107,7 +1107,7 @@ export default function ContactsCreative() {
           }}
         >
           <div
-            className="flex max-h-[min(90vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl"
+            className="flex max-h-[min(90vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="contact-form-title"
@@ -1339,7 +1339,7 @@ export default function ContactsCreative() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:from-indigo-700 hover:to-violet-700 disabled:opacity-60"
+                  className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition disabled:opacity-60"
                 >
                   {submitting
                     ? "Saving..."
@@ -1364,7 +1364,7 @@ export default function ContactsCreative() {
           }}
         >
           <div
-            className="w-full max-w-2xl overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-2xl"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="contact-view-title"
@@ -1396,8 +1396,8 @@ export default function ContactsCreative() {
             </div>
 
             <div className="max-h-[min(70vh,640px)] space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
-              <div className="flex items-center gap-4 rounded-2xl border border-sky-100/80 bg-gradient-to-br from-sky-50 to-slate-50 p-5">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-sky-100 text-2xl font-black text-sky-800">
+              <div className="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-2xl font-black text-indigo-800">
                   {get_initials(view_contact.name ?? "")}
                 </div>
 
@@ -1490,7 +1490,7 @@ export default function ContactsCreative() {
 
                   handle_edit_contact(c);
                 }}
-                className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:from-indigo-700 hover:to-violet-700"
+                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition"
               >
                 Edit
               </button>

@@ -161,7 +161,7 @@ function formatCurrency(
 
 const SERVICE_CARD_ICONS = [
   { Icon: Stethoscope, wrap: "bg-sky-50 text-sky-600" },
-  { Icon: Sparkles, wrap: "bg-violet-50 text-violet-600" },
+  { Icon: Sparkles, wrap: "bg-indigo-50 text-indigo-600" },
   { Icon: HeartPulse, wrap: "bg-orange-50 text-orange-600" },
   { Icon: Smile, wrap: "bg-indigo-50 text-indigo-600" },
   { Icon: Boxes, wrap: "bg-emerald-50 text-emerald-600" },
@@ -947,7 +947,7 @@ export default function ServicesPage() {
                 type="button"
                 onClick={openAddServiceDrawer}
                 disabled={departmentsForList.length === 0}
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-violet-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Plus className="h-4 w-4" />
                 Add Service
@@ -960,7 +960,7 @@ export default function ServicesPage() {
         {/* Stats row */}
         <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-3">
           <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
               <Building2 className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -1053,7 +1053,7 @@ export default function ServicesPage() {
                   className={classNames(
                     "shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition",
                     selectedDepartmentId === null
-                      ? "border-violet-500 bg-violet-50 text-violet-700"
+                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   )}
                 >
@@ -1069,7 +1069,7 @@ export default function ServicesPage() {
                       className={classNames(
                         "shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition",
                         active
-                          ? "border-violet-500 bg-violet-50 text-violet-700"
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       )}
                     >
@@ -1094,7 +1094,7 @@ export default function ServicesPage() {
                       className={classNames(
                         "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition",
                         selectedOverflowDepartment
-                          ? "border-violet-500 bg-violet-50 text-violet-700"
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       )}
                     >
@@ -1142,7 +1142,7 @@ export default function ServicesPage() {
                                   className={classNames(
                                     "flex w-full items-center rounded-lg px-2.5 py-2 text-left text-sm transition",
                                     active
-                                      ? "bg-violet-50 font-medium text-violet-800"
+                                      ? "bg-indigo-50 font-medium text-indigo-800"
                                       : "text-slate-700 hover:bg-slate-50"
                                   )}
                                 >
@@ -1307,7 +1307,7 @@ export default function ServicesPage() {
                               </span>
                             </td>
                             {showRowActions ? (
-                              <td className="text-sm px-4 py-3.5" data-label="Action">
+                              <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Action">
                                 <div className="relative flex items-center max-[1301px]:justify-end gap-1.5">
                                   <button
                                     type="button"
@@ -1366,7 +1366,7 @@ export default function ServicesPage() {
               </table>
             </div>
 
-            <div className="border-t border-slate-200 px-4 py-3">
+            <div className="mt-3">
               {isPageLoading ? (
                 <ServicePaginationSkeleton />
               ) : (
@@ -1425,8 +1425,8 @@ export default function ServicesPage() {
                     <div key={service.id} className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_24px_-18px_rgba(15,23,42,0.35)]">
                       <div className={classNames( "flex w-full items-start gap-3 text-left", showRowActions ? "cursor-pointer" :  "cursor-default" )}>
                         <div className={classNames( "flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl", wrap )}>
-                          {/* <Icon className="h-5 w-5" aria-hidden /> */}
-                          <span className={classNames( "text-sm sm:text-md font-bold", wrap )}>{service.name.charAt(0).toUpperCase()}</span>
+                          <Icon className="h-5 w-5" aria-hidden />
+                          {/* <span className={classNames( "text-sm sm:text-md font-bold", wrap )}>{service.name.charAt(0).toUpperCase()}</span> */}
                         </div>
 
                         <div className="w-full flex justify-between">
@@ -1567,7 +1567,7 @@ export default function ServicesPage() {
                 })
               )}
 
-              <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
+              <div className="relative">
                 {isPageLoading ? (
                   <ServicePaginationSkeleton />
                 ) : (

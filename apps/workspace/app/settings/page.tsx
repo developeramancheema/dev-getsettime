@@ -886,7 +886,7 @@ export default function SettingsPage() {
   };
 
   const link_field_class = (hasError: boolean) =>
-    `relative flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100 sm:flex-row ${
+    `relative flex min-w-0 overflow-hidden rounded-2xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100 flex-row ${
       hasError
         ? "border-red-400 focus-within:border-red-500"
         : "border-slate-200 focus-within:border-indigo-400"

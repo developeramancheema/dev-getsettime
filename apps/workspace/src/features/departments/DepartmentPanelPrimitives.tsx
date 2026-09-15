@@ -27,7 +27,7 @@ export function PanelSection({
   return (
     <section className={isLast ? "p-4" : "border-b border-slate-200 p-4"}>
       <div className="mb-4 flex items-center gap-2.5">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
           {number}
         </span>
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>

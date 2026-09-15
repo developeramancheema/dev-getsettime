@@ -561,10 +561,10 @@ export default function ProfileCreative({ }) {
             </Link>
         </header>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid xl:grid-cols-3 gap-6">
             {/* Left Column - Profile Image & Preview */}
-            <div className="lg:col-span-1 space-y-6">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
+                <div className="col-span-6 sm:col-span-1 xl:col-span-6 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Workspace
                   </p>
@@ -598,47 +598,50 @@ export default function ProfileCreative({ }) {
                     Change workspace logo →
                   </Link>
                 </div>
+
                 {/* Profile Image Card */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                    <div className="text-center">
-                    <div className="relative inline-block mb-4">
-                        <div className={`w-32 h-32 rounded-full ${ selectedImagePreview || profileImage ? "bg-gray-100" : "bg-gradient-to-br  from-blue-500 to-purple-600" } grid place-items-center text-4xl font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden`} onClick={() => fileInputRef.current?.click()}>
-                        {selectedImagePreview || profileImage ? (
-                            <img src={selectedImagePreview || profileImage || ""} alt="Profile" className="w-full h-full object-cover"/>
-                        ) : (
-                            <span>{getInitials(form.name)}</span>
+                <div className="col-span-6 sm:col-span-1 xl:col-span-6 basis-1/2 bg-white rounded-2xl shadow-xl p-4 border border-gray-100">
+                    <div className="flex items-center gap-4 text-center">
+                      <div className="relative inline-block">
+                          <div className={`w-22 h-22 rounded-full ${ selectedImagePreview || profileImage ? "bg-gray-100" : "bg-gradient-to-br  from-indigo-500 to-purple-600" } grid place-items-center text-4xl font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden`} onClick={() => fileInputRef.current?.click()}>
+                          {selectedImagePreview || profileImage ? (
+                              <img src={selectedImagePreview || profileImage || ""} alt="Profile" className="w-full h-full object-cover"/>
+                          ) : (
+                              <span>{getInitials(form.name)}</span>
+                          )}
+                          </div>
+                          {isUploading && (
+                          <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
+                              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                              </svg>
+                          </div>
+                          )}
+                          {/* <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-lg hover:bg-indigo-700 transition cursor-pointer">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          </svg>
+                          </div> */}
+                      </div>
+                      <div>
+                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden"/>
+                        <button onClick={() => fileInputRef.current?.click()} className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-indigo-600 transition  font-medium">
+                            Change Photo
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF, or WebP. Max size 5MB</p>
+                        {selectedImageFile && (
+                          <p className="text-xs text-amber-600 mt-2">
+                            New image selected. Click Save Changes to upload.
+                          </p>
                         )}
-                        </div>
-                        {isUploading && (
-                        <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
-                            <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                            </svg>
-                        </div>
-                        )}
-                        {/* <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-lg hover:bg-indigo-700 transition cursor-pointer">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        </div> */}
-                    </div>
-                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden"/>
-                    <button onClick={() => fileInputRef.current?.click()} className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-indigo-600 transition  font-medium">
-                        Change Photo
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF, or WebP. Max size 5MB</p>
-                    {selectedImageFile && (
-                      <p className="text-xs text-amber-600 mt-2">
-                        New image selected. Click Save Changes to upload.
-                      </p>
-                    )}
+                      </div>
                     </div>
                 </div>
 
                 {/* Profile Preview Card */}
-                <div className="bg-gradient-to-br from-indigo-600 to-emerald-300 rounded-2xl shadow-xl p-6 text-white">
+                <div className="col-span-6 sm:col-span-3 xl:col-span-6 bg-indigo-600 rounded-2xl shadow-xl p-4 sm:p-6 text-white">
                     <h3 className="font-semibold mb-4 text-lg">Profile Preview</h3>
                     <div className="space-y-3">
                         <div>
@@ -686,108 +689,109 @@ export default function ProfileCreative({ }) {
                             </p>
                         </div>
                     </div>
-
                 </div>
             </div>
 
             {/* Right Column - Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="xl:col-span-2 space-y-6">
                 {/* Basic Information Card */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 border border-gray-100">
                     <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">Basic Information</h2>
 
                     <div className="space-y-5">
-                        {/* Name Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
+                        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {/* Name Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={form.name}
+                                        onChange={(e) => update_form({ name: e.target.value })}
+                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="John Doe"
+                                    />
                                 </div>
+                            </div>
+
+                            {/* Email Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="email"
+                                        value={form.email}
+                                        onChange={(e) => update_form({ email: e.target.value })}
+                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="john@example.com"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Phone Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                        </svg>
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        value={form.phone}
+                                        onChange={(e) => update_form({ phone: e.target.value })}
+                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        placeholder="+1 (555) 000-0000"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Study/Education Field */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Study/Education</label>
+                              <input
+                                type="text"
+                                value={form.education}
+                                onChange={(e) => update_form({ education: e.target.value })}
+                                className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                placeholder="e.g. MBBS, Stanford University"
+                              />
+                            </div>
+
+                            {/* Experience Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
                                 <input
-                                    type="text"
-                                    value={form.name}
-                                    onChange={(e) => update_form({ name: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                    placeholder="John Doe"
+                                  type="text"
+                                  value={form.experience}
+                                  onChange={(e) => update_form({ experience: e.target.value })}
+                                  className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                  placeholder="e.g. 10+ years in cardiology"
                                 />
                             </div>
-                        </div>
 
-                        {/* Email Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                                    </svg>
-                                </div>
+                            {/* Specialty Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
                                 <input
-                                    type="email"
-                                    value={form.email}
-                                    onChange={(e) => update_form({ email: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                    placeholder="john@example.com"
+                                  type="text"
+                                  value={form.specialty}
+                                  onChange={(e) => update_form({ specialty: e.target.value })}
+                                  className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                  placeholder="e.g. Cardiology, Dermatology"
                                 />
                             </div>
-                        </div>
-
-                        {/* Phone Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                    </svg>
-                                </div>
-                                <input
-                                    type="tel"
-                                    value={form.phone}
-                                    onChange={(e) => update_form({ phone: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                    placeholder="+1 (555) 000-0000"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Study/Education Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Study/Education</label>
-                            <input
-                              type="text"
-                              value={form.education}
-                              onChange={(e) => update_form({ education: e.target.value })}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                              placeholder="e.g. MBBS, Stanford University"
-                            />
-                        </div>
-
-                        {/* Experience Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-                            <input
-                              type="text"
-                              value={form.experience}
-                              onChange={(e) => update_form({ experience: e.target.value })}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                              placeholder="e.g. 10+ years in cardiology"
-                            />
-                        </div>
-
-                        {/* Specialty Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
-                            <input
-                              type="text"
-                              value={form.specialty}
-                              onChange={(e) => update_form({ specialty: e.target.value })}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                              placeholder="e.g. Cardiology, Dermatology"
-                            />
                         </div>
 
                         {/* Bio Field */}
@@ -797,14 +801,15 @@ export default function ProfileCreative({ }) {
                             value={form.bio}
                             onChange={(e) => update_form({ bio: e.target.value })}
                             rows={4}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                            className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
                             placeholder="Tell us about yourself..."
                             />
                         </div>
-
-                        <div>
+                        
+                        {/* Department */}
+                        <div className="p-4 rounded-2xl border border-gray-100">
                             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                              <label className="text-sm font-medium text-gray-700">Departments</label>
+                              <label className="text-sm font-semibold text-gray-700">Departments</label>
                               <Link
                                 href="/departments"
                                 className="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline-offset-2 hover:underline"
@@ -817,7 +822,7 @@ export default function ProfileCreative({ }) {
                                 {selectedDepartments.map((department) => (
                                   <span
                                     key={department.id}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border-2 border-indigo-500 bg-indigo-100 text-indigo-800"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border-1 border-indigo-500 bg-indigo-100 text-indigo-800"
                                   >
                                     {department.name}
                                     <button
@@ -828,7 +833,7 @@ export default function ProfileCreative({ }) {
                                       aria-label={`Remove ${department.name}`}
                                     >
                                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
                                       </svg>
                                     </button>
                                   </span>
@@ -845,7 +850,7 @@ export default function ProfileCreative({ }) {
                                     type="button"
                                     onClick={() => void add_department(department.id)}
                                     disabled={syncingAssignments || isSaving}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border border-dashed border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
                                     {department.name}
                                     <span className="text-slate-400" aria-hidden>
@@ -862,10 +867,11 @@ export default function ProfileCreative({ }) {
                               </div>
                             )}
                         </div>
-
-                        <div>
+                        
+                        {/* Services */}
+                        <div className="p-4 rounded-2xl border border-gray-100">
                             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                              <label className="text-sm font-medium text-gray-700">Services</label>
+                              <label className="text-sm font-semibold text-gray-700">Services</label>
                               <Link
                                 href="/services"
                                 className="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline-offset-2 hover:underline"
@@ -878,7 +884,7 @@ export default function ProfileCreative({ }) {
                                 {selectedServices.map((service) => (
                                   <span
                                     key={service.id}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border-2 border-emerald-500 bg-emerald-100 text-emerald-800"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border-1 border-emerald-500 bg-emerald-100 text-emerald-800"
                                   >
                                     {service.name}
                                     <button
@@ -889,7 +895,7 @@ export default function ProfileCreative({ }) {
                                       aria-label={`Remove ${service.name}`}
                                     >
                                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
                                       </svg>
                                     </button>
                                   </span>
@@ -945,14 +951,14 @@ export default function ProfileCreative({ }) {
                     <button
                       onClick={handleSaveChanges}
                       disabled={isSaving || syncingAssignments}
-                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-2 self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 md:self-auto"
                     >
                       {isSaving ? "Saving..." : syncingAssignments ? "Syncing..." : "Save Changes"}
                     </button>
                     <button
                       onClick={handleCancel}
                       disabled={isSaving || syncingAssignments}
-                      className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex h-11 min-w-[7rem] items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
                     >
                       Cancel
                     </button>

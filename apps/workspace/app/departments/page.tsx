@@ -985,7 +985,7 @@ export default function DepartmentsPage() {
               <button
                 type="button"
                 onClick={openAddDepartmentDrawer}
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-violet-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 <Plus className="h-4 w-4" />
                 Add Department
@@ -1431,7 +1431,7 @@ export default function DepartmentsPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/80">
+                      <tr className="border border-slate-200 bg-slate-50/80">
                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                           Department
                         </th>
@@ -1486,7 +1486,7 @@ export default function DepartmentsPage() {
                             return (
                               <tr
                                 key={dep.id}
-                                className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
+                                className="border border-slate-100 last:border-b-0 hover:bg-slate-50/60"
                               >
                                 <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Department">
                                   <div className="flex max-[1301px]:justify-end gap-2.5">
@@ -1657,7 +1657,7 @@ export default function DepartmentsPage() {
               </ScreenGate>
 
 
-              <div className="border-t border-slate-200 px-4 py-3">
+              <div className="mt-3">
                 {isPageLoading ? (
                   <DepartmentPaginationSkeleton />
                 ) : (
@@ -1852,7 +1852,7 @@ export default function DepartmentsPage() {
                                       selectedEditDoctors.map((doctor) => (
                                         <span
                                           key={doctor.id}
-                                          className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                                          className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
                                           onClick={(e) => e.stopPropagation()}
                                           onMouseDown={(e) =>
                                             e.stopPropagation()
@@ -1878,7 +1878,7 @@ export default function DepartmentsPage() {
                                                 toggleEditDoctor(doctor.id);
                                               }
                                             }}
-                                            className="rounded-full p-0.5 hover:bg-violet-100"
+                                            className="rounded-full p-0.5 hover:bg-indigo-100"
                                             aria-label={`Remove ${doctor.name}`}
                                           >
                                             <X className="h-3 w-3" />
@@ -1913,7 +1913,7 @@ export default function DepartmentsPage() {
                                             className={classNames(
                                               "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                                               checked
-                                                ? "border-violet-600 bg-violet-600 text-white"
+                                                ? "border-indigo-600 bg-indigo-600 text-white"
                                                 : "border-slate-300"
                                             )}
                                           >
@@ -1973,7 +1973,7 @@ export default function DepartmentsPage() {
                                     selectedEditServices.map((service) => (
                                       <span
                                         key={service.id}
-                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
                                         onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(e) => e.stopPropagation()}
                                       >
@@ -2028,7 +2028,7 @@ export default function DepartmentsPage() {
                                           className={classNames(
                                             "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                                             checked
-                                              ? "border-violet-600 bg-violet-600 text-white"
+                                              ? "border-indigo-600 bg-indigo-600 text-white"
                                               : "border-slate-300"
                                           )}
                                         >
@@ -2048,8 +2048,8 @@ export default function DepartmentsPage() {
                           )}
                         </div>
 
-                        <div className="flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50 px-3 py-2.5 text-xs text-violet-800">
-                          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <div className="flex items-start gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-indigo-600">
+                          <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
                           <p>
                             Services are not automatically assigned to all
                             department consultants. Consultants are assigned to specific
@@ -2078,7 +2078,7 @@ export default function DepartmentsPage() {
                               )
                             }
                             aria-label="Visibility"
-                            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-violet-400"
+                            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
                           >
                             {VISIBILITY_OPTIONS.map((option) => (
                               <option key={option.value} value={option.value}>
@@ -2113,7 +2113,7 @@ export default function DepartmentsPage() {
                       type="button"
                       onClick={() => void handleSaveEditedDepartment()}
                       disabled={busyAction || !editDepartmentName.trim()}
-                      className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {busyAction ? "Saving…" : "Save Department"}
                     </button>

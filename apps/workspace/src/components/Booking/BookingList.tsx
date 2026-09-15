@@ -593,7 +593,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       <section className="mx-auto space-y-5">
         {/* Hero header card */}
         <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.18)] backdrop-blur">
-          <div className="flex flex-col gap-5 border-b border-slate-100 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-7">
+          <div className="flex flex-wrap gap-5 border-b border-slate-100 px-5 py-5 flex-row md:items-center md:justify-between md:px-7">
             <div>
               <ScreenGate minWidth={1024}>
               <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
@@ -606,10 +606,10 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
               <p className="mt-1 text-sm text-slate-500">View, manage, and track all scheduled appointments in one place.</p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-wrap gap-3 flex-row sm:items-center">
               <Link
                 href="/emergency-booking"
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
+                className="inline-flex w-fit cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -642,6 +642,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
               </ScreenGate>
             </div>
           </div>
+
           <ScreenGate minWidth={1024}>
           {/* Stats */}
           <div className="grid grid-cols-1 gap-4 px-5 py-5 grid-cols-4 lg:grid-cols-2 md:px-7 xl:grid-cols-4">

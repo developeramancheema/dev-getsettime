@@ -1547,9 +1547,7 @@ export default function EventTypes() {
                             </td>
                             <td className="text-sm px-4 py-4 border-b border-slate-100" data-label="Event Type">
                               <div className="flex items-center max-[1301px]:justify-end gap-3">
-                                <div
-                                  className={cn(
-                                    "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                                <div className={cn( "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
                                     get_card_gradient(item.id)
                                   )}
                                 >
@@ -1668,7 +1666,7 @@ export default function EventTypes() {
         aria-label="Close panel"
         onClick={handlePanelClose}
         className={cn(
-          "fixed top-16 left-0 bottom-0 z-30 hidden w-[50vw] bg-black/50 transition-opacity duration-300 ease-in-out md:block",
+          "fixed top-16 left-0 bottom-0 z-50 hidden w-[50vw] bg-black/50 transition-opacity duration-300 ease-in-out md:block",
           panel_animated_open
             ? "opacity-100"
             : "pointer-events-none opacity-0"
@@ -1679,7 +1677,7 @@ export default function EventTypes() {
 
       <aside
         className={cn(
-          "asd fixed top-16 right-0 bottom-0 z-40 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
+          "fixed top-16 right-0 bottom-0 z-50 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
           "w-full max-md:w-full lg:!w-[60vw]",
           "transform transition-transform duration-300 ease-in-out will-change-transform",
           panel_animated_open

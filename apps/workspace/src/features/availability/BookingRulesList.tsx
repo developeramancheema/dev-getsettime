@@ -287,32 +287,24 @@ export function BookingRulesList({
                               {row.title}
                             </h3>
                           </div>
+                          
+                          {/* desktop */}
                           <ScreenGate minWidth={640}>
-                          {/* mobile */}
-                          <div>
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}>
-                              {format_duration_minutes(row.duration_minutes ?? 0)}
-                            </span>
+                            <div>
+                              <div className="text-right">
+                                <p className="mt-1 text-[11px] text-slate-400">Before / After</p>
+                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}>
+                                  {before} / {after} min
+                                </span>
+                              </div>
 
-                            <div className="text-right">
-                              <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}
-                              >
-                                {before} / {after} min
+                              <span className="text-sm font-medium text-slate-700">
+                                {format_duration_minutes(
+                                  row.min_booking_notice_minutes
+                                )}
                               </span>
 
-                              <p className="mt-1 text-[11px] text-slate-400">
-                                Before / After
-                              </p>
                             </div>
-
-                            <span className="text-sm font-medium text-slate-700">
-                              {format_duration_minutes(
-                                row.min_booking_notice_minutes
-                              )}
-                            </span>
-
-                          </div>
                           </ScreenGate>
 
                           <span
@@ -322,54 +314,31 @@ export function BookingRulesList({
                           </span>
                         </div>
                         
+                        {/* Mobile */}
                         <ScreenGate maxWidth={639}>
-                        {/* Details */}
-                        <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                          {/* Duration */}
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-xs font-medium text-slate-500">
-                              Duration
-                            </span>
+                          <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                            {/* Buffer */}
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-xs font-medium text-slate-500">Before / After</span>
 
-                            <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}
-                            >
-                              {format_duration_minutes(row.duration_minutes ?? 0)}
-                            </span>
-                          </div>
+                              <div className="text-right">
+                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}>
+                                  {before} / {after} min
+                                </span>
+                              </div>
+                            </div>
 
-                          {/* Buffer */}
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-xs font-medium text-slate-500">
-                              Buffer
-                            </span>
+                            {/* Minimum Notice */}
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-xs font-medium text-slate-500">Minimum Notice</span>
 
-                            <div className="text-right">
-                              <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}
-                              >
-                                {before} / {after} min
+                              <span className="text-sm font-medium text-slate-700">
+                                {format_duration_minutes(
+                                  row.min_booking_notice_minutes
+                                )}
                               </span>
-
-                              <p className="mt-1 text-[11px] text-slate-400">
-                                Before / After
-                              </p>
                             </div>
                           </div>
-
-                          {/* Minimum Notice */}
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-xs font-medium text-slate-500">
-                              Minimum Notice
-                            </span>
-
-                            <span className="text-sm font-medium text-slate-700">
-                              {format_duration_minutes(
-                                row.min_booking_notice_minutes
-                              )}
-                            </span>
-                          </div>
-                        </div>
                         </ScreenGate>
 
                         {/* Action */}

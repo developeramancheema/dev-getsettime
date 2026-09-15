@@ -331,9 +331,9 @@ export function ProviderCreateModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
@@ -527,9 +527,9 @@ export function StaffInviteModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
@@ -775,9 +775,9 @@ export function EditTeamMemberModal({
   const primaryRoleOptions = getEditablePrimaryRoleOptions(editingMember);
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
@@ -1095,9 +1095,9 @@ export function ManageRoleModal({
   const primaryRoleOptions = getEditablePrimaryRoleOptions(member);
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
