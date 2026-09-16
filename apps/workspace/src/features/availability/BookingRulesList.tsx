@@ -5,6 +5,7 @@ import {
   LuBell as Bell,
   LuCalendar as Calendar,
   LuChevronRight as ChevronRight,
+  LuSquarePen as SquarePen,
   LuCircleX as CircleX,
   LuClock as Clock,
   LuGrid2X2 as Grid,
@@ -79,10 +80,10 @@ function RuleCategoryCard({
         <button
           type="button"
           onClick={onEdit}
-          className="w-fit ml-auto inline-flex shrink-0 items-center justify-center gap-1.5 self-stretch rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 sm:self-center"
+          className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
         >
+          <SquarePen className="h-4 w-4" />
           Edit
-          <ChevronRight className="h-4 w-4 text-slate-400" />
         </button>
       ) : null}
     </div>
@@ -97,7 +98,7 @@ function SummaryChip({
   label: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 border border-indigo-200">
       {icon}
       {label}
     </span>
@@ -358,10 +359,10 @@ export function BookingRulesList({
                                     row.min_booking_notice_minutes,
                                 })
                               }
-                              className="inline-flex w-fit ml-auto items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
                             >
+                              <SquarePen className="h-4 w-4" />
                               Edit
-                              <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                             </button>
                           ) : (
                             <div className="text-center text-xs text-slate-400">
@@ -380,13 +381,13 @@ export function BookingRulesList({
             {/* Desktop view */}
             <ScreenGate minWidth={1024}>
               <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3 sm:px-5">Event Type</th>
-                    <th className="px-4 py-3 sm:px-5">Duration</th>
-                    <th className="px-4 py-3 sm:px-5">Buffer (Before / After)</th>
-                    <th className="px-4 py-3 sm:px-5">Minimum Notice</th>
-                    <th className="px-4 py-3 text-right sm:px-5">Action</th>
+                <thead className="bg-slate-100 text-xs font-semibold tracking-wide text-slate-500">
+                  <tr className="text-left text-sm text-slate-900">
+                    <th className="px-6 py-4 font-semibold">Event Type</th>
+                    <th className="px-6 py-4 font-semibold">Duration</th>
+                    <th className="px-6 py-4 font-semibold">Buffer (Before / After)</th>
+                    <th className="px-6 py-4 font-semibold">Minimum Notice</th>
+                    <th className="px-6 py-4 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
@@ -417,28 +418,28 @@ export function BookingRulesList({
                       const before = row.buffer_before ?? 0;
                       const after = row.buffer_after ?? 0;
                       return (
-                        <tr key={row.id} className="hover:bg-slate-50/70">
-                          <td className="px-4 py-3.5 font-semibold text-slate-900 sm:px-5 border-b border-slate-100" data-label="Event Type">
+                        <tr key={row.id} className="transition-colors hover:bg-slate-50">
+                          <td className="px-6 py-4 font-semibold text-slate-900 sm:px-5 border-b border-slate-100" data-label="Event Type">
                             {row.title}
                           </td>
-                          <td className="px-4 py-3.5 sm:px-5 border-b border-slate-100" data-label="Duration">
+                          <td className="px-6 py-4 sm:px-5 border-b border-slate-100" data-label="Duration">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}
                             >
                               {format_duration_minutes(row.duration_minutes ?? 0)}
                             </span>
                           </td>
-                          <td className="px-4 py-3.5 sm:px-5 border-b border-slate-100" data-label="Buffer (Before / After)">
+                          <td className="px-6 py-4 sm:px-5 border-b border-slate-100" data-label="Buffer (Before / After)">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}
                             >
                               {before} / {after} min
                             </span>
                           </td>
-                          <td className="px-4 py-3.5 text-slate-700 sm:px-5 border-b border-slate-100" data-label="Minimum Notice">
+                          <td className="px-6 py-4 text-slate-700 sm:px-5 border-b border-slate-100" data-label="Minimum Notice">
                             {format_duration_minutes(row.min_booking_notice_minutes)}
                           </td>
-                          <td className="px-4 py-3.5 text-right sm:px-5 border-b border-slate-100" data-label="Action">
+                          <td className="px-6 py-4 text-right sm:px-5 border-b border-slate-100" data-label="Action">
                             {!readOnly ? (
                               <button
                                 type="button"
@@ -454,10 +455,10 @@ export function BookingRulesList({
                                       row.min_booking_notice_minutes,
                                   })
                                 }
-                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
                               >
+                                <SquarePen className="h-4 w-4" />
                                 Edit
-                                <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                               </button>
                             ) : (
                               <span className="text-xs text-slate-400">View only</span>

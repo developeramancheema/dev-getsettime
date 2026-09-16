@@ -14,21 +14,21 @@ type StatusBadge = {
 function badge_for_status(status: string | null | undefined): StatusBadge {
   const raw = String(status ?? "").toLowerCase();
   if (raw === "confirmed") {
-    return { label: "Confirmed", className: "bg-emerald-50 text-emerald-700" };
+    return { label: "Confirmed", className: "bg-emerald-50 text-emerald-700 border-emerald-200" };
   }
   if (raw === "reschedule") {
-    return { label: "Rescheduled", className: "bg-red-50 text-red-700" };
+    return { label: "Rescheduled", className: "bg-red-50 text-red-700 border-red-200" };
   }
   if (raw === "cancelled") {
-    return { label: "Cancelled", className: "bg-rose-50 text-rose-700" };
+    return { label: "Cancelled", className: "bg-red-50 text-red-700 border-red-200" };
   }
   if (raw === "completed") {
-    return { label: "Completed", className: "bg-slate-100 text-slate-600" };
+    return { label: "Completed", className: "bg-slate-100 text-slate-600 border-slate-200" };
   }
   if (raw === "no-show") {
-    return { label: "No-show", className: "bg-rose-50 text-rose-700" };
+    return { label: "No-show", className: "bg-red-50 text-red-700 border-red-200" };
   }
-  return { label: "Pending", className: "bg-amber-50 text-amber-700" };
+  return { label: "Pending", className: "bg-amber-50 text-amber-700 border-amber-200" };
 }
 
 function is_same_local_day(a: Date, b: Date): boolean {
@@ -163,7 +163,7 @@ export default function UpcomingAppointmentsList({
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${badge.className}`}
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold border ${badge.className}`}
                 >
                   {badge.label}
                 </span>

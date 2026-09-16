@@ -211,17 +211,13 @@ export default function Topbar() {
         
 
         <div className="flex items-center space-x-2">
-          <Link href="/billings" className="hidden sm:flex text-sm text-gray-500 hover:text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
-            <span className="text-sm font-medium">Current Plan: {currentBillingPlan}</span>
+          <Link href="/billings" className="hidden sm:flex text-emerald-600 px-4 py-2 rounded-lg text-sm border bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200">
+          Current Plan:<span className="font-medium">{currentBillingPlan}</span>
           </Link>
           {!loadingSettings && workspaceProfessionLabel ? (
             <div className="hidden sm:flex items-center max-w-[11rem] md:max-w-[16rem] shrink-0 px-2">
-              <div
-                className="text-sm truncate rounded-lg border-2 border-indigo-700/80 px-3 py-1.5 shadow-sm"
-                style={{ backgroundColor: "var(--color-indigo-600)" }}
-                title={workspaceProfessionLabel}
-              >
-                <span className="text-white/90 font-normal mr-1.5">Profession</span>
+              <div className="text-sm truncate rounded-lg px-4 py-2 shadow-sm bg-indigo-600 hover:bg-indigo-700" title={workspaceProfessionLabel}>
+                <span className="text-white/90 mr-1.5">Profession:</span>
                 <span className="font-bold text-white">{workspaceProfessionLabel}</span>
               </div>
             </div>

@@ -335,14 +335,14 @@ export function AddExceptionPanel({
                           className={classNames(
                             "rounded-xl border p-3 text-left transition",
                             selected
-                              ? "border-violet-500 bg-violet-50 ring-1 ring-violet-400"
+                              ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
                               : "border-slate-200 bg-white hover:border-slate-300"
                           )}
                         >
                           <Clock
                             className={classNames(
                               "mb-2 h-4 w-4",
-                              selected ? "text-violet-600" : "text-slate-400"
+                              selected ? "text-indigo-600" : "text-slate-400"
                             )}
                           />
                           <p className="text-xs font-semibold text-slate-900">
@@ -406,7 +406,7 @@ export function AddExceptionPanel({
                       onClick={() => setRepeatYearly((v) => !v)}
                       className={classNames(
                         "relative h-6 w-11 shrink-0 rounded-full transition",
-                        repeatYearly ? "bg-violet-600" : "bg-slate-300"
+                        repeatYearly ? "bg-indigo-600" : "bg-slate-300"
                       )}
                     >
                       <span
@@ -442,7 +442,7 @@ export function AddExceptionPanel({
                       <button
                         type="button"
                         onClick={() => applyPreset("holiday")}
-                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-violet-300 hover:bg-violet-50/50"
+                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-indigo-300 hover:bg-indigo-50/50"
                       >
                         <Calendar className="mb-2 h-4 w-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-900">
@@ -453,7 +453,7 @@ export function AddExceptionPanel({
                       <button
                         type="button"
                         onClick={() => applyPreset("team")}
-                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-violet-300 hover:bg-violet-50/50"
+                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-indigo-300 hover:bg-indigo-50/50"
                       >
                         <Users className="mb-2 h-4 w-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-900">
@@ -464,7 +464,7 @@ export function AddExceptionPanel({
                       <button
                         type="button"
                         onClick={() => applyPreset("special")}
-                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-violet-300 hover:bg-violet-50/50"
+                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-indigo-300 hover:bg-indigo-50/50"
                       >
                         <Clock className="mb-2 h-4 w-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-900">
@@ -491,7 +491,7 @@ export function AddExceptionPanel({
                   type="button"
                   onClick={() => void handleSave()}
                   disabled={busyAction}
-                  className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {busyAction ? "Saving…" : "Save Exception"}
                 </button>

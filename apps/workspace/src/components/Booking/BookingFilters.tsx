@@ -137,7 +137,7 @@ export function BookingFilters({
       </div>
       </ScreenGate>
 
-      <div className="grid grid-cols-1 gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:lg:grid-cols-5">
         <div className="min-w-0">
           <ScreenGate minWidth={1024}>
             <label htmlFor="status-filter" className="mb-1.5 block text-xs font-medium text-slate-500">Status</label>
@@ -294,7 +294,7 @@ export function BookingFilters({
       </div>
       <ScreenGate minWidth={1024}>
       <div className="mt-3">
-        <span className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-sm font-medium text-violet-700">
+        <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
           Results: {resultCount}
         </span>
       </div>

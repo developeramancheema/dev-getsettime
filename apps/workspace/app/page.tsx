@@ -283,7 +283,7 @@ const Dashboard: React.FC = () => {
             <button
               type="button"
               onClick={open_create_booking}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
               <DashboardIcon name="plus" size={17} className="text-indigo-600" />
               <span className="hidden lg:block">Create Booking</span>
@@ -295,7 +295,7 @@ const Dashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => set_show_upgrade_modal(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 <DashboardIcon name="trend" size={17} />
                 Upgrade Plan

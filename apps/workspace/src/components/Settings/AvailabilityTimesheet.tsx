@@ -4,6 +4,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
 import {
   LuClock as Clock,
   LuPencil as Pencil,
+  LuSquarePen as SquarePen,
   LuPlus as Plus,
   LuTrash2 as Trash2,
   LuX as X,
@@ -1373,14 +1374,14 @@ const AvailabilityTimesheet = forwardRef<
             {/* Desktop view */}
             <ScreenGate minWidth={1024}>
               <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Day</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold">Working Hours</th>
-                    <th className="px-4 py-3 font-semibold">Breaks</th>
+                <thead className="bg-slate-100 text-xs font-semibold tracking-wide text-slate-500">
+                  <tr className="text-left text-sm text-slate-900">
+                    <th className="px-6 py-4 font-semibold">Day</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold">Working Hours</th>
+                    <th className="px-6 py-4 font-semibold">Breaks</th>
                     {!readOnly ? (
-                      <th className="px-4 py-3 font-semibold text-right">Action</th>
+                      <th className="px-6 py-4 font-semibold text-right">Action</th>
                     ) : null}
                   </tr>
                 </thead>
@@ -1393,10 +1394,10 @@ const AvailabilityTimesheet = forwardRef<
                         key={day}
                         className={classNames(
                           "transition-colors",
-                          isEditing ? "bg-indigo-50/40" : "hover:bg-slate-50/80"
+                          isEditing ? "bg-indigo-50/40" : "hover:bg-slate-50"
                         )}
                       >
-                        <td className="px-4 py-3.5" data-label="Day">
+                        <td className="px-6 py-4" data-label="Day">
                           {readOnly ? (
                             <span className="text-sm font-semibold text-slate-900">
                               {DAY_NAMES[day]}
@@ -1411,7 +1412,7 @@ const AvailabilityTimesheet = forwardRef<
                             </button>
                           )}
                         </td>
-                        <td className="px-4 py-3.5" data-label="Status">
+                        <td className="px-6 py-4" data-label="Status">
                           <span
                             className={classNames(
                               "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
@@ -1423,18 +1424,18 @@ const AvailabilityTimesheet = forwardRef<
                             {schedule.enabled ? "On" : "Off"}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-slate-700" data-label="Working Hours">
+                        <td className="px-6 py-4" data-label="Working Hours">
                           {schedule.enabled
                             ? `${formatTimeForDisplayInZones(schedule.startTime, sourceTimezone, displayTimezone)} – ${formatTimeForDisplayInZones(schedule.endTime, sourceTimezone, displayTimezone)}`
                             : "—"}
                         </td>
-                        <td className="px-4 py-3.5" data-label="Breaks">
+                        <td className="px-6 py-4" data-label="Breaks">
                           {schedule.enabled && schedule.breaks.length > 0 ? (
                             <div className="flex items-center max-[1301px]:justify-end gap-2.5">
                               {schedule.breaks.map((b) => (
                                 <span
                                   key={b.id}
-                                  className="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
+                                  className="inline-flex rounded-md bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600"
                                 >
                                   {formatBreakRangeInZones(
                                     b.start,
@@ -1480,13 +1481,13 @@ const AvailabilityTimesheet = forwardRef<
                           )}
                         </td>
                         {!readOnly ? (
-                          <td className="px-4 py-3.5 text-right" data-label="Action">
+                          <td className="px-6 py-4 text-right" data-label="Action">
                             <button
                               type="button"
                               onClick={() => openDayPanel(day)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
                             >
-                              <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                              <SquarePen className="h-4 w-4" />
                               Edit
                             </button>
                           </td>

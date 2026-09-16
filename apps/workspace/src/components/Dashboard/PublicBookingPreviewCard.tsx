@@ -157,22 +157,25 @@ export function PublicBookingPreviewCard() {
             </span>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={open_create_booking}
-          className="mt-4 w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700"
-        >
-          Book Appointment
-        </button>
-        <button
-          type="button"
-          onClick={open_public_page}
-          disabled={!booking_url}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <DashboardIcon name="externalLink" size={16} />
-          Open booking page
-        </button>
+
+        <div className="mt-4 flex align-center justify-between w-full">
+          <button
+            type="button"
+            onClick={open_create_booking}
+            className="w-fit rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white cursor-pointer transition hover:bg-indigo-700"
+          >
+            Book Appointment
+          </button>
+          <button
+            type="button"
+            onClick={open_public_page}
+            disabled={!booking_url}
+            className="flex w-fit items-center gap-1.5 text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <DashboardIcon name="externalLink" size={16} />
+            Open booking page
+          </button>
+        </div>
       </div>
     </div>
   );

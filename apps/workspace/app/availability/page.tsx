@@ -1169,7 +1169,7 @@ export default function Availability() {
             id="availability-service-provider"
             value={selectedProviderId}
             onChange={(e) => setSelectedProviderId(e.target.value)}
-            className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-9 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+            className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-9 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
           >
             <option value="">General Availability</option>
             {serviceProviders.map((provider) => (
@@ -1190,7 +1190,7 @@ export default function Availability() {
     bookingRulesPanelOpen;
 
   const outlineActionBtn =
-    "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50";
+    "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <section className={`mr-auto space-y-6 transition-[margin] duration-300 ease-in-out`}>
@@ -1212,10 +1212,10 @@ export default function Availability() {
         />
       </header>
 
-      <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         {renderServiceProviderFilter()}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex gap-3 flex-row flex-wrap items-center">
           <div className="flex flex-wrap items-center gap-2">
             {!isStaffUser ? (
               <>
@@ -1253,24 +1253,25 @@ export default function Availability() {
                 </button>
               </>
             ) : null}
+            
+            {activeTab === "general" && !isStaffUser ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("general");
+                  void timesheetRef.current?.saveChanges();
+                }}
+                disabled={settingsLoading || timesheetBusy}
+                className="inline-flex items-center w-fit rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {timesheetBusy ? "Saving..." : "Save changes"}
+              </button>
+            ) : null}
           </div>
-          {activeTab === "general" && !isStaffUser ? (
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("general");
-                void timesheetRef.current?.saveChanges();
-              }}
-              disabled={settingsLoading || timesheetBusy}
-              className="inline-flex items-center w-fit rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {timesheetBusy ? "Saving..." : "Save changes"}
-            </button>
-          ) : null}
         </div>
       </div>
 
-      <div className="space-y-5">
+      <div className="bg-white p-4 rounded-2xl space-y-5">
         {renderTabNav()}
 
         <div className={activeTab === "general" ? "space-y-4" : "hidden"}>

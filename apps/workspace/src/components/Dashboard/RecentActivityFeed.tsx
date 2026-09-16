@@ -143,7 +143,7 @@ export default function RecentActivityFeed() {
             })}
           </div>
 
-          <div className="pt-3 text-center">
+          {/* <div className="pt-3 text-center">
             <Link
               href="/notifications/all"
               className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
@@ -151,7 +151,7 @@ export default function RecentActivityFeed() {
               View all activity
               <DashboardIcon name="arrow" size={16} />
             </Link>
-          </div>
+          </div> */}
         </>
       )}
     </div>

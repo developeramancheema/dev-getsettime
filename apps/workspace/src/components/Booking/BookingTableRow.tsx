@@ -91,7 +91,7 @@ export function BookingTableRow({
       tabIndex={0}
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
-      className={`cursor-pointer transition hover:bg-slate-50/70 border border-slate-100 last:border-b-0 ${
+      className={`cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0 ${
         selected ? 'bg-indigo-50/50' : ''
       } ${isLast ? '' : 'border-b border-slate-100'}`}
       aria-label={`View booking for ${displayBooking.name}`}
@@ -174,7 +174,7 @@ export function BookingTableRow({
       </td>
 
       <td
-        className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle"
+        className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100"
         data-label="Action"
         onClick={(e) => e.stopPropagation()}
       >

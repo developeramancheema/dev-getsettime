@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   LuFilter as Filter,
   LuPencil as Pencil,
+  LuSquarePen as SquarePen,
   LuSearch as Search,
   LuTrash2 as Trash2,
   LuUsers as Users,
@@ -53,17 +54,17 @@ function DateBadge({ dateStr }: { dateStr: string }) {
   const weekday = format(date, "EEEE");
 
   return (
-    <div className="flex items-center gap-3">
-      <ScreenGate minWidth={1024}>
+    <div className="flex items-center max-[1301px]:justify-end gap-3">
+      
       <div className="flex h-11 w-10 shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-center shadow-sm">
-        <span className="bg-slate-100 px-1 py-0.5 text-[10px] font-bold tracking-wide text-slate-500">
+        <span className="bg-indigo-600 px-1 py-0.5 text-[10px] font-bold tracking-wide text-white">
           {month}
         </span>
         <span className="flex flex-1 items-center justify-center text-sm font-bold text-slate-800">
           {day}
         </span>
       </div>
-      </ScreenGate>
+      
 
       <div>
         <p className="text-sm font-semibold text-slate-500 lg:text-slate-900">{full}</p>
@@ -114,8 +115,8 @@ export function DateExceptionsTable({
   }, [openMenuId]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-start sm:justify-between">
+    <div className="relative">
+      <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
             Exceptions &amp; Holidays
@@ -167,7 +168,7 @@ export function DateExceptionsTable({
           ) : null}
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 min-[1301px]:p-0">
           
           {/* Mobile view */}
           <ScreenGate maxWidth={1023}>
@@ -249,8 +250,8 @@ export function DateExceptionsTable({
                           <span
                             className={
                               ex.exception_category === "holiday"
-                                ? "shrink-0 inline-flex rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
-                                : "shrink-0 inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700"
+                                ? "inline-flex px-3 py-1 text-xs font-medium capitalize rounded-full border bg-red-50 text-red-700 border-red-200 w-fit"
+                                : "inline-flex px-3 py-1 text-xs font-medium capitalize rounded-full border bg-orange-50 text-orange-700 border-orange-200 w-fit"
                             }
                           >
                             {ex.exception_category === "holiday" ? "Holiday" : "Custom"}
@@ -358,26 +359,26 @@ export function DateExceptionsTable({
           
           {/* Desktop view */}
           <ScreenGate minWidth={1024}>
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+              <thead className="bg-slate-100 text-xs font-semibold tracking-wide text-slate-500">
+                <tr className="text-left text-sm text-slate-900">
+                  <th className="px-6 py-4 font-semibold tracking-wide text-slate-900">
                     Date
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 font-semibold tracking-wide text-slate-900">
                     Exception Name
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 font-semibold tracking-wide text-slate-900">
                     Type
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 font-semibold tracking-wide text-slate-900">
                     Applies To
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-4 font-semibold tracking-wide text-slate-900">
                     Availability
                   </th>
                   {!readOnly ? (
-                    <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-6 py-4 text-right font-semibold tracking-wide text-slate-900">
                       Action
                     </th>
                   ) : null}
@@ -410,8 +411,8 @@ export function DateExceptionsTable({
                         <span
                           className={
                             ex.exception_category === "holiday"
-                              ? "inline-flex rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
-                              : "inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700"
+                              ? "inline-flex px-3 py-1 text-xs font-medium capitalize rounded-full border bg-red-50 text-red-700 border-red-200 w-fit"
+                              : "inline-flex px-3 py-1 text-xs font-medium capitalize rounded-full border bg-orange-50 text-orange-700 border-orange-200 w-fit"
                           }
                         >
                           {ex.exception_category === "holiday" ? "Holiday" : "Custom"}
@@ -419,18 +420,18 @@ export function DateExceptionsTable({
                       </td>
                       <td className="whitespace-nowrap px-5 py-4" data-label="Applies To">
                         <span className="inline-flex items-center gap-1.5 text-sm text-slate-700">
-                          <Users className="h-3.5 w-3.5 text-slate-400" />
+                          <Users className="h-3.5 w-3.5 text-slate-600" />
                           {appliesLabel}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-5 py-4" data-label="Availability">
                         {ex.availability_type === "closed" ? (
-                          <span className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+                          <span className="inline-flex px-3 py-1 text-xs font-medium capitalize rounded-full border bg-red-50 text-red-700 border-red-200 w-fit">
                             Closed
                           </span>
                         ) : ex.availability_type === "unavailable" ? (
                           <div>
-                            <span className="inline-flex rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+                            <span className="inline-flex px-3 py-1 text-xs font-medium capitalize rounded-full border bg-orange-50 text-orange-700 border-orange-200 w-fit">
                               Unavailable
                             </span>
                             {timeRange ? (
@@ -454,9 +455,9 @@ export function DateExceptionsTable({
                             <button
                               type="button"
                               onClick={() => onEdit(ex)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
                             >
-                              <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                              <SquarePen className="h-4 w-4" />
                               Edit
                             </button>
                             <PortalActionsMenu
@@ -493,7 +494,7 @@ export function DateExceptionsTable({
       )}
 
       {!loading && total > 0 ? (
-        <div className="border-t border-slate-200 px-5 py-3 text-sm text-slate-500">
+        <div className="px-5 py-3 text-sm text-slate-500">
           Showing 1 to {total} of {total} exceptions
         </div>
       ) : null}

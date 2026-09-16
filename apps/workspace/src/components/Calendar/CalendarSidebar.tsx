@@ -93,43 +93,43 @@ export function CalendarSidebar({
       key: "total",
       label: "Total Appointments",
       value: summary.total,
-      className: "bg-slate-50 text-slate-900",
+      className: "bg-slate-50 text-slate-700 border-slate-200",
     },
     {
       key: "confirmed",
       label: "Confirmed",
       value: summary.confirmed,
-      className: "bg-indigo-50 text-indigo-700",
+      className: "bg-indigo-50 text-indigo-600 border-indigo-200",
     },
     {
       key: "completed",
       label: "Completed",
       value: summary.completed,
-      className: "bg-emerald-50 text-emerald-700",
+      className: "bg-emerald-50 text-emerald-600 border-emerald-200",
     },
     {
       key: "pending",
       label: "Pending",
       value: summary.pending,
-      className: "bg-amber-50 text-amber-700",
+      className: "bg-amber-50 text-amber-600 border-amber-200",
     },
     {
       key: "cancelled",
       label: "Cancelled",
       value: summary.cancelled,
-      className: "bg-rose-50 text-rose-700",
+      className: "bg-red-50 text-red-600 border-red-200",
     },
     {
       key: "reschedule",
       label: "Reschedule",
       value: summary.reschedule,
-      className: "bg-indigo-50 text-indigo-700",
+      className: "bg-indigo-50 text-indigo-600 border-indigo-200",
     },
     {
       key: "noShow",
       label: "No Show",
       value: summary.noShow,
-      className: "bg-violet-50 text-violet-700",
+      className: "bg-violet-50 text-violet-600 border-violet-200",
     },
   ] as const;
 
@@ -236,11 +236,11 @@ export function CalendarSidebar({
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-xl font-semibold text-slate-900">{summaryTitle}</h3>
-            <ChartColumn className="h-4 w-4 text-slate-400" aria-hidden />
+            <ChartColumn className="h-5 w-5 text-indigo-600" aria-hidden />
           </div>
           <div className="grid grid-cols-2 gap-2">
             {summaryCards.map((card) => (
-              <div key={card.key} className={`rounded-lg p-3 ${card.className}`}>
+              <div key={card.key} className={`rounded-lg border p-3 ${card.className}`}>
                 <p className="text-2xl font-bold">{card.value}</p>
                 <p className="text-xs font-medium text-slate-600">{card.label}</p>
               </div>
@@ -280,15 +280,15 @@ export function CalendarSidebar({
                 booking.service_provider_name?.trim() ||
                 createdByDisplayLabel(booking);
               const agendaItemClassName =
-                "flex w-full items-start gap-2.5 rounded-lg px-1 py-2.5 text-left transition hover:bg-slate-50";
+                "flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left transition bg-slate-50 border border-slate-200";
               const agendaContent = (
                 <>
                   <span
                     className={cn(
-                      "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+                      "mt-0.5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
                       relative === "today"
                         ? "bg-indigo-100 text-indigo-600"
-                        : "bg-slate-100 text-slate-500",
+                        : "bg-slate-200 text-slate-700",
                     )}
                     aria-hidden
                   >
