@@ -985,7 +985,7 @@ export default function DepartmentsPage() {
               <button
                 type="button"
                 onClick={openAddDepartmentDrawer}
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 <Plus className="h-4 w-4" />
                 Add Department
@@ -994,76 +994,76 @@ export default function DepartmentsPage() {
           </div>
 
           <ScreenGate minWidth={768}> 
-          <div className={classNames( "grid gap-3 sm:grid-cols-4", showFullDoctorFlow ? "xl:grid-cols-4" : "xl:grid-cols-3" )}>
-            <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-slate-900">
-                  {isPageLoading ? (
-                    <StatValueSkeleton />
-                  ) : (
-                    activeDepartmentsCount
-                  )}
-                </p>
-                <p className="text-sm text-slate-500">active departments</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <Boxes className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-slate-900">
-                  {isPageLoading ? <StatValueSkeleton /> : totalServicesCount}
-                </p>
-                <p className="text-sm text-slate-500">linked services</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
-                <Users className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-slate-900">
-                  {isPageLoading ? (
-                    <StatValueSkeleton />
-                  ) : showFullDoctorFlow ? (
-                    assignedDoctorsCount
-                  ) : (
-                    doctors.length
-                  )}
-                </p>
-                <p className="text-sm text-slate-500">
-                  {showFullDoctorFlow ? "assigned consultants" : "consultants"}
-                </p>
-              </div>
-            </div>
-
-            {showFullDoctorFlow && (
+            <div className={classNames( "grid gap-3 sm:grid-cols-4", showFullDoctorFlow ? "xl:grid-cols-4" : "xl:grid-cols-3" )}>
               <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                  <Lock className="h-5 w-5" />
+                <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Building2 className="h-4 w-4 md:h-5 md:w-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xl font-bold text-slate-900">
+                  <p className="text-sm font-medium leading-snug text-slate-500">Active departments</p>
+                  <p className="text-2xl font-bold text-slate-900">
                     {isPageLoading ? (
                       <StatValueSkeleton />
                     ) : (
-                      privateDepartmentsCount + draftDepartmentsCount
+                      activeDepartmentsCount
                     )}
                   </p>
-                  <p className="text-sm text-slate-500">private / draft</p>
                 </div>
               </div>
-            )}
-          </div>
+
+              <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                  <Boxes className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-snug text-slate-500">Linked services</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {isPageLoading ? <StatValueSkeleton /> : totalServicesCount}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <Users className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-snug text-slate-500">
+                    {showFullDoctorFlow ? "Assigned consultants" : "Consultants"}
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {isPageLoading ? (
+                      <StatValueSkeleton />
+                    ) : showFullDoctorFlow ? (
+                      assignedDoctorsCount
+                    ) : (
+                      doctors.length
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {showFullDoctorFlow && (
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                    <Lock className="h-4 w-4 md:h-5 md:w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-snug text-slate-500">private / draft</p>
+                    <p className="text-2xl font-bold text-slate-900">
+                      {isPageLoading ? (
+                        <StatValueSkeleton />
+                      ) : (
+                        privateDepartmentsCount + draftDepartmentsCount
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </ScreenGate>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-4">
               <DepartmentFilters
                 leading={
@@ -1071,7 +1071,7 @@ export default function DepartmentsPage() {
                     <h2 className="text-lg font-semibold text-slate-900">
                       All Departments
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="text-sm text-slate-500">
                       {showFullDoctorFlow
                         ? "Organize clinical departments and manage services and consultant assignments."
                         : isLoggedInServiceProvider
@@ -1096,7 +1096,7 @@ export default function DepartmentsPage() {
               />
             </div>
 
-            <div className="overflow-hidden rounded-xl">
+            <div className="rounded-xl">
               
               {/* Mobile View */}
               <ScreenGate maxWidth={1023}> 
@@ -1143,118 +1143,119 @@ export default function DepartmentsPage() {
                           return (
                             <div key={dep.id} className="group">
                               <div className="relative flex w-full items-start md:items-center justify-between rounded-xl border border-slate-200  px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-sm">
-                                <div className="flex items-start sm:items-center gap-3 pr-4">
-                                  {/* Icon */}
-                                  <div
-                                    className={classNames(
-                                      "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm",
-                                      get_department_gradient(dep)
-                                    )}
-                                  >
-                                    <FaUserDoctor className="h-5 w-5" />
-                                  </div>
+                                <div className="flex items-start flex-col sm:items-center gap-3 pr-4">
+                                  <div className="flex gap-2">
+                                    {/* Icon */}
+                                    <div
+                                      className={classNames(
+                                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm",
+                                        get_department_gradient(dep)
+                                      )}
+                                    >
+                                      <FaUserDoctor className="h-5 w-5" />
+                                    </div>
 
-                                  {/* Content */}
-                                  <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-slate-900">
-                                      {dep.name}
-                                    </p>
-
-                                    {dep.description ? (
-                                      <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
-                                        {dep.description}
+                                    {/* Content */}
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-slate-900">
+                                        {dep.name}
                                       </p>
-                                    ) : (
-                                      // <p className="mt-0.5 text-xs text-slate-400">
-                                      //   {doctorCount} consultant
-                                      //   {doctorCount !== 1 ? "s" : ""}
-                                      // </p>
-                                      <div className="flex shrink-0 flex-col justify-center">
-                                        {services.length === 0 ? (
-                                          <p className="mt-0.5 text-xs text-slate-400">
-                                            No services
-                                          </p>
-                                        ) : (
-                                          <p className="mt-0.5 text-sm text-slate-400">
-                                            {services.length} service
-                                            {services.length !== 1 ? "s" : ""}
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
 
-                                    <ScreenGate maxWidth={639}>
-                                      {/* Assigned mobile */}
-                                      <div className="flex shrink-0 items-center gap-3">
-                                        {assigned.length === 0 ? (
-                                          <span className="text-xs text-slate-400">
-                                            Unassigned
-                                          </span>
-                                        ) : (
-                                          <>
-                                            <div className="flex shrink-0 items-center">
-                                              {assigned.slice(0, 3).map((doctor, index) => (
-                                                <div
-                                                  key={doctor.id}
-                                                  className={classNames(
-                                                    "relative rounded-full ring-2 ring-white",
-                                                    index > 0 && "-ml-2"
-                                                  )}
-                                                  style={{
-                                                    zIndex: assigned.length - index,
-                                                  }}
-                                                >
-                                                  <ProviderAvatar
-                                                    name={doctor.name}
-                                                    initials={provider_initials(doctor.name)}
-                                                    avatarUrl={providerAvatarById.get(doctor.id)}
-                                                    size="sm"
-                                                  />
-                                                </div>
-                                              ))}
-
-                                              {assigned.length > 3 && (
-                                                <span
-                                                  className="
-                                                    relative -ml-2
-                                                    flex h-7 w-7
-                                                    items-center justify-center
-                                                    rounded-full
-                                                    bg-slate-100
-                                                    text-[10px] font-semibold
-                                                    text-slate-600
-                                                    ring-2 ring-white
-                                                  "
-                                                >
-                                                  +{assigned.length - 3}
-                                                </span>
-                                              )}
-                                            </div>
-
-                                            <div className="min-w-0">
-                                              <p className="truncate text-xs font-medium text-slate-700">
-                                                {assigned[0]?.name}
-                                              </p>
-
-                                              {assigned.length > 1 && (
-                                                <p className="text-[11px] text-slate-400">
-                                                  +{assigned.length - 1} more
-                                                </p>
-                                              )}
-                                            </div>
-                                          </>
-                                        )}
-                                      </div>
-                                    </ScreenGate>
-
+                                      {dep.description ? (
+                                        <p className="mt-0.5 line-clamp-1 text-sm text-slate-500">
+                                          {dep.description}
+                                        </p>
+                                      ) : (
+                                        // <p className="mt-0.5 text-xs text-slate-400">
+                                        //   {doctorCount} consultant
+                                        //   {doctorCount !== 1 ? "s" : ""}
+                                        // </p>
+                                        <div className="flex shrink-0 flex-col justify-center">
+                                          {services.length === 0 ? (
+                                            <p className="mt-0.5 text-sm text-slate-400">
+                                              No services
+                                            </p>
+                                          ) : (
+                                            <p className="mt-0.5 text-sm text-slate-400">
+                                              {services.length} service
+                                              {services.length !== 1 ? "s" : ""}
+                                            </p>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
+
+                                  <ScreenGate maxWidth={639}>
+                                    {/* Assigned mobile */}
+                                    <div className="flex shrink-0 items-center gap-3">
+                                      {assigned.length === 0 ? (
+                                        <span className="text-sm text-slate-400">
+                                          Unassigned
+                                        </span>
+                                      ) : (
+                                        <>
+                                          <div className="flex shrink-0 items-center">
+                                            {assigned.slice(0, 3).map((doctor, index) => (
+                                              <div
+                                                key={doctor.id}
+                                                className={classNames(
+                                                  "relative rounded-full ring-2 ring-white",
+                                                  index > 0 && "-ml-2"
+                                                )}
+                                                style={{
+                                                  zIndex: assigned.length - index,
+                                                }}
+                                              >
+                                                <ProviderAvatar
+                                                  name={doctor.name}
+                                                  initials={provider_initials(doctor.name)}
+                                                  avatarUrl={providerAvatarById.get(doctor.id)}
+                                                  size="sm"
+                                                />
+                                              </div>
+                                            ))}
+
+                                            {assigned.length > 3 && (
+                                              <span
+                                                className="
+                                                  relative -ml-2
+                                                  flex h-7 w-7
+                                                  items-center justify-center
+                                                  rounded-full
+                                                  bg-slate-100
+                                                  text-sm font-semibold
+                                                  text-slate-600
+                                                  ring-2 ring-white
+                                                "
+                                              >
+                                                +{assigned.length - 3}
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium text-slate-700">
+                                              {assigned[0]?.name}
+                                            </p>
+
+                                            {assigned.length > 1 && (
+                                              <p className="text-sm text-slate-400">
+                                                +{assigned.length - 1} more
+                                              </p>
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </ScreenGate>
                                 </div>
                                 
                                 <ScreenGate minWidth={640}>
                                   {/* Assigned */}
                                   <div className="flex shrink-0 items-center gap-3 px-4">
                                     {assigned.length === 0 ? (
-                                      <span className="text-xs text-slate-400">
+                                      <span className="text-sm text-slate-400">
                                         Unassigned
                                       </span>
                                     ) : (
@@ -1288,7 +1289,7 @@ export default function DepartmentsPage() {
                                                 items-center justify-center
                                                 rounded-full
                                                 bg-slate-100
-                                                text-[10px] font-semibold
+                                                text-sm font-semibold
                                                 text-slate-600
                                                 ring-2 ring-white
                                               "
@@ -1304,7 +1305,7 @@ export default function DepartmentsPage() {
                                           </p>
 
                                           {assigned.length > 1 && (
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-sm text-slate-400">
                                               +{assigned.length - 1} more
                                             </p>
                                           )}
@@ -1321,7 +1322,7 @@ export default function DepartmentsPage() {
                                     <div className="">
                                       <span
                                         className={classNames(
-                                          "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium",
+                                          "inline-flex rounded-full px-3 py-1 text-xs font-medium",
                                           departmentStatusBadgeClass(dep.status)
                                         )}
                                       >
@@ -1330,27 +1331,6 @@ export default function DepartmentsPage() {
                                     </div>
 
                                     <div className="flex gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditDepartment(dep)}
-                                        className="
-                                          inline-flex h-8 items-center gap-1.5
-                                          rounded-lg
-                                          border border-blue-200
-                                          bg-indigo-50
-                                          px-2.5
-                                          text-xs font-medium text-indigo-700
-                                          transition
-                                          hover:bg-indigo-100
-                                        "
-                                      >
-                                        <Pencil className="h-3.5 w-3.5" />
-
-                                        <span className="max-[1100px]:hidden">
-                                          Edit
-                                        </span>
-                                      </button>
-
                                       <PortalActionsMenu
                                         open={rowMenuId === dep.id}
                                         onToggle={() =>
@@ -1359,6 +1339,24 @@ export default function DepartmentsPage() {
                                           )
                                         }
                                       >
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditDepartment(dep)}
+                                          className="
+                                            flex w-full items-center gap-2
+                                            rounded-lg px-3 py-2
+                                            text-sm text-indigo-600
+                                            hover:bg-indigo-50
+                                            disabled:opacity-60
+                                          "
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+
+                                          <span className="">
+                                            Edit
+                                          </span>
+                                        </button>
+
                                         <button
                                           type="button"
                                           role="menuitem"
@@ -1428,24 +1426,24 @@ export default function DepartmentsPage() {
               
               {/* Desktop View */}
               <ScreenGate minWidth={1024}> 
-                <div className="overflow-x-auto">
+                <div className="overflow-hidden overflow-x-auto">
                   <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border border-slate-200 bg-slate-50/80">
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <thead className="bg-slate-100">
+                      <tr className="text-left text-sm text-slate-900">
+                        <th className="px-6 py-4 font-semibold">
                           Department
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Department consultants
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Services
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Status
                         </th>
                         {showRowActions && (
-                          <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <th className="px-6 py-4 text-right font-semibold">
                             Action
                           </th>
                         )}
@@ -1486,9 +1484,9 @@ export default function DepartmentsPage() {
                             return (
                               <tr
                                 key={dep.id}
-                                className="border border-slate-100 last:border-b-0 hover:bg-slate-50/60"
+                                className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
                               >
-                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Department">
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Department">
                                   <div className="flex max-[1301px]:justify-end gap-2.5">
                                     <div
                                       className={classNames(
@@ -1503,11 +1501,11 @@ export default function DepartmentsPage() {
                                         {dep.name}
                                       </p>
                                       {dep.description ? (
-                                        <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                                        <p className="mt-0.5 line-clamp-1 text-sm text-slate-500">
                                           {dep.description}
                                         </p>
                                       ) : (
-                                        <p className="mt-0.5 text-xs text-slate-400">
+                                        <p className="mt-0.5 text-sm text-slate-400">
                                           {doctorCount} consultant
                                           {doctorCount !== 1 ? "s" : ""}
                                         </p>
@@ -1516,7 +1514,7 @@ export default function DepartmentsPage() {
                                   </div>
                                 </td>
 
-                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Provider">
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Provider">
                                   {assigned.length === 0 ? (
                                     <span className="text-sm text-slate-400">
                                       Unassigned
@@ -1542,7 +1540,7 @@ export default function DepartmentsPage() {
                                           </div>
                                         ))}
                                         {assigned.length > 3 && (
-                                          <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
+                                          <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600 ring-2 ring-white">
                                             +{assigned.length - 3}
                                           </span>
                                         )}
@@ -1552,7 +1550,7 @@ export default function DepartmentsPage() {
                                         {assigned.length > 1 ? (
                                           <>
                                             <br />
-                                            <span className="text-xs text-slate-500">
+                                            <span className="text-slate-500">
                                               +{assigned.length - 1} more
                                             </span>
                                           </>
@@ -1562,7 +1560,7 @@ export default function DepartmentsPage() {
                                   )}
                                 </td>
 
-                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Services">
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Services">
                                   {services.length === 0 ? (
                                     <span className="text-sm text-slate-400">
                                       No services
@@ -1575,7 +1573,7 @@ export default function DepartmentsPage() {
                                   )}
                                 </td>
 
-                                <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Status">
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
                                   <span
                                     className={classNames(
                                       "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
@@ -1587,16 +1585,8 @@ export default function DepartmentsPage() {
                                 </td>
 
                                 {showRowActions && (
-                                  <td className="text-sm px-4 py-3.5 border-b border-slate-100" data-label="Action">
-                                    <div className="relative flex items-center max-[1301px]:justify-end gap-2.5">
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditDepartment(dep)}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-2.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
-                                      >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        Edit
-                                      </button>
+                                  <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
+                                    <div className="flex items-center justify-end gap-2">
                                       <PortalActionsMenu
                                         open={rowMenuId === dep.id}
                                         onToggle={() =>
@@ -1605,6 +1595,14 @@ export default function DepartmentsPage() {
                                           )
                                         }
                                       >
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditDepartment(dep)}
+                                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 disabled:opacity-60"
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+                                          Edit
+                                        </button>
                                         <button
                                           type="button"
                                           role="menuitem"

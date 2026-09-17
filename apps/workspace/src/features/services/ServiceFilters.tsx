@@ -34,7 +34,7 @@ type ServiceFiltersProps = {
 };
 
 const select_class =
-  "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-200";
+  "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200";
 
 export function ServiceFilters({
   leading = null,
@@ -78,7 +78,7 @@ export function ServiceFilters({
               value={search}
               onChange={(e) => on_search_change(e.target.value)}
               placeholder="Search services..."
-              className="box-border h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-200"
+              className="box-border h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-200"
               aria-label="Search services"
               autoComplete="off"
             />
@@ -231,7 +231,7 @@ export function ServiceFilters({
           </div>
 
           <div className="mt-3">
-            <span className="inline-flex items-center rounded-full border border-violet-100 bg-violet-50 px-3 py-1 text-sm font-medium text-violet-700">
+            <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
               Results: {result_count}
             </span>
           </div>

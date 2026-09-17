@@ -13,6 +13,7 @@ import {
   getServiceProviderName,
 } from "@/src/utils/booking";
 import { useServiceProviders } from "@/src/hooks/useBookingLookups";
+import ScreenGate from "@/src/components/ScreenGate";
 
 export type event_type_list_item = {
   id: number;
@@ -99,7 +100,7 @@ export function EventTypeListMobileCards({
 
   return (
     <>
-    <div className="space-y-3 p-4">
+    <div className="space-y-3 ">
         {items.map((item) => {
           const status = get_status(item.status);
           const status_label = get_status_label(status);
@@ -115,27 +116,60 @@ export function EventTypeListMobileCards({
               onClick={() => on_row_click(item)}
               className="w-full space-y-2 rounded-2xl border border-slate-200 bg-white px-2 py-3 text-left shadow-sm transition active:bg-slate-50"
             >
-              <div className="flex items-start gap-3">
-
-                  <div
-                    className={cn(
-                      "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
-                      format_icon_wrap_class(format, status)
-                    )}
-                  >
-                    <FormatIcon format={format} />
+              <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex gap-2">
+                      <div
+                        className={cn(
+                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                          format_icon_wrap_class(format, status)
+                        )}
+                      >
+                        <FormatIcon format={format} />
+                      </div>
+                      <div>
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {item.title}
+                        </p>
+                        <p className="mt-0.5 flex flex-wrap items-center gap-1 text-sm text-slate-600">
+                          <span className="flex items-center gap-1">
+                            <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            {duration_label}
+                          </span>
+                        </p>
+                      </div>
+                    </div> 
+                    <ScreenGate maxWidth={575}>
+                      <div className="flex flex-row gap-1">
+                        <div className="flex">
+                          <span className="text-xs text-indigo-600 bg-indigo-100 px-1.5 py-1 rounded-md">
+                            {format_short_label(format)}
+                          </span>
+                        </div>
+                        <p>
+                          <span className="flex items-center gap-2 text-sm text-slate-700">
+                          <ProviderAvatar
+                            name={provider_label === "—" ? "Provider" : provider_label}
+                            initials={provider_initials(
+                              provider_label === "—" ? "?" : provider_label
+                            )}
+                            avatarUrl={provider_avatar}
+                            size="sm"
+                          />
+                            <span className="truncate">{provider_label}</span>
+                          </span>
+                        </p>
+                      </div>
+                    </ScreenGate>                
                   </div>
-
-                  <div className="flex-1 space-y-1">
-                    <p className="truncate text-sm font-semibold text-slate-900">
-                      {item.title}
-                    </p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <svg className="h-3 w-3 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                        {duration_label}
+                  
+                  <ScreenGate minWidth={576}>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex">
+                      <span className="text-xs text-indigo-600 bg-indigo-100 px-1.5 py-1 rounded-md">
+                        {format_short_label(format)}
                       </span>
-                    </p>
+                    </div>
                     <p>
                       <span className="flex items-center gap-2 text-sm text-slate-700">
                       <ProviderAvatar
@@ -150,52 +184,49 @@ export function EventTypeListMobileCards({
                       </span>
                     </p>
                   </div>
+                  </ScreenGate>
 
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold",
-                      status === "active"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-amber-50 text-amber-700"
-                    )}
-                  >
-                    {status_label}
-                  </span>
+                  <div>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold",
+                        status === "active"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700"
+                      )}
+                    >
+                      {status_label}
+                    </span>
 
-                  {/* <div className="flex items-center justify-end">
-                    <EventTypeActionsMenu
-                      open={open_menu_id === item.id}
-                      copy_disabled={loadingSlug || !item.slug}
-                      copy_copied={copiedId === item.id}
-                      on_toggle={() =>
-                        set_open_menu_id((prev) =>
-                          prev === item.id ? null : item.id
-                        )
-                      }
-                      on_copy_link={() => {
-                        //void handle_copy_link_from_menu(item);
-                      }}
-                      on_duplicate={() => {
-                        //void handleDuplicate(item);
-                        set_open_menu_id(null);
-                      }}
-                      on_delete={() => {
-                        //handleDeleteClick(item.id);
-                        set_open_menu_id(null);
-                      }}
-                      on_edit={() => {
-                        //handleEdit(item);
-                        set_open_menu_id(null);
-                      }}
-                    />
-                  </div> */}
+                    {/* <div className="flex items-center justify-end">
+                      <EventTypeActionsMenu
+                        open={open_menu_id === item.id}
+                        copy_disabled={loadingSlug || !item.slug}
+                        copy_copied={copiedId === item.id}
+                        on_toggle={() =>
+                          set_open_menu_id((prev) =>
+                            prev === item.id ? null : item.id
+                          )
+                        }
+                        on_copy_link={() => {
+                          //void handle_copy_link_from_menu(item);
+                        }}
+                        on_duplicate={() => {
+                          //void handleDuplicate(item);
+                          set_open_menu_id(null);
+                        }}
+                        on_delete={() => {
+                          //handleDeleteClick(item.id);
+                          set_open_menu_id(null);
+                        }}
+                        on_edit={() => {
+                          //handleEdit(item);
+                          set_open_menu_id(null);
+                        }}
+                      />
+                    </div> */}
+                  </div>
 
-              </div>
-
-              <div className="flex">
-                <span className="text-xs text-indigo-600 bg-indigo-100 px-1.5 py-1 rounded-md">
-                  {format_short_label(format)}
-                </span>
               </div>
             </div>
           );

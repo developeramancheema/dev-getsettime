@@ -51,19 +51,19 @@ const STAT_CARDS: readonly StatCardConfig[] = [
     label: "No-shows",
     icon: "user",
     hint: "All-time workspace total",
-    icon_bg: "bg-rose-50",
-    icon_color: "text-rose-600",
+    icon_bg: "bg-red-50",
+    icon_color: "text-red-600",
   },
 ];
 
 function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
   if (!trend) {
-    return <p className="mt-1.5 text-xs font-medium text-slate-400">{hint}</p>;
+    return <p className="mt-1.5 text-sm font-medium text-slate-600">{hint}</p>;
   }
   const is_up = trend.direction === "up";
   return (
-    <p className="mt-1.5 flex flex-wrap items-center gap-1 text-xs">
-      <span className={`inline-flex items-center gap-0.5 ${ is_up ? "text-emerald-600" : "text-rose-500" }`}>
+    <p className="mt-1.5 flex flex-wrap items-center gap-1 text-sm">
+      <span className={`inline-flex items-center font-medium gap-0.5 ${ is_up ? "text-emerald-700" : "text-red-600" }`}>
         <svg
           className="h-3.5 w-3.5"
           viewBox="0 0 24 24"
@@ -88,7 +88,7 @@ function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
         </svg>
         {trend.percent}%
       </span>
-      <span className="text-slate-400">vs yesterday</span>
+      <span className="text-slate-600">vs yesterday</span>
     </p>
   );
 }
@@ -139,7 +139,7 @@ export default function DashboardStatCards({
               <DashboardIcon name={stat.icon} size={20} />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-slate-500">{labels[index]}</p>
+              <p className="truncate text-sm font-semibold text-slate-600">{labels[index]}</p>
               <h3 className="text-2xl xl:text-3xl font-bold leading-tight tracking-tight text-slate-900">{values[index]}</h3>
             </div>
           </div>

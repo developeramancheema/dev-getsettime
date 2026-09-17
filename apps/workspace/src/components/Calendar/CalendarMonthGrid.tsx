@@ -43,7 +43,7 @@ export function CalendarMonthGrid({
         {WEEK_DAYS.map((day) => (
           <div
             key={day}
-            className="px-2 py-3 text-center text-xs font-semibold text-slate-500"
+            className="px-2 py-3 text-center text-sm font-semibold text-slate-900"
           >
             {day}
           </div>

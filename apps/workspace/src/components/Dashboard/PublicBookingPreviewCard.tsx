@@ -147,7 +147,7 @@ export function PublicBookingPreviewCard() {
             <p className="text-sm text-slate-500">{duration_label}</p>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-600">
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-sm font-semibold text-slate-600">
           {preview_slots.map((slot) => (
             <span
               key={slot}

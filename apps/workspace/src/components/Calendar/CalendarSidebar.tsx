@@ -242,7 +242,7 @@ export function CalendarSidebar({
             {summaryCards.map((card) => (
               <div key={card.key} className={`rounded-lg border p-3 ${card.className}`}>
                 <p className="text-2xl font-bold">{card.value}</p>
-                <p className="text-xs font-medium text-slate-600">{card.label}</p>
+                <p className="text-sm font-medium text-slate-600">{card.label}</p>
               </div>
             ))}
           </div>
@@ -255,7 +255,7 @@ export function CalendarSidebar({
             {viewMode === "day" ? "Today's Agenda" : "Upcoming Appointments"}
           </h3>
           {viewMode === "day" && (
-            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-slate-100 px-2 text-xs font-semibold text-slate-700">
+            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-slate-100 px-2 text-sm font-semibold text-slate-700">
               {dayBookings.length}
             </span>
           )}
@@ -285,7 +285,7 @@ export function CalendarSidebar({
                 <>
                   <span
                     className={cn(
-                      "mt-0.5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+                      "mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
                       relative === "today"
                         ? "bg-indigo-100 text-indigo-600"
                         : "bg-slate-200 text-slate-700",
@@ -293,9 +293,9 @@ export function CalendarSidebar({
                     aria-hidden
                   >
                     {relative === "today" ? (
-                      <Info className="h-3.5 w-3.5" />
+                      <Info className="h-4 w-4" />
                     ) : (
-                      <Clock3 className="h-3.5 w-3.5" />
+                      <Clock3 className="h-4 w-4" />
                     )}
                   </span>
 
@@ -314,7 +314,7 @@ export function CalendarSidebar({
                       <>
                         <p
                           className={cn(
-                            "text-xs font-semibold",
+                            "text-sm font-semibold",
                             relative === "today"
                               ? "text-indigo-600"
                               : "text-slate-500",

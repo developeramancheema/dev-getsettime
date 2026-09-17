@@ -199,7 +199,7 @@ export function TimezoneSelector({
         type="button"
         onClick={() => void handle_save()}
         disabled={is_saving || disabled}
-        className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {is_saving ? "Saving…" : "Save"}
       </button>
@@ -207,7 +207,7 @@ export function TimezoneSelector({
         type="button"
         onClick={handle_cancel}
         disabled={is_saving || disabled}
-        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
       >
         Cancel
       </button>
@@ -267,7 +267,7 @@ export function TimezoneSelector({
         >
           <Globe className="h-5 w-5 shrink-0 text-slate-600" />
           <span className="min-w-0">
-            <span className="block text-xs text-slate-500">Timezone</span>
+            <span className="block text-sm text-slate-500">Timezone</span>
             <span className="block truncate text-sm font-medium text-slate-800">
               {display_label}
             </span>
@@ -290,7 +290,7 @@ export function TimezoneSelector({
           disabled={disabled || is_saving || !is_interactive}
           aria-haspopup={is_interactive ? "listbox" : undefined}
           aria-expanded={open}
-          className="inline-flex h-8 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex h-8 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
         >
           <span className="text-slate-500">Time Zone:</span>
           <span className="max-w-[180px] truncate">{display_label}</span>

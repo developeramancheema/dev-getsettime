@@ -36,7 +36,7 @@ type WorkspaceOverviewCardProps = {
 function TrendCaption({ trend }: { trend: MetricTrend }) {
   const is_up = trend.direction === "up";
   return (
-    <p className="mt-0.5 flex items-center gap-1 text-xs font-medium">
+    <p className="mt-0.5 flex items-center gap-1 text-sm font-medium">
       <span
         className={`inline-flex items-center gap-0.5 font-bold ${
           is_up ? "text-emerald-600" : "text-rose-500"
@@ -103,7 +103,7 @@ function MetricTile({
         {trend ? (
           <TrendCaption trend={trend} />
         ) : (
-          <p className="mt-0.5 truncate text-xs font-medium text-slate-400">
+          <p className="mt-0.5 truncate text-sm font-medium text-slate-400">
             {secondary}
           </p>
         )}
@@ -221,7 +221,7 @@ export default function WorkspaceOverviewCard({
                   {integration.label}
                 </p>
                 <p
-                  className={`text-xs font-bold ${
+                  className={`text-sm font-bold ${
                     integration.active ? "text-emerald-600" : "text-slate-400"
                   }`}
                 >

@@ -233,7 +233,7 @@ export function DepartmentFilters({
           </div>
 
           <div className="mt-3">
-            <span className="inline-flex items-center rounded-full border border-violet-100 bg-violet-50 px-3 py-1 text-sm font-medium text-violet-700">
+            <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
               Results: {result_count}
             </span>
           </div>

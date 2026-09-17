@@ -328,7 +328,7 @@ export function LocationTypesMultiSelect({
         aria-describedby={invalid && error_id ? error_id : undefined}
         data-event-type-field={focus_key}
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between gap-2 rounded-2xl border bg-slate-50 px-4 py-3 text-left text-sm outline-none transition focus:bg-white ${
+        className={`flex w-full items-center justify-between gap-2 rounded-xl border bg-white px-4 py-3 text-left text-sm outline-none transition focus:bg-white ${
           invalid
             ? "border-red-400 focus:border-red-400"
             : "border-slate-200 focus:border-indigo-400"

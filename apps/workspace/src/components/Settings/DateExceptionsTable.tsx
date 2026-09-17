@@ -68,7 +68,7 @@ function DateBadge({ dateStr }: { dateStr: string }) {
 
       <div>
         <p className="text-sm font-semibold text-slate-500 lg:text-slate-900">{full}</p>
-        <p className="text-xs text-slate-500">{weekday}</p>
+        <p className="text-sm text-slate-500">{weekday}</p>
       </div>
     </div>
   );
@@ -168,11 +168,11 @@ export function DateExceptionsTable({
           ) : null}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 min-[1301px]:p-0">
+        <div className="overflow-hidden bg-white min-[1301px]:p-0">
           
           {/* Mobile view */}
           <ScreenGate maxWidth={1023}>
-            <div className="space-y-4 p-4">
+            <div className="space-y-4">
               {filtered.map((ex) => {
                 const appliesLabel = ex.provider_id
                   ? providerNameById.get(ex.provider_id) || "Provider"
@@ -194,7 +194,7 @@ export function DateExceptionsTable({
                           </p>
 
                           {ex.repeat_yearly ? (
-                            <p className="mt-0.5 text-xs text-slate-500">
+                            <p className="mt-0.5 text-sm text-slate-500">
                               Repeats yearly
                             </p>
                           ) : null}
@@ -223,7 +223,7 @@ export function DateExceptionsTable({
                               </span>
 
                               {timeRange ? (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                   {timeRange}
                                 </p>
                               ) : null}
@@ -235,7 +235,7 @@ export function DateExceptionsTable({
                               </span>
 
                               {timeRange ? (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                   {timeRange}
                                 </p>
                               ) : null}
@@ -271,9 +271,9 @@ export function DateExceptionsTable({
                                   <button
                                     type="button"
                                     onClick={() => onEdit(ex)}
-                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-indigo-700 transition hover:bg-indigo-50"
                                   >
-                                    <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                                    <SquarePen className="h-3.5 w-3.5" />
                                     Edit
                                   </button>
 
@@ -301,7 +301,7 @@ export function DateExceptionsTable({
                     <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
                       {/* Applies To */}
                       <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-medium text-slate-500">
+                        <span className="text-sm font-medium text-slate-500">
                           Applies To
                         </span>
 
@@ -313,7 +313,7 @@ export function DateExceptionsTable({
 
                       {/* Availability */}
                       <div className="flex items-start justify-between gap-4">
-                        <span className="pt-1 text-xs font-medium text-slate-500">
+                        <span className="pt-1 text-sm font-medium text-slate-500">
                           Availability
                         </span>
 
@@ -329,7 +329,7 @@ export function DateExceptionsTable({
                               </span>
 
                               {timeRange ? (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                   {timeRange}
                                 </p>
                               ) : null}
@@ -341,7 +341,7 @@ export function DateExceptionsTable({
                               </span>
 
                               {timeRange ? (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                   {timeRange}
                                 </p>
                               ) : null}
@@ -404,7 +404,7 @@ export function DateExceptionsTable({
                           {ex.name}
                         </p>
                         {ex.repeat_yearly ? (
-                          <p className="mt-0.5 text-xs text-slate-500">Repeats yearly</p>
+                          <p className="mt-0.5 text-sm text-slate-500">Repeats yearly</p>
                         ) : null}
                       </td>
                       <td className="whitespace-nowrap px-5 py-4" data-label="Type">
@@ -435,7 +435,7 @@ export function DateExceptionsTable({
                               Unavailable
                             </span>
                             {timeRange ? (
-                              <p className="mt-1 text-xs text-slate-500">{timeRange}</p>
+                              <p className="mt-1 text-sm text-slate-500">{timeRange}</p>
                             ) : null}
                           </div>
                         ) : (
@@ -444,7 +444,7 @@ export function DateExceptionsTable({
                               Available
                             </span>
                             {timeRange ? (
-                              <p className="mt-1 text-xs text-slate-500">{timeRange}</p>
+                              <p className="mt-1 text-sm text-slate-500">{timeRange}</p>
                             ) : null}
                           </div>
                         )}
@@ -452,14 +452,6 @@ export function DateExceptionsTable({
                       {!readOnly ? (
                         <td className="whitespace-nowrap px-5 py-4 text-right" data-label="Action">
                           <div className="relative inline-flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => onEdit(ex)}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
-                            >
-                              <SquarePen className="h-4 w-4" />
-                              Edit
-                            </button>
                             <PortalActionsMenu
                               open={openMenuId === ex.id}
                               estimatedHeight={44}
@@ -467,6 +459,14 @@ export function DateExceptionsTable({
                                 setOpenMenuId((id) => (id === ex.id ? null : ex.id))
                               }
                             >
+                              <button
+                                type="button"
+                                onClick={() => onEdit(ex)}
+                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
+                              >
+                              <SquarePen className="h-3.5 w-3.5" />
+                                Edit
+                              </button>
                               <button
                                 type="button"
                                 role="menuitem"

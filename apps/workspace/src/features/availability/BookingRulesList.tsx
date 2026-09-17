@@ -40,8 +40,8 @@ type BookingRulesListProps = {
 function RuleRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-medium text-slate-500">{label}</dt>
-      <dd className="mt-0.5 text-sm font-semibold text-slate-900">{value}</dd>
+      <dt className="text-sm font-medium text-slate-500">{label}</dt>
+      <dd className="text-sm font-semibold text-slate-900">{value}</dd>
     </div>
   );
 }
@@ -63,7 +63,7 @@ function RuleCategoryCard({
 }) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-5 sm:p-5">
-      <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+      <div className="flex min-w-0 flex-1 items-center sm:items-start gap-3 sm:gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
           {icon}
         </div>
@@ -71,16 +71,26 @@ function RuleCategoryCard({
           <h3 className="text-sm font-bold text-slate-900 sm:text-base">
             <span>{number}.</span> {title}
           </h3>
-          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
+          <ScreenGate minWidth={640}>
+          <dl className="mt-3 grid grid-cols-1 min-[400px]:grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-3 lg:grid-cols-4">
             {children}
           </dl>
+          </ScreenGate>
+
         </div>
       </div>
+
+      <ScreenGate maxWidth={639}>
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
+        {children}
+      </dl>
+      </ScreenGate>
+
       {!readOnly && onEdit ? (
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
+          className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
         >
           <SquarePen className="h-4 w-4" />
           Edit
@@ -98,7 +108,7 @@ function SummaryChip({
   label: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 border border-indigo-200">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-600 border border-indigo-200">
       {icon}
       {label}
     </span>
@@ -280,7 +290,7 @@ export function BookingRulesList({
                         {/* Card Header */}
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                            <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
                               Event Type
                             </p>
 
@@ -292,8 +302,8 @@ export function BookingRulesList({
                           {/* desktop */}
                           <ScreenGate minWidth={640}>
                             <div>
-                              <div className="text-right">
-                                <p className="mt-1 text-[11px] text-slate-400">Before / After</p>
+                              <div className="text-left">
+                                <p className="mt-1 text-sm text-slate-600">Before / After</p>
                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}>
                                   {before} / {after} min
                                 </span>
@@ -320,7 +330,7 @@ export function BookingRulesList({
                           <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
                             {/* Buffer */}
                             <div className="flex items-center justify-between gap-4">
-                              <span className="text-xs font-medium text-slate-500">Before / After</span>
+                              <span className="text-sm font-medium text-slate-500">Before / After</span>
 
                               <div className="text-right">
                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${badge}`}>
@@ -331,7 +341,7 @@ export function BookingRulesList({
 
                             {/* Minimum Notice */}
                             <div className="flex items-center justify-between gap-4">
-                              <span className="text-xs font-medium text-slate-500">Minimum Notice</span>
+                              <span className="text-sm font-medium text-slate-500">Minimum Notice</span>
 
                               <span className="text-sm font-medium text-slate-700">
                                 {format_duration_minutes(

@@ -179,7 +179,7 @@ export default function DashboardCalendarSnapshot() {
             const is_today = is_same_day(d, today);
             return (
               <div key={toDateKey(d)} className={`flex min-h-[88px] flex-col items-center justify-between px-0.5 py-3 ${is_today ? "bg-indigo-50" : ""}`}>
-                <span className="text-xs font-bold text-slate-400">{WEEKDAY_LABELS[i]}</span>
+                <span className="text-sm font-bold text-slate-600">{WEEKDAY_LABELS[i]}</span>
                 <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
                     is_today ? "bg-indigo-600 text-white" : "text-slate-700"
                   }`}
@@ -196,18 +196,18 @@ export default function DashboardCalendarSnapshot() {
 
       <div className="lg:mt-5 mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-3">
         {loading ? (
-          <span className="text-xs font-semibold text-slate-400">Loading…</span>
+          <span className="text-sm font-semibold text-slate-400">Loading…</span>
         ) : (
           <>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
               <span className="h-2 w-2 rounded-full bg-indigo-500" />
               {total_count} Bookings
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               {confirmed_count} Appointments
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               {pending_count} Pending
             </span>

@@ -97,7 +97,7 @@ export function EventTypeFilters({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => on_format_filter_change(tab.value)}
-                className={`relative px-4 py-2 text-[13px] font-medium transition border rounded-lg ${
+                className={`relative px-4 py-2 text-sm font-medium transition border rounded-lg ${
                   selected
                     ? "text-indigo-600 border-indigo-300 bg-indigo-50"
                     : "text-slate-500 hover:text-slate-800 border-slate-200"

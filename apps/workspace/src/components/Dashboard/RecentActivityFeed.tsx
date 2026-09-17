@@ -130,12 +130,12 @@ export default function RecentActivityFeed() {
                       {activity.title}
                     </p>
                     {activity.description ? (
-                      <p className="truncate text-xs font-medium text-slate-500">
+                      <p className="truncate text-sm text-slate-500">
                         {activity.description}
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-slate-400">
+                  <span className="shrink-0 text-sm font-medium text-slate-400">
                     {get_relative_time(activity.createdAt)}
                   </span>
                 </Link>

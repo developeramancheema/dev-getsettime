@@ -272,16 +272,16 @@ export function CalendarWeekGrid({
             className="grid border-b border-slate-200 bg-slate-50"
             style={{ gridTemplateColumns: `88px repeat(${columns.length}, minmax(0, 1fr))` }}
           >
-            <div className="px-3 py-3 text-xs font-semibold text-slate-500">Time</div>
+            <div className="px-3 py-4  text-sm font-semibold text-slate-900">Time</div>
             {columns.map((column) => (
               <div
                 key={column.key}
-                className={`border-l border-slate-200 px-2 py-3 text-center ${
-                  column.isToday ? "bg-indigo-50/60" : ""
+                className={`border-l border-slate-200 px-6 py-4 text-center ${
+                  column.isToday ? "bg-indigo-100/50" : ""
                 }`}
                 title={column.full}
               >
-                <p className="text-xs font-semibold text-slate-800">{column.label}</p>
+                <p className="text-sm font-semibold text-slate-900">{column.label}</p>
                 <p className="text-xs text-slate-500">{column.secondary}</p>
               </div>
             ))}
@@ -292,11 +292,11 @@ export function CalendarWeekGrid({
               className="grid"
               style={{ gridTemplateColumns: `88px repeat(${columns.length}, minmax(0, 1fr))` }}
             >
-              <div className="relative border-r border-slate-200 bg-white">
+              <div className="relative">
                 {timeLabels.map((label, index) => (
                   <div
                     key={label}
-                    className="flex h-16 items-center justify-end border-b border-slate-100 px-2 text-right text-xs text-slate-500"
+                    className="flex h-16 items-center border-b border-slate-100 px-3 text-right text-sm text-slate-900 font-medium"
                   >
                     <span>{index === timeLabels.length - 1 ? "" : label}</span>
                   </div>
@@ -316,7 +316,7 @@ export function CalendarWeekGrid({
                   <div
                     key={column.key}
                     className={`relative border-l border-slate-200 ${
-                      column.isToday ? "bg-indigo-50/30" : "bg-white"
+                      column.isToday ? "bg-indigo-100/50" : "bg-white"
                     }`}
                     style={{ height: `${GRID_HEIGHT}px` }}
                   >
@@ -446,7 +446,7 @@ export function CalendarWeekGrid({
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+      <div className="flex items-center justify-between border-t border-slate-200 bg-white px-3 py-2 text-sm text-slate-500">
         <span>
           Showing {viewMode === "provider" ? "provider schedule" : "week schedule"} •{" "}
           {weekDateKeys[0]} - {weekDateKeys[6]}

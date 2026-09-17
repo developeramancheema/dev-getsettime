@@ -916,74 +916,68 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
                 const isSelected = selectedIds.has(displayBooking.id);
                 return (
                     <div key={displayBooking.id} className={`cursor-pointer rounded-2xl bg-white p-4 shadow-md transition`}>
-                        <div className="mb-4 flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3">
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={(e) =>
-                                  toggleSelect(displayBooking.id, e.target.checked)
-                                }
-                                className="mt-1 h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                aria-label={`Select booking for ${displayBooking.name}`}
-                              />
-                              
-                              
-                              <div className="flex items-center bg-indigo-50 p-3 rounded-xl justify-center text-indigo-600">
-                                <UserRound className="h-4 w-4" />
-                              </div>
-                              
-
-                              <div className="space-y-1">
-                                
-                                <div className="flex flex-col gap-1">
-                                  <h3 className="font-semibold text-slate-900">{displayBooking.name}</h3>
-                                  <span className="text-xs sm:text-sm text-slate-500">{
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="mb-1 flex items-start gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) =>
+                                    toggleSelect(displayBooking.id, e.target.checked)
+                                  }
+                                  className="mt-1 h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                  aria-label={`Select booking for ${displayBooking.name}`}
+                                />
+                                <div className="flex items-center bg-indigo-50 p-3 rounded-xl justify-center text-indigo-600">
+                                  <UserRound className="h-4 w-4" />
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="flex flex-col gap-1">
+                                    <h3 className="font-semibold capitalize text-slate-900">{displayBooking.name}</h3>
+                                    <span className="text-xs min-[401px]:text-sm text-slate-500">{
                                     displayBooking.event_type_duration_minutes
                                       ? `${displayBooking.type} (${displayBooking.event_type_duration_minutes} mins)`
                                       : displayBooking.type
                                   }</span>
-
-                                  <ScreenGate minWidth={640}>
-                                    <span className="flex items-center gap-1 text-xs sm:text-sm text-slate-600">
-                                      <svg className="h-3 w-3 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                                      {displayBooking.service_provider_name || 'N/A'}
-                                    </span>
-                                  </ScreenGate>
-                                </div>
-
-                                <ScreenGate maxWidth={639}> 
-                                  <div className="flex flex-row flex-wrap items-center space-x-2">
-                                    <span className="flex items-center gap-1 text-xs text-slate-600">
-                                      <svg className="h-3 w-3 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                                      {displayBooking.service_provider_name || 'N/A'}
-                                    </span>
-
-                                    <span className="flex items-center gap-2 text-xs text-slate-600">
-                                      <svg className="h-3 w-3 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></svg>
-                                      {`${displayBooking.date}`}
-                                    </span>
-
-                                    <span className="flex items-center gap-2 text-xs text-slate-600">
-                                      <svg className="h-3 w-3 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                                      {`${displayBooking.time}`}
-                                    </span>
+                                    <ScreenGate minWidth={640}>
+                                      <span className="flex items-center gap-1 text-xs sm:text-sm text-slate-600">
+                                        <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                                        {displayBooking.service_provider_name || 'N/A'}
+                                      </span>
+                                    </ScreenGate>
                                   </div>
-
-                                </ScreenGate>
+                                </div>
                               </div>
+                              <ScreenGate maxWidth={639}> 
+                                <div className="flex flex-row flex-wrap items-center space-x-2">
+                                  <span className="flex items-center gap-1 text-sm text-slate-600">
+                                    <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                                    {displayBooking.service_provider_name || 'N/A'}
+                                  </span>
+
+                                  <span className="flex items-center gap-2 text-sm text-slate-600">
+                                    <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></svg>
+                                    {`${displayBooking.date}`}
+                                  </span>
+
+                                  <span className="flex items-center gap-2 text-sm text-slate-600">
+                                    <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                    {`${displayBooking.time}`}
+                                  </span>
+                                </div>
+                              </ScreenGate>
                             </div>
 
                             <ScreenGate minWidth={640}>
                               <div className="flex flex-col space-y-1">
                                 <span className="flex items-center gap-2 text-xs sm:text-sm text-slate-600">
-                                  <svg className="h-3 w-3 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></svg>
+                                  <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/></svg>
                                   {`${displayBooking.date}`}
                                 </span>
 
                                 <span className="flex items-center gap-2 text-xs sm:text-sm text-slate-600">
-                                  <svg className="h-3 w-3 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                  <svg className="h-3.5 w-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                   {`${displayBooking.time}`}
                                 </span>
                               </div>
@@ -1045,33 +1039,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
                                   </PortalActionsMenu>
                                 </div>
                             </div>
-
-                            {/* <div className="mt-4 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleViewBooking(displayBooking, actualBooking)
-                                }
-                                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
-                              >
-                                <Eye className="h-4 w-4" />
-                                View
-                              </button>
-                              <button
-                                onClick={() => actualBooking && handleEdit(actualBooking)}
-                                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
-                              >
-                                <SquarePen className="h-4 w-4" />
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(displayBooking.id)}
-                                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Delete
-                              </button>
-                            </div> */}
                         </div>
                     </div>                    
                 );

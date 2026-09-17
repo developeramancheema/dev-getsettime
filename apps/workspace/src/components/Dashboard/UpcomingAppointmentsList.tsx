@@ -151,14 +151,14 @@ export default function UpcomingAppointmentsList({
                       {date_label}
                     </span>
                   ) : null}
-                  <span className="text-xs font-bold text-slate-700">
+                  <span className="text-sm font-bold text-slate-700">
                     {time}
                     {period ? ` ${period}` : ""}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-900">{guest}</p>
-                  <p className="truncate text-xs font-medium text-slate-500">
+                  <p className="truncate text-sm text-slate-500">
                     {format_subtitle(booking)}
                   </p>
                 </div>

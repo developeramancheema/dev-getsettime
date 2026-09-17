@@ -117,7 +117,7 @@ export function BookingTableRow({
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-slate-900">
+              <span className="text-sm font-semibold text-slate-900">
                 {capitalize_booking_display_label(displayBooking.name)}
               </span>
               {!displayBooking.is_viewed && (
@@ -144,7 +144,7 @@ export function BookingTableRow({
           <span className="whitespace-nowrap font-medium text-slate-800">
             {displayBooking.date} - {displayBooking.time}
           </span>
-          <span className="text-xs text-slate-500">
+          <span className="text-sm text-slate-500">
             {displayBooking.type}
             {eventDurationInner != null && (
               <span className="text-slate-400"> ({eventDurationInner})</span>
