@@ -14,7 +14,7 @@ export default function   DashboardHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-4 md:flex-nowrap">
       <div className="min-w-0">
-        <h2 className="truncate text-xl lg:text-2xl font-bold tracking-tight text-slate-900">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
           Welcome back, {user_name}{" "}
           <span className="animate-wave inline-block" aria-hidden>
             👋

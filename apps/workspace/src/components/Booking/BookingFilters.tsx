@@ -49,7 +49,7 @@ interface BookingFiltersProps {
 }
 
 const inputBase =
-  "box-border w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 pl-11 text-sm font-normal leading-normal text-slate-900 shadow-none outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
+  "box-border h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 pl-11 text-sm font-normal leading-normal text-slate-900 shadow-none outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200";
 const selectClass =
   "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
 
@@ -117,7 +117,7 @@ export function BookingFilters({
   };
 
   const filtersButtonClass =
-    "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 shadow-sm sm:h-11 sm:flex-initial sm:px-4";
+    "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 shadow-sm sm:flex-initial sm:px-4";
 
   const advancedPanel = (
     <div id={panelId} className="lg:mt-4 lg:border-t border-slate-100 pt-4">
@@ -346,7 +346,7 @@ export function BookingFilters({
             type="button"
             onClick={handleReset}
             disabled={!hasActiveFilters}
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:flex-initial sm:px-4"
+            className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:flex-initial sm:px-4"
           >
             <LuRefreshCw className="h-4 w-4 shrink-0" aria-hidden />
             Reset

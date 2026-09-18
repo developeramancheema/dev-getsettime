@@ -135,12 +135,12 @@ export function DateExceptionsTable({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search exceptions..."
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full h-12 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="inline-flex h-12 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
             aria-label="Filter exceptions"
             title="Filter (coming soon)"
           >
