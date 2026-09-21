@@ -29,9 +29,9 @@ export default function PlanUsageCard({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:p-6 shadow-sm">
-      <div className="lg:mb-4 mb-3 flex items-center justify-between gap-3">
+      <div className="lg:mb-4 mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="zap" size={20} />
           </div>
           

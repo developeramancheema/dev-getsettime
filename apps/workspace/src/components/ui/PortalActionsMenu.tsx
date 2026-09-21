@@ -114,7 +114,7 @@ export function PortalActionsMenu({
         type="button"
         onClick={onToggle}
         className={classNames(
-          "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50",
+          "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50",
           triggerClassName
         )}
         aria-label="More actions"

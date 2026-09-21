@@ -962,7 +962,7 @@ export default function SettingsPage() {
 
                 <Link
                   href="/change-password"
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
                 >
                   <SettingsIcon name="lock" className="h-4 w-4" />
                   Change Password
@@ -1521,7 +1521,7 @@ export default function SettingsPage() {
                     >
                       <div
                         className={`mb-4 flex h-16 w-16 items-center justify-center bg-white/20 text-2xl font-bold text-white shadow-inner ring-1 ring-white/30 ${
-                          roundedUiStyle ? "rounded-full" : "rounded-xl"
+                          roundedUiStyle ? "rounded-full" : "rounded-lg"
                         }`}
                         aria-hidden
                       >
@@ -1536,10 +1536,10 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={open_create_booking}
-                        className={`mt-6 w-full max-w-xs px-4 py-3 text-sm font-bold shadow-lg transition hover:-translate-y-0.5 ${
-                          roundedUiStyle ? "rounded-2xl" : "rounded-md"
+                        className={`mt-6 w-full px-4 py-2 text-sm font-bold shadow-lg transition hover:-translate-y-0.5 text-slate-700 cursor-pointer ${
+                          roundedUiStyle ? "rounded-2xl" : "rounded-lg"
                         }`}
-                        style={{ backgroundColor: "#ffffff", color: primaryColor }}
+                        style={{ backgroundColor: "#ffffff" }}
                       >
                         Book Appointment
                       </button>
@@ -1591,14 +1591,14 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
                   >
                     <SettingsIcon name="close" className="h-4 w-4" /> Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:pointer-events-none disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:pointer-events-none disabled:opacity-50"
                   >
                     <SettingsIcon name="save" className="h-4 w-4" />
                     {isSaving

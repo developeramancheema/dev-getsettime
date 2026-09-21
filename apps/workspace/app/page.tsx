@@ -273,7 +273,7 @@ const Dashboard: React.FC = () => {
   const stat_loading = loading || range_loading;
 
   return (
-    <div className="space-y-6 text-slate-900">
+    <div className="max-[450px]:space-y-3 space-y-6 text-slate-900">
       <DashboardHeader
         user_name={user_name}
         subtitle="Here's what's happening with your workspace today."
@@ -322,8 +322,8 @@ const Dashboard: React.FC = () => {
         no_shows_hint={NO_SHOWS_HINT[range]}
       />
 
-      <section className="grid gap-6 grid-cols-1 xl:grid-cols-[1.4fr_0.85fr]">
-        <div className="space-y-6 order-2 lg:order-1">
+      <section className="grid max-[450px]:gap-3 gap-6 grid-cols-1 xl:grid-cols-[1.4fr_0.85fr]">
+        <div className="max-[450px]:space-y-3 space-y-6 order-2 lg:order-1">
         <ScreenGate minWidth={1024}>
           <WorkspaceOverviewCard
             loading={loading}

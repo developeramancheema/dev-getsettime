@@ -938,7 +938,7 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("day")}
-                className={`rounded-md px-5 py-2 text-sm font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "day"
                     ? "bg-indigo-600 border-indigo-700 text-white"
                     : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
@@ -949,7 +949,7 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("week")}
-                className={`rounded-md px-5 py-2 text-sm font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "week"
                     ? "bg-indigo-600 border-indigo-700 text-white"
                     : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
@@ -960,7 +960,7 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("month")}
-                className={`rounded-md px-5 py-2 text-sm font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "month"
                     ? "bg-indigo-600 border-indigo-700 text-white"
                     : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
@@ -971,7 +971,7 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("provider")}
-                className={`rounded-md px-5 py-2 text-sm font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "provider"
                     ? "bg-indigo-600 border-indigo-700 text-white"
                     : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"

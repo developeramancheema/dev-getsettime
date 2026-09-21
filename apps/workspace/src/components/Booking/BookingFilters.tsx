@@ -51,7 +51,7 @@ interface BookingFiltersProps {
 const inputBase =
   "box-border h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 pl-11 text-sm font-normal leading-normal text-slate-900 shadow-none outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200";
 const selectClass =
-  "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
+  "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200";
 
 const BOOKING_SORT_OPTIONS_WORKSPACE = BOOKING_SORT_OPTIONS.map((opt) =>
   opt.value === "new"
@@ -274,14 +274,14 @@ export function BookingFilters({
               type="date"
               value={dateFilter}
               onChange={(e) => onDateFilterChange(e.target.value)}
-              className="box-border h-11 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 [color-scheme:light] focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200 [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-datetime-edit-text]:p-0 [&::-webkit-datetime-edit]:m-0 [&::-webkit-datetime-edit]:p-0"
+              className="box-border h-11 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 [color-scheme:light] focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-datetime-edit-text]:p-0 [&::-webkit-datetime-edit]:m-0 [&::-webkit-datetime-edit]:p-0"
               aria-label="Filter by a specific date"
             />
             {dateFilter ? (
               <button
                 type="button"
                 onClick={onClearDateFilter}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 aria-label="Clear date filter"
               >
                 <LuX className="h-4 w-4" aria-hidden />

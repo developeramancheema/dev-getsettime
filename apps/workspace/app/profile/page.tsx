@@ -627,7 +627,7 @@ export default function ProfileCreative({ }) {
                       </div>
                       <div>
                         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden"/>
-                        <button onClick={() => fileInputRef.current?.click()} className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-indigo-600 transition  font-medium">
+                        <button onClick={() => fileInputRef.current?.click()} className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-indigo-500 hover:text-indigo-600 transition  font-medium">
                             Change Photo
                         </button>
                         <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF, or WebP. Max size 5MB</p>
@@ -643,50 +643,50 @@ export default function ProfileCreative({ }) {
                 {/* Profile Preview Card */}
                 <div className="col-span-6 sm:col-span-3 xl:col-span-6 bg-indigo-600 rounded-2xl shadow-xl p-4 sm:p-6 text-white">
                     <h3 className="font-semibold mb-4 text-lg">Profile Preview</h3>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         <div>
                             <p className="text-xs opacity-80 mb-1">Name</p>
-                            <p className="font-medium">{form.name || "Your Name"}</p>
+                            <div className="text-sm">{form.name || "Your Name"}</div>
                         </div>
                         <div>   
                             <p className="text-xs opacity-80 mb-1">Email</p>
-                            <p className="font-medium">{form.email || "Your Email"}</p>
+                            <div className="text-sm">{form.email || "Your Email"}</div>
                         </div>
                         <div>   
                             <p className="text-xs opacity-80 mb-1">Phone</p>
-                            <p className="font-medium">{form.phone || "Your Phone"}</p>
+                            <div className="text-sm">{form.phone || "Your Phone"}</div>
                         </div>
                         <div>
                             <p className="text-xs opacity-80 mb-1">Study/Education</p>
-                            <p className="font-medium">{form.education || "Your education"}</p>
+                            <div className="text-sm">{form.education || "Your education"}</div>
                         </div>
                         <div>
                             <p className="text-xs opacity-80 mb-1">Experience</p>
-                            <p className="font-medium">{form.experience || "Your experience"}</p>
+                            <div className="text-sm">{form.experience || "Your experience"}</div>
                         </div>
                         <div>
                             <p className="text-xs opacity-80 mb-1">Specialty</p>
-                            <p className="font-medium">{form.specialty || "Your specialty"}</p>
+                            <div className="text-sm">{form.specialty || "Your specialty"}</div>
                         </div>
                         <div>   
                             <p className="text-xs opacity-80 mb-1">Bio</p>
-                            <p className="font-medium">{form.bio || "Your Bio"}</p>
+                            <div className="text-sm">{form.bio || "Your Bio"}</div>
                         </div>
                         <div>
                             <p className="text-xs opacity-80 mb-1">Departments</p>
-                            <p className="font-medium">
+                            <div className="text-sm">
                               {selectedDepartments.length > 0
                                 ? selectedDepartments.map((department) => department.name).join(", ")
                                 : "No departments selected"}
-                            </p>
+                            </div>
                         </div>
                         <div>
                             <p className="text-xs opacity-80 mb-1">Services</p>
-                            <p className="font-medium">
+                            <div className="text-sm">
                               {selectedServices.length > 0
                                 ? selectedServices.map((service) => service.name).join(", ")
                                 : "No services selected"}
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -713,7 +713,7 @@ export default function ProfileCreative({ }) {
                                         type="text"
                                         value={form.name}
                                         onChange={(e) => update_form({ name: e.target.value })}
-                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
                                         placeholder="John Doe"
                                     />
                                 </div>
@@ -732,7 +732,7 @@ export default function ProfileCreative({ }) {
                                         type="email"
                                         value={form.email}
                                         onChange={(e) => update_form({ email: e.target.value })}
-                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                                         placeholder="john@example.com"
                                     />
                                 </div>
@@ -751,7 +751,7 @@ export default function ProfileCreative({ }) {
                                         type="tel"
                                         value={form.phone}
                                         onChange={(e) => update_form({ phone: e.target.value })}
-                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        className="text-sm w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                                         placeholder="+1 (555) 000-0000"
                                     />
                                 </div>
@@ -764,7 +764,7 @@ export default function ProfileCreative({ }) {
                                 type="text"
                                 value={form.education}
                                 onChange={(e) => update_form({ education: e.target.value })}
-                                className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                                 placeholder="e.g. MBBS, Stanford University"
                               />
                             </div>
@@ -776,7 +776,7 @@ export default function ProfileCreative({ }) {
                                   type="text"
                                   value={form.experience}
                                   onChange={(e) => update_form({ experience: e.target.value })}
-                                  className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                  className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                                   placeholder="e.g. 10+ years in cardiology"
                                 />
                             </div>
@@ -788,7 +788,7 @@ export default function ProfileCreative({ }) {
                                   type="text"
                                   value={form.specialty}
                                   onChange={(e) => update_form({ specialty: e.target.value })}
-                                  className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                  className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                                   placeholder="e.g. Cardiology, Dermatology"
                                 />
                             </div>
@@ -801,18 +801,18 @@ export default function ProfileCreative({ }) {
                             value={form.bio}
                             onChange={(e) => update_form({ bio: e.target.value })}
                             rows={4}
-                            className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                            className="text-sm w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"
                             placeholder="Tell us about yourself..."
                             />
                         </div>
                         
                         {/* Department */}
-                        <div className="p-4 rounded-2xl border border-gray-100">
+                        <div className="p-3 rounded-2xl border border-gray-200">
                             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                               <label className="text-sm font-semibold text-gray-700">Departments</label>
                               <Link
                                 href="/departments"
-                                className="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline-offset-2 hover:underline"
+                                className="text-sm font-semibold text-indigo-600 hover:text-indigo-900 underline-offset-2 hover:underline"
                               >
                                 Add Department
                               </Link>
@@ -822,7 +822,7 @@ export default function ProfileCreative({ }) {
                                 {selectedDepartments.map((department) => (
                                   <span
                                     key={department.id}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border-1 border-indigo-500 bg-indigo-100 text-indigo-800"
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-indigo-200 bg-indigo-100 text-indigo-600"
                                   >
                                     {department.name}
                                     <button
@@ -850,7 +850,7 @@ export default function ProfileCreative({ }) {
                                     type="button"
                                     onClick={() => void add_department(department.id)}
                                     disabled={syncingAssignments || isSaving}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border border-dashed border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border border-dashed border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
                                     {department.name}
                                     <span className="text-slate-400" aria-hidden>
@@ -869,12 +869,12 @@ export default function ProfileCreative({ }) {
                         </div>
                         
                         {/* Services */}
-                        <div className="p-4 rounded-2xl border border-gray-100">
+                        <div className="p-3 rounded-2xl border border-gray-200">
                             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                               <label className="text-sm font-semibold text-gray-700">Services</label>
                               <Link
                                 href="/services"
-                                className="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline-offset-2 hover:underline"
+                                className="text-sm font-semibold text-indigo-600 hover:text-indigo-900 underline-offset-2 hover:underline"
                               >
                                 Add Service
                               </Link>
@@ -884,7 +884,7 @@ export default function ProfileCreative({ }) {
                                 {selectedServices.map((service) => (
                                   <span
                                     key={service.id}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border-1 border-emerald-500 bg-emerald-100 text-emerald-800"
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-emerald-200 bg-emerald-100 text-emerald-800"
                                   >
                                     {service.name}
                                     <button
@@ -912,7 +912,7 @@ export default function ProfileCreative({ }) {
                                     type="button"
                                     onClick={() => void add_service(service.id)}
                                     disabled={syncingAssignments || isSaving}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-300 bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-dashed border-slate-300 bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
                                     {service.name}
                                     <span className="text-slate-400" aria-hidden>
@@ -951,14 +951,14 @@ export default function ProfileCreative({ }) {
                     <button
                       onClick={handleSaveChanges}
                       disabled={isSaving || syncingAssignments}
-                      className="inline-flex items-center gap-2 self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 md:self-auto"
+                      className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
                     >
                       {isSaving ? "Saving..." : syncingAssignments ? "Syncing..." : "Save Changes"}
                     </button>
                     <button
                       onClick={handleCancel}
                       disabled={isSaving || syncingAssignments}
-                      className="inline-flex h-11 min-w-[7rem] items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+                      className="inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition disabled:opacity-50"
                     >
                       Cancel
                     </button>

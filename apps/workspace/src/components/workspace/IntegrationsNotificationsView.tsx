@@ -991,7 +991,7 @@ export function IntegrationsNotificationsView() {
                           disabled={comingSoon || actionLoading !== null}
                           aria-disabled={comingSoon || actionLoading !== null}
                           title={comingSoon ? "Coming soon" : undefined}
-                          className={`w-full rounded-lg px-2 py-1.5 text-center text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 min-[1350px]:py-2 min-[1350px]:text-sm ${
+                          className={`w-full rounded-lg px-4 py-2 text-center text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 min-[1350px]:text-sm ${
                             connected
                               ? "border border-slate-200 text-slate-700 hover:bg-slate-50"
                               : "bg-indigo-600 text-white hover:bg-indigo-700"
@@ -1141,7 +1141,7 @@ export function IntegrationsNotificationsView() {
             <button
               type="button"
               onClick={() => setRequestModalOpen(true)}
-              className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+              className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
             >
               Request New Integration
               <svg
