@@ -1046,50 +1046,55 @@ export function IntegrationsNotificationsView() {
                   return (
                     <div key={flow.id} className="grid grid-cols-1 items-stretch gap-2 min-[1280px]:grid-cols-[minmax(0,1fr)_8.5rem]">
                       <article className="grid min-w-0 grid-cols-[minmax(0,1fr)_3rem] items-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-slate-300 min-[1350px]:grid-cols-[minmax(0,1fr)_auto_auto_3rem]">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ${chMeta.className}`}>
-                            <ChannelTypeIcon channel={channel} />
-                          </div>
-                          <div className="space-y-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-md font-semibold text-slate-900">{flow.name}</h3>
-                              <span
-                                className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs border font-semibold ${
-                                  flow.active ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"
-                                }`}
-                              >
-                                {flow.active ? "Active" : "Inactive"}
-                              </span>
+                        <div className="flex min-w-0 flex-col items-start gap-2">
+                          <div className="flex items-start gap-3">
+                            <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ${chMeta.className}`}>
+                              <ChannelTypeIcon channel={channel} />
                             </div>
-                            <p className="text-sm leading-5 break-words text-slate-500">{flow.description}</p>
-                            
-                            <div className="mt-2 flex flex-wrap items-center gap-2 max-md:hidden min-[1350px]:hidden">
-                              <span className="w-fit shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600">
-                                {meta?.timing ?? "Instant"}
-                              </span>
-                              <span className="inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600 border border-slate-200 bg-slate-100">
-                                <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
-                                {meta?.audience ?? "Customer"}
-                              </span>
-                            </div>
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-sm sm:text-md font-semibold text-slate-900">{flow.name}</h3>
+                                <span
+                                  className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs border font-semibold ${
+                                    flow.active ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"
+                                  }`}
+                                >
+                                  {flow.active ? "Active" : "Inactive"}
+                                </span>
+                              </div>
+                              <ScreenGate minWidth={768}>
+                              <p className="text-sm leading-5 break-words text-slate-500">{flow.description}</p>
+                              </ScreenGate>
 
+                              <div className="mt-2 flex flex-wrap items-center gap-2 max-md:hidden min-[1350px]:hidden">
+                                <span className="w-fit shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600">
+                                  {meta?.timing ?? "Instant"}
+                                </span>
+                                <span className="inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600 border border-slate-200 bg-slate-100">
+                                  <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
+                                  {meta?.audience ?? "Customer"}
+                                </span>
+                              </div>
+
+                            </div>
                           </div>
+
+                          <ScreenGate maxWidth={767}>
+                            <div className="flex flex-col items-start gap-1">
+                              <p className="text-sm leading-5 break-words text-slate-500">{flow.description}</p>
+                              <div className="flex items-center gap-1">
+                                <span className=" w-fit shrink-0 whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-1 text-[11px] font-medium leading-tight text-slate-500 min-[1350px]:inline-block">
+                                  {meta?.timing ?? "Instant"}
+                                </span>
+                                <span className="w-fit shrink-0 flex items-center gap-1 whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-1 text-[11px] font-medium leading-tight text-slate-500 min-[1350px]:inline-flex">
+                                  <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
+                                  {meta?.audience ?? "Customer"}
+                                </span>
+                              </div>
+                            </div>
+                          </ScreenGate>
                         </div>
                         
-                        <ScreenGate maxWidth={767}>
-                        <div>
-                          <p className="text-sm leading-5 break-words text-slate-500">{flow.description}</p>
-                          <div>
-                            <span className="hidden w-fit shrink-0 whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-1 text-[11px] font-medium leading-tight text-slate-500 min-[1350px]:inline-block">
-                              {meta?.timing ?? "Instant"}
-                            </span>
-                            <span className="hidden w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-1 text-[11px] font-medium leading-tight text-slate-500 min-[1350px]:inline-flex">
-                              <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
-                              {meta?.audience ?? "Customer"}
-                            </span>
-                          </div>
-                        </div>
-                        </ScreenGate>
 
                         <div className="flex items-center justify-end">
                           <button

@@ -674,7 +674,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
           </ScreenGate>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-xl p-4">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-xl p-4 space-y-4">
           {/* Filters card */}
           <div className="relative">
             <BookingFilters
@@ -762,7 +762,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
           <ScreenGate minWidth={1024}>
           {/* Desktop table */}
           <div className="relative">
-            <div className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">All Bookings</h2>
                 <p className="text-sm text-slate-500">

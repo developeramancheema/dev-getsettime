@@ -1460,7 +1460,7 @@ const AvailabilityTimesheet = forwardRef<
                               ) : null}
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center max-[1301px]:justify-end gap-2.5">
                               <span className="text-sm text-slate-400">
                                 {schedule.enabled ? "No breaks" : "—"}
                               </span>
