@@ -1030,7 +1030,7 @@ export function IntegrationsNotificationsView() {
                   const channel = meta?.channel ?? "Email";
                   const chMeta = CHANNEL_META[channel];
                   return (
-                    <div key={flow.id} className="grid grid-cols-1 items-stretch gap-2 min-[1280px]:grid-cols-[minmax(0,1fr)_8.5rem]">
+                    <div key={flow.id} className="grid grid-cols-1 items-stretch gap-2 min-[1350px]:grid-cols-[minmax(0,1fr)_8.5rem]">
                       <article className="grid sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 items-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-slate-300">
                         <div className="flex min-w-0 items-start gap-3">
                           <div className="flex items-start gap-3">
