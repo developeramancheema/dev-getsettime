@@ -882,13 +882,6 @@ export function IntegrationsNotificationsView() {
                   Manage calendar, video meeting, and communication apps.
                 </p>
               </div>
-              {/* <button
-                type="button"
-                onClick={() => setRequestModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
-              >
-                <span className="text-sm leading-none">+</span> Add App
-              </button> */}
             </div>
 
             {integrationsLoading ? (
@@ -1022,13 +1015,6 @@ export function IntegrationsNotificationsView() {
                   Automate reminders, confirmations, follow-ups, and internal alerts.
                 </p>
               </div>
-              {/* <button
-                type="button"
-                onClick={() => setRequestModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
-              >
-                <span className="text-sm leading-none">+</span> New Rule
-              </button> */}
             </div>
 
             {workflowsLoading ? (
@@ -1044,9 +1030,9 @@ export function IntegrationsNotificationsView() {
                   const channel = meta?.channel ?? "Email";
                   const chMeta = CHANNEL_META[channel];
                   return (
-                    <div key={flow.id} className="grid grid-cols-1 items-stretch gap-2 min-[1280px]:grid-cols-[minmax(0,1fr)_8.5rem]">
-                      <article className="grid min-w-0 grid-cols-[minmax(0,1fr)_3rem] items-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-slate-300 min-[1350px]:grid-cols-[minmax(0,1fr)_auto_auto_3rem]">
-                        <div className="flex min-w-0 flex-col items-start gap-2">
+                    <div key={flow.id} className="grid grid-cols-1 items-stretch gap-2 min-[1350px]:grid-cols-[minmax(0,1fr)_8.5rem]">
+                      <article className="grid sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 items-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 transition hover:border-slate-300">
+                        <div className="flex min-w-0 items-start gap-3">
                           <div className="flex items-start gap-3">
                             <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ${chMeta.className}`}>
                               <ChannelTypeIcon channel={channel} />
@@ -1062,59 +1048,57 @@ export function IntegrationsNotificationsView() {
                                   {flow.active ? "Active" : "Inactive"}
                                 </span>
                               </div>
-                              <ScreenGate minWidth={768}>
                               <p className="text-sm leading-5 break-words text-slate-500">{flow.description}</p>
-                              </ScreenGate>
-
-                              <div className="mt-2 flex flex-wrap items-center gap-2 max-md:hidden min-[1350px]:hidden">
-                                <span className="w-fit shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600">
-                                  {meta?.timing ?? "Instant"}
-                                </span>
-                                <span className="inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600 border border-slate-200 bg-slate-100">
-                                  <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
-                                  {meta?.audience ?? "Customer"}
-                                </span>
-                              </div>
+                                  
+                              {/* <ScreenGate maxWidth={1023}>
+                                <div className="mt-2 flex flex-wrap items-center gap-2">
+                                  <span className="w-fit shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600">
+                                    {meta?.timing ?? "Instant"}
+                                  </span>
+                                  <span className="inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600 border border-slate-200 bg-slate-100">
+                                    <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
+                                    {meta?.audience ?? "Customer"}
+                                  </span>
+                                </div>
+                              </ScreenGate> */}
 
                             </div>
                           </div>
-
-                          <ScreenGate maxWidth={767}>
-                            <div className="flex flex-col items-start gap-1">
-                              <p className="text-sm leading-5 break-words text-slate-500">{flow.description}</p>
-                              <div className="flex items-center gap-1">
-                                <span className=" w-fit shrink-0 whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-1 text-[11px] font-medium leading-tight text-slate-500 min-[1350px]:inline-block">
-                                  {meta?.timing ?? "Instant"}
-                                </span>
-                                <span className="w-fit shrink-0 flex items-center gap-1 whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-1 text-[11px] font-medium leading-tight text-slate-500 min-[1350px]:inline-flex">
-                                  <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
-                                  {meta?.audience ?? "Customer"}
-                                </span>
-                              </div>
-                            </div>
-                          </ScreenGate>
                         </div>
                         
+                        <div className="flex items-center justify-between xl:justify-end gap-1">
+                          {/* <ScreenGate minWidth={1024}> */}
+                            <div className="flex items-center gap-1">
+                              <span className="w-fit shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600">
+                                {meta?.timing ?? "Instant"}
+                              </span>
+                              <span className="inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-xs font-medium leading-tight text-slate-600 border border-slate-200 bg-slate-100">
+                                <LayoutIcon name="users" size={14} className="shrink-0 text-slate-400" />
+                                {meta?.audience ?? "Customer"}
+                              </span>
+                            </div>
+                          {/* </ScreenGate> */}
 
-                        <div className="flex items-center justify-end">
-                          <button
-                            type="button"
-                            onClick={() => void toggleFlow(flow.id)}
-                            className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                              flow.active ? "bg-emerald-500" : "bg-slate-300"
-                            }`}
-                            aria-label={flow.active ? "Disable workflow" : "Enable workflow"}
-                          >
-                            <span
-                              className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${
-                                flow.active ? "left-6" : "left-1"
+                          <div className="flex items-center justify-end">
+                            <button
+                              type="button"
+                              onClick={() => void toggleFlow(flow.id)}
+                              className={`relative h-6 w-11 shrink-0 rounded-full transition ${
+                                flow.active ? "bg-emerald-500" : "bg-slate-300"
                               }`}
-                            />
-                          </button>
+                              aria-label={flow.active ? "Disable workflow" : "Enable workflow"}
+                            >
+                              <span
+                                className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${
+                                  flow.active ? "left-6" : "left-1"
+                                }`}
+                              />
+                            </button>
+                          </div>
                         </div>
                       </article>
                       
-                      <ScreenGate minWidth={1280}>
+                      <ScreenGate minWidth={1350}>
                       <div className="">
                         <ChannelBlock channel={channel} />
                       </div>
