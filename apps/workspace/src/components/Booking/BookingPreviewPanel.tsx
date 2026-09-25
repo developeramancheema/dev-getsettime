@@ -231,7 +231,7 @@ export function BookingPreviewPanel({
       aria-label="Booking preview"
     >
       {panel_visible ? (
-        <div className="flex h-full min-h-0 flex-col">
+        <div className="flex flex-col">
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
             <div className="min-w-0">
               <h2 className="text-lg font-bold text-slate-900">
@@ -295,7 +295,7 @@ export function BookingPreviewPanel({
             ) : null}
           </div>
 
-          <div className="shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-4">
+          <div className="shrink-0 border-t border-slate-200 px-5 py-4">
             {details_href ? (
               <a
                 href={details_href}

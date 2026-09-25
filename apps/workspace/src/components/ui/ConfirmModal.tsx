@@ -28,9 +28,14 @@ export function ConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
+      className="fixed inset-0 z-999 flex items-center justify-center overflow-y-auto p-4"
       onClick={onCancel}
     >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        aria-hidden="true"
+        onClick={onCancel}
+      />
       <div
         className="relative bg-white rounded-xl shadow-2xl max-w-md w-full"
         onClick={(e) => e.stopPropagation()}

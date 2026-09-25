@@ -36,7 +36,7 @@ type WorkspaceOverviewCardProps = {
 function TrendCaption({ trend }: { trend: MetricTrend }) {
   const is_up = trend.direction === "up";
   return (
-    <p className="mt-0.5 flex items-center gap-1 text-xs font-medium">
+    <p className="mt-0.5 flex items-center gap-1 text-sm font-medium">
       <span
         className={`inline-flex items-center gap-0.5 font-bold ${
           is_up ? "text-emerald-600" : "text-rose-500"
@@ -91,8 +91,7 @@ function MetricTile({
   return (
     <div className="flex items-start gap-3 p-3 md:p-3">
       <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${icon_bg} ${icon_color}`}
-      >
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${icon_bg} ${icon_color}`}>
         <DashboardIcon name={icon} size={20} />
       </div>
       <div className="min-w-0">
@@ -103,7 +102,7 @@ function MetricTile({
         {trend ? (
           <TrendCaption trend={trend} />
         ) : (
-          <p className="mt-0.5 truncate text-xs font-medium text-slate-400">
+          <p className="mt-0.5 truncate text-sm font-medium text-slate-400">
             {secondary}
           </p>
         )}
@@ -128,8 +127,8 @@ export default function WorkspaceOverviewCard({
     {
       label: "Google Calendar",
       icon: "calendar",
-      icon_bg: "bg-blue-50",
-      icon_color: "text-blue-600",
+      icon_bg: "bg-indigo-50",
+      icon_color: "text-indigo-600",
       state_label: google_calendar_active ? "Connected" : "Connect",
       active: google_calendar_active,
       href: "/integrations",
@@ -146,8 +145,8 @@ export default function WorkspaceOverviewCard({
     {
       label: "Email Reminders",
       icon: "mail",
-      icon_bg: "bg-blue-50",
-      icon_color: "text-blue-600",
+      icon_bg: "bg-indigo-50",
+      icon_color: "text-indigo-600",
       state_label: email_active ? "Active" : "Set up",
       active: email_active,
       href: "/settings",
@@ -157,7 +156,7 @@ export default function WorkspaceOverviewCard({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
       <div className="lg:mb-5 mb-3 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
           <DashboardIcon name="activity" size={20} />
         </div>
         <div>
@@ -221,7 +220,7 @@ export default function WorkspaceOverviewCard({
                   {integration.label}
                 </p>
                 <p
-                  className={`text-xs font-bold ${
+                  className={`text-sm font-bold ${
                     integration.active ? "text-emerald-600" : "text-slate-400"
                   }`}
                 >

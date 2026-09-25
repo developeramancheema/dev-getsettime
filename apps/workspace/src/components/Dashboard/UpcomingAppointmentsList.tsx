@@ -14,21 +14,21 @@ type StatusBadge = {
 function badge_for_status(status: string | null | undefined): StatusBadge {
   const raw = String(status ?? "").toLowerCase();
   if (raw === "confirmed") {
-    return { label: "Confirmed", className: "bg-emerald-50 text-emerald-700" };
+    return { label: "Confirmed", className: "bg-emerald-50 text-emerald-700 border-emerald-200" };
   }
   if (raw === "reschedule") {
-    return { label: "Rescheduled", className: "bg-red-50 text-red-700" };
+    return { label: "Rescheduled", className: "bg-red-50 text-red-700 border-red-200" };
   }
   if (raw === "cancelled") {
-    return { label: "Cancelled", className: "bg-rose-50 text-rose-700" };
+    return { label: "Cancelled", className: "bg-red-50 text-red-700 border-red-200" };
   }
   if (raw === "completed") {
-    return { label: "Completed", className: "bg-slate-100 text-slate-600" };
+    return { label: "Completed", className: "bg-slate-100 text-slate-600 border-slate-200" };
   }
   if (raw === "no-show") {
-    return { label: "No-show", className: "bg-rose-50 text-rose-700" };
+    return { label: "No-show", className: "bg-red-50 text-red-700 border-red-200" };
   }
-  return { label: "Pending", className: "bg-amber-50 text-amber-700" };
+  return { label: "Pending", className: "bg-amber-50 text-amber-700 border-amber-200" };
 }
 
 function is_same_local_day(a: Date, b: Date): boolean {
@@ -103,18 +103,19 @@ export default function UpcomingAppointmentsList({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
           </div>
           <h3 className="text-lg font-bold text-slate-900">Upcoming Appointments</h3>
         </div>
         <Link
-          href="/calendar"
-          className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+          href="/bookings"
+          className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
         >
-          View Calendar
+          View all appointments
+          <DashboardIcon name="arrow" size={16} />
         </Link>
       </div>
 
@@ -150,19 +151,19 @@ export default function UpcomingAppointmentsList({
                       {date_label}
                     </span>
                   ) : null}
-                  <span className="text-xs font-bold text-slate-700">
+                  <span className="text-sm font-bold text-slate-700">
                     {time}
                     {period ? ` ${period}` : ""}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-900">{guest}</p>
-                  <p className="truncate text-xs font-medium text-slate-500">
+                  <p className="truncate text-sm text-slate-500">
                     {format_subtitle(booking)}
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${badge.className}`}
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold border ${badge.className}`}
                 >
                   {badge.label}
                 </span>
@@ -174,16 +175,6 @@ export default function UpcomingAppointmentsList({
               </button>
             );
           })}
-
-          <div className="pt-3 text-center">
-            <Link
-              href="/bookings"
-              className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
-            >
-              View all appointments
-              <DashboardIcon name="arrow" size={16} />
-            </Link>
-          </div>
         </div>
       )}
       <BookingPreviewPanel

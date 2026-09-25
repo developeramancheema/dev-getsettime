@@ -41,7 +41,7 @@ function getServiceLabel(booking: Booking): string {
 function getCardClass(status: string | null | undefined): string {
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
-      return "border-blue-100 bg-blue-50";
+      return "border-blue-100 bg-indigo-50";
     case "pending":
       return "border-amber-100 bg-amber-50";
     case "cancelled":
@@ -177,7 +177,7 @@ export function CalendarMobileWeekBookings({
             className={`shrink-0 text-sm font-semibold transition ${
               isToday
                 ? "cursor-default text-indigo-600"
-                : "text-blue-600 hover:text-blue-700"
+                : "text-indigo-600 hover:text-indigo-700"
             }`}
             disabled={isToday}
           >
@@ -251,7 +251,7 @@ export function CalendarMobileWeekBookings({
                     <button
                       type="button"
                       onClick={() => toggleHourExpanded(hour)}
-                      className="text-left text-xs font-semibold text-blue-600 hover:text-blue-700"
+                      className="text-left text-xs font-semibold text-indigo-600 hover:text-indigo-700"
                     >
                       +{overflowCount} more
                     </button>

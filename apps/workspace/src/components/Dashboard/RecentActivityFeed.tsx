@@ -24,7 +24,7 @@ type TypeStyle = {
 
 const TYPE_STYLES: Record<string, TypeStyle> = {
   booking: { icon: "calendar", icon_bg: "bg-emerald-50", icon_color: "text-emerald-600" },
-  contact: { icon: "user", icon_bg: "bg-blue-50", icon_color: "text-blue-600" },
+  contact: { icon: "user", icon_bg: "bg-indigo-50", icon_color: "text-indigo-600" },
   event_type: { icon: "calendarDays", icon_bg: "bg-violet-50", icon_color: "text-violet-600" },
   department: { icon: "stethoscope", icon_bg: "bg-amber-50", icon_color: "text-amber-600" },
   service: { icon: "spark", icon_bg: "bg-cyan-50", icon_color: "text-cyan-600" },
@@ -130,12 +130,12 @@ export default function RecentActivityFeed() {
                       {activity.title}
                     </p>
                     {activity.description ? (
-                      <p className="truncate text-xs font-medium text-slate-500">
+                      <p className="truncate text-sm text-slate-500">
                         {activity.description}
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-slate-400">
+                  <span className="shrink-0 text-sm font-medium text-slate-400">
                     {get_relative_time(activity.createdAt)}
                   </span>
                 </Link>
@@ -143,7 +143,7 @@ export default function RecentActivityFeed() {
             })}
           </div>
 
-          <div className="pt-3 text-center">
+          {/* <div className="pt-3 text-center">
             <Link
               href="/notifications/all"
               className="inline-flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700"
@@ -151,7 +151,7 @@ export default function RecentActivityFeed() {
               View all activity
               <DashboardIcon name="arrow" size={16} />
             </Link>
-          </div>
+          </div> */}
         </>
       )}
     </div>

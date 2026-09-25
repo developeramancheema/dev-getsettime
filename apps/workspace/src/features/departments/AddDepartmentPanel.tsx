@@ -655,7 +655,7 @@ export function AddDepartmentPanel({
   };
 
   const panelFieldClass =
-    "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
   return (
     <>
@@ -684,7 +684,7 @@ export function AddDepartmentPanel({
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
-              <div className="flex h-full min-h-0 flex-col">
+              <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
                 <div className="flex-1 overflow-y-auto px-5 py-5">
                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     <PanelSection
@@ -740,7 +740,7 @@ export function AddDepartmentPanel({
                                       selected
                                         ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
                                         : departmentName === item
-                                          ? "border border-violet-300 bg-violet-50 text-violet-700"
+                                          ? "border border-indigo-300 bg-indigo-50 text-indigo-700"
                                           : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
                                     )}
                                   >
@@ -822,7 +822,7 @@ export function AddDepartmentPanel({
                                       selectedDoctors.map((doctor) => (
                                         <span
                                           key={doctor.id}
-                                          className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                                          className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-800"
                                           onClick={(e) => e.stopPropagation()}
                                           onMouseDown={(e) =>
                                             e.stopPropagation()
@@ -848,7 +848,7 @@ export function AddDepartmentPanel({
                                                 toggleDoctor(doctor.id);
                                               }
                                             }}
-                                            className="rounded-full p-0.5 hover:bg-violet-100"
+                                            className="rounded-full p-0.5 hover:bg-indigo-100"
                                             aria-label={`Remove ${doctor.name}`}
                                           >
                                             <X className="h-3 w-3" />
@@ -876,7 +876,7 @@ export function AddDepartmentPanel({
                                             className={classNames(
                                               "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                                               checked
-                                                ? "border-violet-600 bg-violet-600 text-white"
+                                                ? "border-indigo-600 bg-indigo-600 text-white"
                                                 : "border-slate-300"
                                             )}
                                           >
@@ -921,7 +921,7 @@ export function AddDepartmentPanel({
                               {selectedServiceNames.map((name) => (
                                 <span
                                   key={name}
-                                  className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                                  className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-800"
                                 >
                                   <span className="min-w-0 truncate">
                                     {name}
@@ -929,7 +929,7 @@ export function AddDepartmentPanel({
                                   <button
                                     type="button"
                                     onClick={() => toggleServiceName(name)}
-                                    className="rounded-full p-0.5 hover:bg-violet-100"
+                                    className="rounded-full p-0.5 hover:bg-indigo-100"
                                     aria-label={`Remove ${name}`}
                                   >
                                     <X className="h-3 w-3" />
@@ -999,15 +999,15 @@ export function AddDepartmentPanel({
                               type="button"
                               onClick={addCustomService}
                               disabled={busyAction || !customServiceName.trim()}
-                              className="shrink-0 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               Add
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50 px-3 py-2.5 text-xs text-violet-800">
-                          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <div className="flex items-start gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-indigo-800">
+                          <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
                           <p>
                             Selected services are created with this department and automatically assigned to the selected consultants.
                           </p>
@@ -1033,7 +1033,7 @@ export function AddDepartmentPanel({
                                 )
                               }
                               aria-label="Visibility"
-                              className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-violet-400"
+                              className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
                             >
                               {VISIBILITY_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -1070,7 +1070,7 @@ export function AddDepartmentPanel({
                         type="button"
                         onClick={() => void handleSave()}
                         disabled={busyAction || !departmentName.trim()}
-                        className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {busyAction ? "Saving…" : "Save Department"}
                       </button>

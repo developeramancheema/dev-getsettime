@@ -29,16 +29,16 @@ export default function PlanUsageCard({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:p-6 shadow-sm">
-      <div className="lg:mb-4 mb-3 flex items-center justify-between gap-3">
+      <div className="lg:mb-4 mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="zap" size={20} />
           </div>
           
           <h3 className="text-lg font-bold text-slate-900">Plan Usage</h3>
         </div>
         {!loading && remaining !== null ? (
-          <span className="text-xs font-semibold text-slate-400">
+          <span className="text-sm font-semibold text-slate-600">
             {remaining} remaining this month
           </span>
         ) : null}
@@ -58,13 +58,13 @@ export default function PlanUsageCard({
 
       {!loading && !unlimited ? (
         <>
-          <div className="mt-3 h-1.5 lg:h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-3 h-1.5 lg:h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+              className="h-full rounded-full bg-indigo-500 transition-all duration-500"
               style={{ width: `${percent}%` }}
             />
           </div>
-          <p className="mt-1.5 text-xs font-medium text-slate-400">{percent}% used</p>
+          <p className="mt-1.5 text-sm font-medium text-slate-600">{percent}% used</p>
         </>
       ) : null}
 
@@ -73,21 +73,21 @@ export default function PlanUsageCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-2">
               <p className="truncate text-sm font-bold bg-indigo-50 text-indigo-600 px-4 py-1 rounded-xl w-fit">{plan.name} Plan</p>
-              <p className="text-xs font-medium text-slate-500">
+              <p className="text-sm font-medium text-slate-600">
                 {formatBookingLimitLabel(plan.booking_limit)} bookings/month · up
                 to {plan.service_provider_limit} providers
               </p>
             </div>
-            <p className="shrink-0 text-sm font-bold text-slate-900">
+            <p className="shrink-0 text-sm font-bold text-indigo-600">
               ₹{plan.price.toLocaleString("en-IN")}
-              <span className="text-xs font-medium text-slate-400">/mo</span>
+              <span className="font-medium text-slate-600">/mo</span>
             </p>
           </div>
 
           {usage ? (
             <dl className="mt-3 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-slate-50 px-3 py-2">
-                <dt className="text-xs font-medium text-slate-500">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                <dt className="text-sm font-medium text-slate-500">
                   Bookings this month
                 </dt>
                 <dd className="text-sm font-bold text-slate-900">
@@ -97,8 +97,8 @@ export default function PlanUsageCard({
                     : ` / ${usage.booking_limit}`}
                 </dd>
               </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2">
-                <dt className="text-xs font-medium text-slate-500">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                <dt className="text-sm font-medium text-slate-500">
                   Service providers
                 </dt>
                 <dd className="text-sm font-bold text-slate-900">

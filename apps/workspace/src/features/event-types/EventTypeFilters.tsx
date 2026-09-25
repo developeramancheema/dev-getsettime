@@ -10,6 +10,7 @@ import {
 } from "react-icons/lu";
 import type { event_type_service_provider_option } from "@/src/features/event-types/EventTypeFormLayout";
 import type { event_type_format } from "@/src/types/event_types";
+import ScreenGate from "@/src/components/ScreenGate";
 
 type visibility_filter_value = "all" | "private" | "public";
 type status_filter_value = "" | "active" | "draft";
@@ -96,23 +97,24 @@ export function EventTypeFilters({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => on_format_filter_change(tab.value)}
-                className={`relative px-3 py-2 text-sm font-semibold transition ${
+                className={`relative px-4 py-2 text-sm font-medium transition border rounded-lg ${
                   selected
-                    ? "text-violet-700"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "text-indigo-600 border-indigo-300 bg-indigo-50"
+                    : "text-slate-500 hover:text-slate-800 border-slate-200"
                 }`}
               >
                 {tab.label}
-                {selected ? (
+                {/* {selected ? (
                   <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-violet-600" />
-                ) : null}
+                ) : null} */}
               </button>
             );
           })}
         </div>
 
-        <div className="hidden w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 md:flex lg:max-w-xl lg:flex-1 lg:justify-end">
-          <div className="relative min-h-11 w-full min-w-0 sm:flex-1">
+        <ScreenGate minWidth={1024}>
+        <div className="w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 flex lg:max-w-xl lg:flex-1 lg:justify-end">
+          <div className="relative min-h-12 w-full min-w-0 sm:flex-1">
             <div
               className="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center text-slate-400"
               aria-hidden
@@ -124,7 +126,7 @@ export function EventTypeFilters({
               value={search}
               onChange={(e) => on_search_change(e.target.value)}
               placeholder="Search event types..."
-              className="box-border h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-200"
+              className="box-border h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-200"
               aria-label="Search event types"
               autoComplete="off"
             />
@@ -134,7 +136,7 @@ export function EventTypeFilters({
             <button
               type="button"
               onClick={() => set_show_advanced((open) => !open)}
-              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 sm:flex-initial sm:px-4"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 sm:flex-initial sm:px-4"
               aria-expanded={show_advanced}
               aria-controls={panel_id}
             >
@@ -150,13 +152,14 @@ export function EventTypeFilters({
               type="button"
               onClick={handle_reset}
               disabled={!has_active_filters}
-              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial sm:px-4"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial sm:px-4"
             >
               <LuRefreshCw className="h-4 w-4 shrink-0" aria-hidden />
               Reset
             </button>
           </div>
         </div>
+        </ScreenGate>
       </div>
 
       {show_advanced ? (
@@ -173,7 +176,7 @@ export function EventTypeFilters({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-3">
             <div className="min-w-0">
               <label
                 htmlFor="event-type-status-filter"
@@ -263,7 +266,7 @@ export function EventTypeFilters({
           </div>
 
           <div className="mt-3">
-            <span className="inline-flex items-center rounded-full border border-violet-100 bg-violet-50 px-3 py-1 text-sm font-medium text-violet-700">
+            <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
               Results: {result_count}
             </span>
           </div>

@@ -1219,11 +1219,10 @@ export default function RegisterForm() {
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-        <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-5" />
-        <div className="w-full max-w-6xl px-6 relative z-10">
+        <div className="w-full max-w-7xl p-4 lg:px-6 relative z-10">
           <div className="text-center mb-6">
             <Link href="/" className="inline-block">
-              <Image src="/getsettime-logo.svg" alt="GetSetTime Logo" width={200} height={50} className="mx-auto mb-4" />
+              <Image src="/getsettime-logo.svg" alt="GetSetTime Logo" width={200} height={50} className="mx-auto" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-800">
               {isSpOnboardingUi ? "Set up your profile" : "Set up your workspace"}
@@ -1233,7 +1232,7 @@ export default function RegisterForm() {
               {[1, 2, 3, 4].map((s) => (
                 <div
                   key={s}
-                  className={`h-1.5 flex-1 max-w-[60px] rounded-full ${s <= onboardingStep ? "bg-blue-600" : "bg-gray-200"}`}
+                  className={`h-1.5 flex-1 max-w-[60px] rounded-full ${s <= onboardingStep ? "bg-indigo-600" : "bg-gray-200"}`}
                 />
               ))}
             </div>
@@ -1278,7 +1277,7 @@ export default function RegisterForm() {
                 type="button"
                 onClick={() => handleOnboardingNext()}
                 disabled={onboardingNextDisabled}
-                className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {finishProgressOpen ? "Setting up…" : "Next"}
               </button>
@@ -1286,12 +1285,12 @@ export default function RegisterForm() {
           )}
 
           {onboardingStep === 1 && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 space-y-8">
+            <div className="bg-white rounded-2xl shadow-xl p-4 lg:p-6 border border-gray-100 space-y-4">
               {onboardingRole !== "service_provider" && (
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 mb-1">What is your profession?</h2>
                 <p className="text-sm text-gray-500 mb-4">Select the option that best describes your work.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="grid max-[425px]:grid-cols-2 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2">
                   {professions.map((p) => (
                     <button
                       key={p.id}
@@ -1304,20 +1303,20 @@ export default function RegisterForm() {
                         setCustomDepartmentMode(false);
                         scrollToDepartmentSection();
                       }}
-                      className={`flex items-center gap-3 px-4 py-4 rounded-2xl border text-left transition ${
+                      className={`flex flex-col min-[425px]:flex-row items-start min-[425px]:items-center gap-3 px-3 py-2 rounded-2xl border text-left transition ${
                         selectedProfessionId === String(p.id)
-                          ? "border-violet-300 bg-violet-50 text-slate-900 shadow-sm"
+                          ? "border-indigo-300 bg-indigo-50 text-slate-900 shadow-sm"
                           : "border-gray-200 bg-white text-slate-900 hover:border-gray-300 hover:bg-gray-50"
                       }`}
                     >
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-xl text-slate-700">
+                      <span className="flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-md sm:rounded-xl bg-slate-100 text-xl text-slate-700">
                         {isCustomProfessionIcon(p.icon) ? (
                           <Image
                             src={p.icon}
                             alt={`${p.name} icon`}
                             width={24}
                             height={24}
-                            className="h-6 w-6 object-contain"
+                            className="h-4 w-4 sm:h-6 sm:w-6 object-contain"
                             unoptimized
                           />
                         ) : (() => {
@@ -1334,7 +1333,7 @@ export default function RegisterForm() {
                           })()}
                       </span>
                       <span className="min-w-0">
-                        <span className="block text-lg font-semibold leading-tight text-slate-900">{p.name}</span>
+                        <span className="block text-sm min-[425px]:text-base font-semibold leading-tight text-slate-900">{p.name}</span>
                         <span className="block text-sm text-slate-500">
                           {p.departments_count} department{p.departments_count === 1 ? "" : "s"}
                         </span>
@@ -1350,17 +1349,17 @@ export default function RegisterForm() {
                       setCustomDepartmentMode(true);
                       scrollToDepartmentSection();
                     }}
-                    className={`flex items-center gap-3 px-4 py-4 rounded-2xl border text-left transition ${
+                    className={`flex flex-col min-[425px]:flex-row items-start min-[425px]:items-center gap-3 px-3 py-2 rounded-2xl border text-left transition ${
                       selectedProfessionId === OTHER_VALUE
-                        ? "border-violet-300 bg-violet-50 text-slate-900 shadow-sm"
+                        ? "border-indigo-300 bg-indigo-50 text-slate-900 shadow-sm"
                         : "border-gray-200 bg-white text-slate-900 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-xl">
+                    <span className="flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-md sm:rounded-xl bg-slate-100 text-xl">
                       ✨
                     </span>
                     <span>
-                      <span className="block text-lg font-semibold leading-tight text-slate-900">Other</span>
+                      <span className="block text-sm min-[425px]:text-base font-semibold leading-tight text-slate-900">Other</span>
                       <span className="block text-sm text-slate-500">0 departments</span>
                     </span>
                   </button>
@@ -1369,7 +1368,7 @@ export default function RegisterForm() {
                   <input
                     type="text"
                     placeholder="Enter your profession"
-                    className="mt-3 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mt-3 w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent"
                     value={customProfession}
                     onChange={(e) => setCustomProfession(e.target.value)}
                     autoFocus
@@ -1379,45 +1378,54 @@ export default function RegisterForm() {
               )}
 
               {/* Department */}
-              <div ref={departmentSectionRef} className="scroll-mt-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">
-                  {isSpOnboardingUi && spDepartmentsLockedFromInvite
-                    ? "Your assigned departments"
-                    : isSpOnboardingUi
-                      ? "Add your department"
-                      : "Department Suggestions"}
-                </h2>
-                {isSpOnboardingUi && spDepartmentsLockedFromInvite && (
-                  <p className="mb-3 text-sm text-slate-600">
-                    These departments were chosen by your workspace admin. Review and click Next to
-                    continue setup.
-                  </p>
-                )}
-                {isSpOnboardingUi && workspaceProfessionLabel && (
-                  <div className="mb-4 flex justify-end">
-                    <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700">
-                      Profession: {workspaceProfessionLabel}
-                    </span>
+              <div ref={departmentSectionRef} className="scroll-mt-6 space-y-4">
+                
+                <div className="flex flex-wrap justify-between items-center">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-md font-semibold text-gray-800">
+                      {isSpOnboardingUi && spDepartmentsLockedFromInvite
+                        ? "Your assigned departments"
+                        : isSpOnboardingUi
+                          ? "Add your department"
+                          : "Department Suggestions"}
+                    </h2>
+                    {isSpOnboardingUi && spDepartmentsLockedFromInvite && (
+                      <p className="text-sm text-slate-600">
+                        These departments were chosen by your workspace admin. Review and click Next to
+                        continue setup.
+                      </p>
+                    )}
                   </div>
-                )}
-                {!isSpOnboardingUi && !!selectedProfessionName && selectedProfessionId !== OTHER_VALUE && (
-                  <div className="mb-4 flex justify-end">
-                    <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700">
-                      {selectedProfessionName}
-                    </span>
+
+                  <div>
+                    {isSpOnboardingUi && workspaceProfessionLabel && (
+                      <div className="flex justify-end">
+                        <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700">
+                          Profession: {workspaceProfessionLabel}
+                        </span>
+                      </div>
+                    )}
+                    {!isSpOnboardingUi && !!selectedProfessionName && selectedProfessionId !== OTHER_VALUE && (
+                      <div className="flex justify-end">
+                        <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
+                          {selectedProfessionName}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="rounded-3xl border border-violet-200 bg-white p-5">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold tracking-[0.2em] text-violet-700 uppercase">Selected Departments</h3>
-                    <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700">
+                </div>
+
+                <div className="rounded-2xl border border-indigo-200 bg-white p-4 lg:p-6 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between">
+                    <h3 className="text-sm font-semibold tracking-wider text-indigo-600 uppercase">Selected Departments</h3>
+                    <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
                       {selectedDepartments.length} selected
                     </span>
                   </div>
-                  <div className="mb-6 flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {selectedDepartments.length > 0 ? (
                       selectedDepartments.map((name) => (
-                        <span key={name} className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white">
+                        <span key={name} className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-3 py-2 text-xs min-[425px]:text-sm font-medium text-white">
                           {name}
                           {!spDepartmentsLockedFromInvite && (
                             <button
@@ -1425,9 +1433,10 @@ export default function RegisterForm() {
                               onClick={() =>
                                 setSelectedDepartments((prev) => prev.filter((dept) => dept !== name))
                               }
-                              className="rounded-full bg-violet-500 px-2 py-0.5 text-xs font-semibold hover:bg-violet-400"
+                              className="rounded-full"
                             >
-                              Remove
+                              {/* Remove */}
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 w-4 h-4 cursor-pointer"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                             </button>
                           )}
                         </span>
@@ -1441,7 +1450,7 @@ export default function RegisterForm() {
                     selectedProfessionId &&
                     selectedProfessionId !== OTHER_VALUE &&
                     departmentSuggestions.length > 0 && (
-                    <div className="mb-6 flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2">
                       {departmentSuggestions.map((name) => {
                         const isSelected = selectedDepartments.includes(name);
                         return (
@@ -1456,10 +1465,10 @@ export default function RegisterForm() {
                               );
                               if (!isSelected) scrollToNextButton();
                             }}
-                            className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-base font-medium transition ${
+                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs min-[425px]:text-sm font-medium transition ${
                               isSelected
-                                ? "border-violet-500 bg-violet-50 text-violet-700"
-                                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300"
+                                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                : "border-slate-300 bg-white text-slate-700 hover:border-indigo-300"
                             }`}
                           >
                             {name}
@@ -1470,10 +1479,10 @@ export default function RegisterForm() {
                       <button
                         type="button"
                         onClick={() => setCustomDepartmentMode((prev) => !prev)}
-                        className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-base font-medium transition ${
+                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs min-[425px]:text-sm font-medium transition ${
                           customDepartmentMode
-                            ? "border-violet-500 bg-violet-50 text-violet-700"
-                            : "border-slate-300 bg-white text-slate-700 hover:border-violet-300"
+                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                            : "border-slate-300 bg-white text-slate-700 hover:border-indigo-300"
                         }`}
                       >
                         Other
@@ -1484,13 +1493,13 @@ export default function RegisterForm() {
 
                   {!(isSpOnboardingUi && spDepartmentsLockedFromInvite) &&
                     (selectedProfessionId === OTHER_VALUE || customDepartmentMode) && (
-                    <div className="rounded-2xl border border-dashed border-violet-200 p-4">
-                      <p className="mb-3 text-lg text-slate-700">Add custom department</p>
+                    <div className="rounded-2xl border border-dashed border-indigo-200 p-4">
+                      <p className="mb-3 text-sm text-slate-700">Add custom department</p>
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <input
                           type="text"
                           placeholder="e.g. Support, Accounts"
-                          className="flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-base focus:ring-2 focus:ring-violet-400 focus:border-transparent"
+                          className="flex-1 rounded-2xl border border-slate-300 px-3 py-2 text-xs min-[425px]:text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
                           value={customDepartment}
                           onChange={(e) => setCustomDepartment(e.target.value)}
                         />
@@ -1506,7 +1515,7 @@ export default function RegisterForm() {
                             setCustomDepartment("");
                             scrollToNextButton();
                           }}
-                          className="rounded-2xl bg-violet-600 px-6 py-3 text-white font-semibold hover:bg-violet-700 transition"
+                          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm text-white font-semibold hover:bg-indigo-700 transition"
                         >
                           Add
                         </button>
@@ -1549,7 +1558,7 @@ export default function RegisterForm() {
           )}
 
           {onboardingStep === 2 && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 space-y-4">
+            <div className="bg-white rounded-2xl shadow-xl p-4 lg:p-6 border border-gray-100 space-y-4">
               <h2 className="text-lg font-semibold text-gray-800">Google Calendar Sync</h2>
               <p className="text-sm text-gray-600">Connect your Google Calendar to avoid double bookings and keep availability in sync.</p>
               {googleSync ? (
@@ -1614,7 +1623,7 @@ export default function RegisterForm() {
                       }
                     }}
                     disabled={calendarConnecting}
-                    className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="w-full flex items-center justify-center gap-3 py-2 px-4 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
                     {calendarConnecting ? (
                       <>
@@ -1643,7 +1652,7 @@ export default function RegisterForm() {
           )}
 
           {onboardingStep === 3 && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-xl p-4 lg:p-6 border border-gray-100">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Working Hours</h2>
               <p className="text-sm text-gray-600 mb-4">Configure your availability and break times, then click Save Timesheet before continuing.</p>
               <AvailabilityTimesheet
@@ -1660,7 +1669,7 @@ export default function RegisterForm() {
           )}
 
           {onboardingStep === 4 && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 space-y-6">
+            <div className="bg-white rounded-2xl shadow-xl p-4 lg:p-6 border border-gray-100 space-y-3">
               <h2 className="text-lg font-semibold text-gray-800">Meeting Options</h2>
               <p className="text-sm text-gray-600">Choose how clients can meet with you.</p>
               <div className="space-y-3">
@@ -1675,7 +1684,7 @@ export default function RegisterForm() {
                       type="checkbox"
                       checked={meetingOptions[key]}
                       onChange={(e) => setMeetingOptions((prev) => ({ ...prev, [key]: e.target.checked }))}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <span className="text-gray-700">{label}</span>
                   </label>
@@ -1694,7 +1703,7 @@ export default function RegisterForm() {
                     goToOnboardingStep(onboardingStep - 1);
                   }}
                   disabled={finishProgressOpen}
-                  className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Back
                 </button>
@@ -1704,7 +1713,7 @@ export default function RegisterForm() {
                 type="button"
                 onClick={() => handleOnboardingNext()}
                 disabled={onboardingNextDisabled}
-                className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {finishProgressOpen
                   ? "Setting up…"
@@ -1945,7 +1954,7 @@ export default function RegisterForm() {
           <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
                 Sign in
               </Link>
             </p>

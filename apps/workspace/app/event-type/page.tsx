@@ -87,6 +87,7 @@ import {
 } from "@/src/features/departments/DepartmentPanelPrimitives";
 import type { event_type_format } from "@/src/types/event_types";
 import type { event_type_format_filter_value } from "@/src/features/event-types/EventTypeFilters";
+import ScreenGate from "@/src/components/ScreenGate";
 
 interface EventType {
   id: number;
@@ -121,7 +122,7 @@ const EVENT_TYPES_PAGE_SIZE = 10;
 
 const CARD_GRADIENTS = [
   "from-cyan-500 to-sky-600",
-  "from-violet-500 to-indigo-600",
+  "from-indigo-500 to-indigo-600",
   "from-emerald-500 to-teal-600",
   "from-amber-500 to-orange-600",
   "from-rose-500 to-pink-600",
@@ -216,7 +217,7 @@ function event_type_format_list_label(format: event_type_format): string {
 function event_type_format_badge_class(format: event_type_format): string {
   if (format === "group_class") return "bg-sky-50 text-sky-700";
   if (format === "recurring") return "bg-emerald-50 text-emerald-700";
-  return "bg-violet-50 text-violet-700";
+  return "bg-indigo-50 text-indigo-700";
 }
 
 export default function EventTypes() {
@@ -1317,7 +1318,7 @@ export default function EventTypes() {
               <button
                 type="button"
                 onClick={() => set_settings_open(true)}
-                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 <Settings2 className="mr-2 h-4 w-4" />
                 View Settings
@@ -1326,94 +1327,97 @@ export default function EventTypes() {
                 <button
                   type="button"
                   onClick={handleNewEvent}
-                  className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                  className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Event Type
                 </button>
               ) : null}
-            </div>
+            </div>            
           </div>
 
-          <div className="grid grid-cols-3 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
-              <div className="md:flex md:items-center md:gap-3">
-                <div className="flex items-center gap-2 md:contents">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 md:h-10 md:w-10">
-                    <CalendarDays className="h-4 w-4 md:h-5 md:w-5" />
+          <ScreenGate minWidth={768}>
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
+                <div className="md:flex md:items-center md:gap-3">
+                  <div className="flex items-center gap-2 md:contents">
+                    <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                      <CalendarDays className="h-4 w-4 md:h-5 md:w-5" />
+                    </div>
+                    <p className="text-xl font-bold text-slate-900 md:hidden">{total_event_types}</p>
                   </div>
-                  <p className="text-xl font-bold text-slate-900 md:hidden">{total_event_types}</p>
-                </div>
-                <div className="mt-1 min-w-0 md:mt-0">
-                  <p className="hidden text-2xl font-bold text-slate-900 md:block">{total_event_types}</p>
-                  <p className="text-[11px] font-medium leading-snug text-slate-500 md:text-xs">
-                    Active event types
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-900">{team_based_event_types}</p>
-                  <p className="text-xs font-medium text-slate-500">Team-based</p>
-                </div>
-              </div>
-            </div> */}
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
-              <div className="md:flex md:items-center md:gap-3">
-                <div className="flex items-center gap-2 md:contents">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 md:h-10 md:w-10">
-                    <EyeOff className="h-4 w-4 md:h-5 md:w-5" />
+                  <div className="mt-1 min-w-0 md:mt-0">
+                    <p className="text-sm font-medium leading-snug text-slate-500">
+                      Active event types
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900">{total_event_types}</p>
                   </div>
-                  <p className="text-xl font-bold text-slate-900 md:hidden">{draft_event_types}</p>
-                </div>
-                <div className="mt-1 min-w-0 md:mt-0">
-                  <p className="hidden text-2xl font-bold text-slate-900 md:block">{draft_event_types}</p>
-                  <p className="text-[11px] font-medium leading-snug text-slate-500 md:text-xs">
-                    Draft
-                  </p>
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
-              <div className="md:flex md:items-center md:gap-3">
-                <div className="flex items-center gap-2 md:contents">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600 md:h-10 md:w-10">
-                    <EyeOff className="h-4 w-4 md:h-5 md:w-5" />
+              {/* <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                    <Users className="h-5 w-5" />
                   </div>
-                  <p className="text-xl font-bold text-slate-900 md:hidden">{private_event_types}</p>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{team_based_event_types}</p>
+                    <p className="text-xs font-medium text-slate-500">Team-based</p>
+                  </div>
                 </div>
-                <div className="mt-1 min-w-0 md:mt-0">
-                  <p className="hidden text-2xl font-bold text-slate-900 md:block">{private_event_types}</p>
-                  <p className="text-[11px] font-medium leading-snug text-slate-500 md:text-xs">
-                    Private
-                  </p>
+              </div> */}
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
+                <div className="md:flex md:items-center md:gap-3">
+                  <div className="flex items-center gap-2 md:contents">
+                    <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                      <EyeOff className="h-4 w-4 md:h-5 md:w-5" />
+                    </div>
+                    <p className="text-xl font-bold text-slate-900 md:hidden">{draft_event_types}</p>
+                  </div>
+                  <div className="mt-1 min-w-0 md:mt-0">
+                    <p className="text-sm font-medium leading-snug text-slate-500">
+                      Draft
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900">{draft_event_types}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
+                <div className="md:flex md:items-center md:gap-3">
+                  <div className="flex items-center gap-2 md:contents">
+                    <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                      <EyeOff className="h-4 w-4 md:h-5 md:w-5" />
+                    </div>
+                    <p className="text-xl font-bold text-slate-900 md:hidden">{private_event_types}</p>
+                  </div>
+                  <div className="mt-1 min-w-0 md:mt-0">
+                    <p className="text-sm font-medium leading-snug text-slate-500">
+                      Private
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900">{private_event_types}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-span-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:col-span-1 xl:col-span-1">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-bold text-slate-900">{default_timezone_label}</p>
+                    <p className="text-sm font-medium text-slate-500">Default timezone</p>
+                  </div>
                 </div>
               </div>
             </div>
+          </ScreenGate>
 
-            <div className="col-span-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:col-span-1 xl:col-span-1">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <Globe className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="break-words text-sm font-bold text-slate-900">{default_timezone_label}</p>
-                  <p className="text-xs font-medium text-slate-500">Default timezone</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-visible">
-            <div className="border-b border-slate-200 p-4 sm:px-5">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-xl p-4">
+          
+            <div className="pb-4">
               <EventTypeFilters
                 search={search}
                 format_filter={format_filter}
@@ -1455,22 +1459,25 @@ export default function EventTypes() {
               </div>
             ) : (
               <>
-                <EventTypeListMobileCards
-                  items={paginated_items}
-                  format_duration_label={format_duration_short}
-                  get_status={parse_event_type_status}
-                  get_status_label={event_type_status_label}
-                  on_row_click={(item) => {
-                    if (isStaffUser) return;
-                    handleEdit(item as EventType);
-                  }}
-                />
+                <ScreenGate maxWidth={1023}>
+                  <EventTypeListMobileCards
+                    items={paginated_items}
+                    format_duration_label={format_duration_short}
+                    get_status={parse_event_type_status}
+                    get_status_label={event_type_status_label}
+                    on_row_click={(item) => {
+                      if (isStaffUser) return;
+                      handleEdit(item as EventType);
+                    }}
+                  />
+                </ScreenGate>
 
-                <div className="hidden overflow-x-auto overflow-y-visible md:block">
-                  <table className="w-full min-w-[980px] border-collapse">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left">
+                <ScreenGate minWidth={1024}>
+                <div className="overflow-x-auto max-[1301px]:p-3">
+                  <table className="w-full border-collapse">
+                    <thead className="bg-slate-100">
+                      <tr className="text-left text-sm text-slate-900">
+                        <th className="px-6 py-4 font-semibold">
                           <input
                             type="checkbox"
                             checked={all_page_selected}
@@ -1478,30 +1485,30 @@ export default function EventTypes() {
                               if (el) el.indeterminate = some_page_selected;
                             }}
                             onChange={toggle_select_all_page}
-                            className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                             aria-label="Select all event types on this page"
                           />
                         </th>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Event Type
                         </th>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Format
                         </th>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Duration
                         </th>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Capacity
                         </th>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Team / Provider
                         </th>
-                        <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th className="px-6 py-4 font-semibold">
                           Status
                         </th>
                         {!isStaffUser ? (
-                          <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <th className="px-6 py-4 text-right font-semibold">
                             Action
                           </th>
                         ) : null}
@@ -1527,22 +1534,20 @@ export default function EventTypes() {
                         return (
                           <tr
                             key={item.id}
-                            className="border-b border-slate-100 transition hover:bg-slate-50/80"
+                            className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
                           >
-                            <td className="px-4 py-4">
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Select">
                               <input
                                 type="checkbox"
                                 checked={selected}
                                 onChange={() => toggle_select_row(item.id)}
-                                className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 aria-label={`Select ${item.title}`}
                               />
                             </td>
-                            <td className="px-4 py-4">
-                              <div className="flex items-start gap-3">
-                                <div
-                                  className={cn(
-                                    "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Event Type">
+                              <div className="flex items-center max-[1301px]:justify-end gap-3">
+                                <div className={cn( "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
                                     get_card_gradient(item.id)
                                   )}
                                 >
@@ -1560,7 +1565,7 @@ export default function EventTypes() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Format">
                               <span
                                 className={cn(
                                   "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
@@ -1570,14 +1575,14 @@ export default function EventTypes() {
                                 {event_type_format_list_label(format)}
                               </span>
                             </td>
-                            <td className="px-4 py-4 text-sm text-slate-700">
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Duration">
                               {format_duration_short(item.duration_minutes)}
                             </td>
-                            <td className="px-4 py-4 text-sm text-slate-700">
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Capacity">
                               {capacity}
                             </td>
-                            <td className="px-4 py-4">
-                              <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
+                              <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
                                 <ProviderAvatar
                                   name={provider_label === "—" ? "Provider" : provider_label}
                                   initials={provider_initials(
@@ -1589,7 +1594,7 @@ export default function EventTypes() {
                                 <span className="truncate">{provider_label}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
                               <span
                                 className={cn(
                                   "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
@@ -1602,7 +1607,7 @@ export default function EventTypes() {
                               </span>
                             </td>
                             {!isStaffUser ? (
-                              <td className="px-4 py-4">
+                              <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
                                 <div className="flex items-center justify-end">
                                   <EventTypeActionsMenu
                                     open={open_menu_id === item.id}
@@ -1638,8 +1643,9 @@ export default function EventTypes() {
                     </tbody>
                   </table>
                 </div>
+                </ScreenGate>
 
-                <div className="border-t border-slate-200 px-4 py-3">
+                <div className="py-3">
                   <Pagination
                     currentPage={event_types_page}
                     totalPages={event_types_total_pages}
@@ -1660,7 +1666,7 @@ export default function EventTypes() {
         aria-label="Close panel"
         onClick={handlePanelClose}
         className={cn(
-          "fixed top-16 left-0 bottom-0 z-30 hidden w-[50vw] bg-black/50 transition-opacity duration-300 ease-in-out md:block",
+          "fixed top-16 left-0 bottom-0 z-50 hidden w-[50vw] bg-black/50 transition-opacity duration-300 ease-in-out md:block",
           panel_animated_open
             ? "opacity-100"
             : "pointer-events-none opacity-0"
@@ -1671,8 +1677,8 @@ export default function EventTypes() {
 
       <aside
         className={cn(
-          "fixed top-16 right-0 bottom-0 z-40 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
-          "w-full max-md:w-full md:!w-[50vw]",
+          "fixed top-16 right-0 bottom-0 z-50 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
+          "w-full max-md:w-full lg:!w-[60vw]",
           "transform transition-transform duration-300 ease-in-out will-change-transform",
           panel_animated_open
             ? "translate-x-0"
@@ -1696,7 +1702,7 @@ export default function EventTypes() {
                 </button>
               </div>
 
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
+              <div className="flex min-h-0 h-full flex-1 flex-col overflow-x-scroll pb-[60px] lg:pb-0">
                 {editingId !== null ? (
                   <EventTypeEditForm
                     key={editingId}
@@ -1753,17 +1759,17 @@ export default function EventTypes() {
       )}
 
       {settings_open && (
-        <div className="fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 z-999 flex">
           <button
             type="button"
             aria-label="Close settings"
             onClick={() => set_settings_open(false)}
             className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
           />
-          <div className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl">
+          <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+              <div className="flex gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
                   <Settings2 className="h-5 w-5" />
                 </div>
                 <div>
@@ -1816,7 +1822,7 @@ export default function EventTypes() {
                             | "public",
                         }))
                       }
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-sky-400"
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-indigo-400"
                     >
                       <option value="private">Private</option>
                       <option value="public">Public</option>
@@ -1849,7 +1855,7 @@ export default function EventTypes() {
                     }))
                   }
                   placeholder="Add an internal note for workspace admins..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white"
                 />
               </div>
 
@@ -1876,8 +1882,8 @@ export default function EventTypes() {
               </div>
             </div>
 
-            <div className="border-t border-slate-200 bg-white px-5 py-4 sm:px-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+            <div className="border-t border-slate-200 bg-white px-3 py-4 sm:px-6">
+              <div className="flex gap-3 flex-row justify-between">
                 {!isStaffUser ? (
                   <button
                     type="button"
@@ -1889,7 +1895,7 @@ export default function EventTypes() {
                   </button>
                 ) : null}
 
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex gap-3 flex-row">
                   <button
                     type="button"
                     onClick={() => set_settings_open(false)}
@@ -1902,7 +1908,7 @@ export default function EventTypes() {
                       type="button"
                       onClick={handle_save_settings}
                       disabled={settings_saving}
-                      className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-100 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {settings_saving ? "Saving…" : "Save Settings"}
                     </button>

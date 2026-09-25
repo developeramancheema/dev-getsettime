@@ -60,7 +60,7 @@ export function buildCalendarCells(viewDate: Date): CalendarCell[] {
 export function getStatusPillClass(status: string | null | undefined): string {
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
-      return "bg-blue-50 text-blue-700 border-blue-200";
+      return "bg-indigo-50 text-indigo-700 border-blue-200";
     case "completed":
       return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case "pending":
@@ -85,39 +85,39 @@ export function getStatusCalendarChipClass(
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
       return {
-        chip: "bg-blue-50 hover:bg-blue-100/80",
-        time: "text-blue-700",
+        chip: "bg-indigo-50 hover:bg-indigo-100/80 border-indigo-200",
+        time: "text-indigo-700",
       };
     case "completed":
       return {
-        chip: "bg-emerald-50 hover:bg-emerald-100/80",
+        chip: "bg-emerald-50 hover:bg-emerald-100/80 border-emerald-200",
         time: "text-emerald-700",
       };
     case "pending":
       return {
-        chip: "bg-amber-50 hover:bg-amber-100/80",
+        chip: "bg-amber-50 hover:bg-amber-100/80 border-amber-200",
         time: "text-amber-700",
       };
     case "cancelled":
       return {
-        chip: "bg-rose-50 hover:bg-rose-100/80",
+        chip: "bg-red-50 hover:bg-red-100/80 border-red-200",
         time: "text-rose-700",
       };
     case "no_show":
     case "no-show":
     case "noshow":
       return {
-        chip: "bg-violet-50 hover:bg-violet-100/80",
+        chip: "bg-violet-50 hover:bg-violet-100/80 border-violet-200",
         time: "text-violet-700",
       };
     case "reschedule":
       return {
-        chip: "bg-indigo-50 hover:bg-indigo-100/80",
+        chip: "bg-indigo-50 hover:bg-indigo-100/80 border-indigo-200",
         time: "text-indigo-700",
       };
     default:
       return {
-        chip: "bg-slate-50 hover:bg-slate-100/80",
+        chip: "bg-slate-50 hover:bg-slate-100/80 border-slate-200",
         time: "text-slate-700",
       };
   }
@@ -126,7 +126,7 @@ export function getStatusCalendarChipClass(
 export function getStatusDotClass(status: string | null | undefined): string {
   switch ((status ?? "").toLowerCase()) {
     case "confirmed":
-      return "bg-blue-500";
+      return "bg-indigo-500";
     case "completed":
       return "bg-emerald-500";
     case "pending":

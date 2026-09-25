@@ -68,10 +68,15 @@ export function RequestIntegrationModal({ open, onClose, onSubmitted }: RequestI
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
+      className="fixed inset-0 z-999 flex items-center justify-center overflow-y-auto"
       onClick={handleClose}
       role="presentation"
     >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        aria-hidden="true"
+        onClick={handleClose}
+      />
       <div
         className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}

@@ -57,6 +57,8 @@ import {
 import { useServiceProviders, useUserDepartments } from "@/src/hooks/useBookingLookups";
 import { useAuth } from "@/src/providers/AuthProvider";
 import type { ServiceProvider } from "@/src/types/booking-entities";
+import ScreenGate from "@/src/components/ScreenGate";
+
 
 /** Public=active, Private=private, Draft=draft; inactive kept for legacy rows. */
 type DepartmentStatus = "active" | "private" | "draft" | "inactive";
@@ -961,13 +963,13 @@ export default function DepartmentsPage() {
     <>
       <div
         className={classNames(
-          "min-h-screen transition-[margin] duration-300 ease-in-out",
+          "transition-[margin] duration-300 ease-in-out",
           (layoutPanelOpen || panelAnimatedOpen) &&
             "hidden lg:block lg:mr-[28rem]"
         )}
       >
         <div className="mx-auto space-y-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-4 flex-row flex-wrap items-start sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                 Departments
@@ -983,7 +985,7 @@ export default function DepartmentsPage() {
               <button
                 type="button"
                 onClick={openAddDepartmentDrawer}
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-violet-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 <Plus className="h-4 w-4" />
                 Add Department
@@ -991,80 +993,77 @@ export default function DepartmentsPage() {
             ) : null}
           </div>
 
-          <div
-            className={classNames(
-              "grid gap-3 sm:grid-cols-2",
-              showFullDoctorFlow ? "xl:grid-cols-4" : "xl:grid-cols-3"
-            )}
-          >
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-slate-900">
-                  {isPageLoading ? (
-                    <StatValueSkeleton />
-                  ) : (
-                    activeDepartmentsCount
-                  )}
-                </p>
-                <p className="text-sm text-slate-500">active departments</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <Boxes className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-slate-900">
-                  {isPageLoading ? <StatValueSkeleton /> : totalServicesCount}
-                </p>
-                <p className="text-sm text-slate-500">linked services</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
-                <Users className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-slate-900">
-                  {isPageLoading ? (
-                    <StatValueSkeleton />
-                  ) : showFullDoctorFlow ? (
-                    assignedDoctorsCount
-                  ) : (
-                    doctors.length
-                  )}
-                </p>
-                <p className="text-sm text-slate-500">
-                  {showFullDoctorFlow ? "assigned consultants" : "consultants"}
-                </p>
-              </div>
-            </div>
-
-            {showFullDoctorFlow && (
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                  <Lock className="h-5 w-5" />
+          <ScreenGate minWidth={768}> 
+            <div className={classNames( "grid gap-3 sm:grid-cols-4", showFullDoctorFlow ? "xl:grid-cols-4" : "xl:grid-cols-3" )}>
+              <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Building2 className="h-4 w-4 md:h-5 md:w-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xl font-bold text-slate-900">
+                  <p className="text-sm font-medium leading-snug text-slate-500">Active departments</p>
+                  <p className="text-2xl font-bold text-slate-900">
                     {isPageLoading ? (
                       <StatValueSkeleton />
                     ) : (
-                      privateDepartmentsCount + draftDepartmentsCount
+                      activeDepartmentsCount
                     )}
                   </p>
-                  <p className="text-sm text-slate-500">private / draft</p>
                 </div>
               </div>
-            )}
-          </div>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+              <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                  <Boxes className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-snug text-slate-500">Linked services</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {isPageLoading ? <StatValueSkeleton /> : totalServicesCount}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <Users className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-snug text-slate-500">
+                    {showFullDoctorFlow ? "Assigned consultants" : "Consultants"}
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {isPageLoading ? (
+                      <StatValueSkeleton />
+                    ) : showFullDoctorFlow ? (
+                      assignedDoctorsCount
+                    ) : (
+                      doctors.length
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {showFullDoctorFlow && (
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                    <Lock className="h-4 w-4 md:h-5 md:w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-snug text-slate-500">private / draft</p>
+                    <p className="text-2xl font-bold text-slate-900">
+                      {isPageLoading ? (
+                        <StatValueSkeleton />
+                      ) : (
+                        privateDepartmentsCount + draftDepartmentsCount
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScreenGate>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-4">
               <DepartmentFilters
                 leading={
@@ -1072,7 +1071,7 @@ export default function DepartmentsPage() {
                     <h2 className="text-lg font-semibold text-slate-900">
                       All Departments
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="text-sm text-slate-500">
                       {showFullDoctorFlow
                         ? "Organize clinical departments and manage services and consultant assignments."
                         : isLoggedInServiceProvider
@@ -1097,235 +1096,566 @@ export default function DepartmentsPage() {
               />
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-200">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px] border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/80">
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Department
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Department consultants
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Services
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Status
-                      </th>
-                      {showRowActions && (
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          Action
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
+            <div className="rounded-xl">
+              
+              {/* Mobile View */}
+              <ScreenGate maxWidth={1023}> 
+                <div className="w-full">
+
+                  <div className="space-y-2 md:pt-2">
                     {isPageLoading ? (
                       <DepartmentTableRowsSkeleton showActions={showRowActions} />
                     ) : (
                       <>
+                        {/* Empty State */}
                         {paginatedDepartments.length === 0 && (
-                          <tr>
-                            <td
-                              colSpan={showRowActions ? 5 : 4}
-                              className="px-4 py-10 text-center"
-                            >
-                              <p className="text-sm font-medium text-slate-700">
-                                {isLoggedInServiceProvider
-                                  ? "No assigned departments yet"
-                                  : "No departments found"}
-                              </p>
-                              <p className="mt-1 text-sm text-slate-500">
-                                {isLoggedInServiceProvider
-                                  ? "Choose a department from Quick Suggestions when adding."
-                                  : departments.length === 0
-                                    ? "Add your first department to get started."
-                                    : "Try changing the search or status filter."}
-                              </p>
-                            </td>
-                          </tr>
+                          <div
+                            className="
+                              rounded-xl
+                              border border-slate-200
+                              bg-white
+                              px-4 py-10
+                              text-center
+                            "
+                          >
+                            <p className="text-sm font-medium text-slate-700">
+                              {isLoggedInServiceProvider
+                                ? "No assigned departments yet"
+                                : "No departments found"}
+                            </p>
+
+                            <p className="mt-1 text-sm text-slate-500">
+                              {isLoggedInServiceProvider
+                                ? "Choose a department from Quick Suggestions when adding."
+                                : departments.length === 0
+                                  ? "Add your first department to get started."
+                                  : "Try changing the search or status filter."}
+                            </p>
+                          </div>
                         )}
 
+                        {/* Department Cards */}
                         {paginatedDepartments.map((dep) => {
                           const assigned = getDepartmentDoctors(dep.id);
                           const services = getDepartmentServices(dep.id);
                           const doctorCount = getDepartmentDoctorCount(dep.id);
 
                           return (
-                            <tr
-                              key={dep.id}
-                              className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60"
-                            >
-                              <td className="px-4 py-3.5">
-                                <div className="flex items-start gap-3">
-                                  <div
-                                    className={classNames(
-                                      "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
-                                      get_department_gradient(dep)
-                                    )}
-                                  >
-                                    <FaUserDoctor className="h-4 w-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-slate-900">
-                                      {dep.name}
-                                    </p>
-                                    {dep.description ? (
-                                      <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
-                                        {dep.description}
-                                      </p>
-                                    ) : (
-                                      <p className="mt-0.5 text-xs text-slate-400">
-                                        {doctorCount} consultant
-                                        {doctorCount !== 1 ? "s" : ""}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </td>
+                            <div key={dep.id} className="group">
+                              <div className="relative flex w-full items-start md:items-center justify-between rounded-xl border border-slate-200  px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-sm">
+                                <div className="flex items-start flex-col sm:items-center gap-3 pr-4">
+                                  <div className="flex gap-2">
+                                    {/* Icon */}
+                                    <div
+                                      className={classNames(
+                                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm",
+                                        get_department_gradient(dep)
+                                      )}
+                                    >
+                                      <FaUserDoctor className="h-5 w-5" />
+                                    </div>
 
-                              <td className="px-4 py-3.5">
-                                {assigned.length === 0 ? (
-                                  <span className="text-sm text-slate-400">
-                                    Unassigned
-                                  </span>
-                                ) : (
-                                  <div className="flex min-w-0 items-center gap-2.5">
-                                    <div className="flex shrink-0 items-center">
-                                      {assigned.slice(0, 3).map((doctor, index) => (
-                                        <div
-                                          key={doctor.id}
-                                          className={classNames(
-                                            "relative rounded-full ring-2 ring-white",
-                                            index > 0 && "-ml-2"
+                                    {/* Content */}
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-slate-900">
+                                        {dep.name}
+                                      </p>
+
+                                      {dep.description ? (
+                                        <p className="mt-0.5 line-clamp-1 text-sm text-slate-500">
+                                          {dep.description}
+                                        </p>
+                                      ) : (
+                                        // <p className="mt-0.5 text-xs text-slate-400">
+                                        //   {doctorCount} consultant
+                                        //   {doctorCount !== 1 ? "s" : ""}
+                                        // </p>
+                                        <div className="flex shrink-0 flex-col justify-center">
+                                          {services.length === 0 ? (
+                                            <p className="mt-0.5 text-sm text-slate-400">
+                                              No services
+                                            </p>
+                                          ) : (
+                                            <p className="mt-0.5 text-sm text-slate-400">
+                                              {services.length} service
+                                              {services.length !== 1 ? "s" : ""}
+                                            </p>
                                           )}
-                                          style={{ zIndex: assigned.length - index }}
-                                        >
-                                          <ProviderAvatar
-                                            name={doctor.name}
-                                            initials={provider_initials(doctor.name)}
-                                            avatarUrl={providerAvatarById.get(doctor.id)}
-                                            size="sm"
-                                          />
                                         </div>
-                                      ))}
-                                      {assigned.length > 3 && (
-                                        <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
-                                          +{assigned.length - 3}
-                                        </span>
                                       )}
                                     </div>
-                                    <p className="min-w-0 text-sm leading-snug text-slate-800">
-                                      {assigned[0]?.name}
-                                      {assigned.length > 1 ? (
+                                  </div>
+
+                                  <ScreenGate maxWidth={639}>
+                                    {/* Assigned mobile */}
+                                    <div className="flex shrink-0 items-center gap-3">
+                                      {assigned.length === 0 ? (
+                                        <span className="text-sm text-slate-400">
+                                          Unassigned
+                                        </span>
+                                      ) : (
                                         <>
-                                          <br />
-                                          <span className="text-xs text-slate-500">
-                                            +{assigned.length - 1} more
-                                          </span>
+                                          <div className="flex shrink-0 items-center">
+                                            {assigned.slice(0, 3).map((doctor, index) => (
+                                              <div
+                                                key={doctor.id}
+                                                className={classNames(
+                                                  "relative rounded-full ring-2 ring-white",
+                                                  index > 0 && "-ml-2"
+                                                )}
+                                                style={{
+                                                  zIndex: assigned.length - index,
+                                                }}
+                                              >
+                                                <ProviderAvatar
+                                                  name={doctor.name}
+                                                  initials={provider_initials(doctor.name)}
+                                                  avatarUrl={providerAvatarById.get(doctor.id)}
+                                                  size="sm"
+                                                />
+                                              </div>
+                                            ))}
+
+                                            {assigned.length > 3 && (
+                                              <span
+                                                className="
+                                                  relative -ml-2
+                                                  flex h-7 w-7
+                                                  items-center justify-center
+                                                  rounded-full
+                                                  bg-slate-100
+                                                  text-sm font-semibold
+                                                  text-slate-600
+                                                  ring-2 ring-white
+                                                "
+                                              >
+                                                +{assigned.length - 3}
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium text-slate-700">
+                                              {assigned[0]?.name}
+                                            </p>
+
+                                            {assigned.length > 1 && (
+                                              <p className="text-sm text-slate-400">
+                                                +{assigned.length - 1} more
+                                              </p>
+                                            )}
+                                          </div>
                                         </>
-                                      ) : null}
-                                    </p>
+                                      )}
+                                    </div>
+                                  </ScreenGate>
+                                </div>
+                                
+                                <ScreenGate minWidth={640}>
+                                  {/* Assigned */}
+                                  <div className="flex shrink-0 items-center gap-3 px-4">
+                                    {assigned.length === 0 ? (
+                                      <span className="text-sm text-slate-400">
+                                        Unassigned
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <div className="flex shrink-0 items-center">
+                                          {assigned.slice(0, 3).map((doctor, index) => (
+                                            <div
+                                              key={doctor.id}
+                                              className={classNames(
+                                                "relative rounded-full ring-2 ring-white",
+                                                index > 0 && "-ml-2"
+                                              )}
+                                              style={{
+                                                zIndex: assigned.length - index,
+                                              }}
+                                            >
+                                              <ProviderAvatar
+                                                name={doctor.name}
+                                                initials={provider_initials(doctor.name)}
+                                                avatarUrl={providerAvatarById.get(doctor.id)}
+                                                size="sm"
+                                              />
+                                            </div>
+                                          ))}
+
+                                          {assigned.length > 3 && (
+                                            <span
+                                              className="
+                                                relative -ml-2
+                                                flex h-7 w-7
+                                                items-center justify-center
+                                                rounded-full
+                                                bg-slate-100
+                                                text-sm font-semibold
+                                                text-slate-600
+                                                ring-2 ring-white
+                                              "
+                                            >
+                                              +{assigned.length - 3}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <div className="min-w-0">
+                                          <p className="truncate text-sm font-medium text-slate-700">
+                                            {assigned[0]?.name}
+                                          </p>
+
+                                          {assigned.length > 1 && (
+                                            <p className="text-sm text-slate-400">
+                                              +{assigned.length - 1} more
+                                            </p>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
-                                )}
-                              </td>
+                                </ScreenGate>
 
-                              <td className="px-4 py-3.5">
-                                {services.length === 0 ? (
-                                  <span className="text-sm text-slate-400">
-                                    No services
-                                  </span>
-                                ) : (
-                                  <p className="text-sm text-slate-700">
-                                    {services.length} service
-                                    {services.length !== 1 ? "s" : ""}
-                                  </p>
-                                )}
-                              </td>
-
-                              <td className="px-4 py-3.5">
-                                <span
-                                  className={classNames(
-                                    "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
-                                    departmentStatusBadgeClass(dep.status)
-                                  )}
-                                >
-                                  {departmentStatusLabel(dep.status)}
-                                </span>
-                              </td>
-
-                              {showRowActions && (
-                                <td className="px-4 py-3.5">
-                                  <div className="relative flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => openEditDepartment(dep)}
-                                      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-                                    >
-                                      <Pencil className="h-3.5 w-3.5" />
-                                      Edit
-                                    </button>
-                                    <PortalActionsMenu
-                                      open={rowMenuId === dep.id}
-                                      onToggle={() =>
-                                        setRowMenuId((prev) =>
-                                          prev === dep.id ? null : dep.id
-                                        )
-                                      }
-                                    >
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        disabled={busyAction}
-                                        onClick={() => {
-                                          setRowMenuId(null);
-                                          void toggleDepartmentStatus(dep);
-                                        }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                                      >
-                                        {dep.status === "inactive" ? (
-                                          <>
-                                            <Power className="h-3.5 w-3.5" />
-                                            Activate
-                                          </>
-                                        ) : (
-                                          <>
-                                            <PowerOff className="h-3.5 w-3.5" />
-                                            Inactivate
-                                          </>
+                                {/* ACTION */}
+                                {showRowActions && (
+                                  <div className="flex shrink-0 flex-col items-end justify-end gap-2">
+                                    {/* STATUS */}
+                                    <div className="">
+                                      <span
+                                        className={classNames(
+                                          "inline-flex rounded-full px-3 py-1 text-xs font-medium",
+                                          departmentStatusBadgeClass(dep.status)
                                         )}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        disabled={
-                                          busyAction || departments.length === 1
-                                        }
-                                        onClick={() => {
-                                          setRowMenuId(null);
-                                          handleDeleteDepartmentClick(dep.id);
-                                        }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
                                       >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        Delete
-                                      </button>
-                                    </PortalActionsMenu>
+                                        {departmentStatusLabel(dep.status)}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                      <PortalActionsMenu
+                                        open={rowMenuId === dep.id}
+                                        onToggle={() =>
+                                          setRowMenuId((prev) =>
+                                            prev === dep.id ? null : dep.id
+                                          )
+                                        }
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditDepartment(dep)}
+                                          className="
+                                            flex w-full items-center gap-2
+                                            rounded-lg px-3 py-2
+                                            text-sm text-indigo-600
+                                            hover:bg-indigo-50
+                                            disabled:opacity-60
+                                          "
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+
+                                          <span className="">
+                                            Edit
+                                          </span>
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={busyAction}
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            void toggleDepartmentStatus(dep);
+                                          }}
+                                          className="
+                                            flex w-full items-center gap-2
+                                            rounded-lg px-3 py-2
+                                            text-sm text-slate-700
+                                            hover:bg-slate-50
+                                            disabled:opacity-60
+                                          "
+                                        >
+                                          {dep.status === "inactive" ? (
+                                            <>
+                                              <Power className="h-3.5 w-3.5" />
+                                              Activate
+                                            </>
+                                          ) : (
+                                            <>
+                                              <PowerOff className="h-3.5 w-3.5" />
+                                              Inactivate
+                                            </>
+                                          )}
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={
+                                            busyAction || departments.length === 1
+                                          }
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            handleDeleteDepartmentClick(dep.id);
+                                          }}
+                                          className="
+                                            flex w-full items-center gap-2
+                                            rounded-lg px-3 py-2
+                                            text-sm text-red-600
+                                            hover:bg-red-50
+                                            disabled:opacity-60
+                                          "
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                          Delete
+                                        </button>
+                                      </PortalActionsMenu>
+                                    </div>
+
                                   </div>
-                                </td>
-                              )}
-                            </tr>
+                                )}
+
+                              </div>
+
+                            </div>
                           );
                         })}
                       </>
                     )}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                </div>
+              </ScreenGate>
+              
+              {/* Desktop View */}
+              <ScreenGate minWidth={1024}> 
+                <div className="overflow-hidden overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead className="bg-slate-100">
+                      <tr className="text-left text-sm text-slate-900">
+                        <th className="px-6 py-4 font-semibold">
+                          Department
+                        </th>
+                        <th className="px-6 py-4 font-semibold">
+                          Department consultants
+                        </th>
+                        <th className="px-6 py-4 font-semibold">
+                          Services
+                        </th>
+                        <th className="px-6 py-4 font-semibold">
+                          Status
+                        </th>
+                        {showRowActions && (
+                          <th className="px-6 py-4 text-right font-semibold">
+                            Action
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isPageLoading ? (
+                        <DepartmentTableRowsSkeleton showActions={showRowActions} />
+                      ) : (
+                        <>
+                          {paginatedDepartments.length === 0 && (
+                            <tr>
+                              <td
+                                colSpan={showRowActions ? 5 : 4}
+                                className="px-4 py-10 text-center"
+                              >
+                                <p className="text-sm font-medium text-slate-700">
+                                  {isLoggedInServiceProvider
+                                    ? "No assigned departments yet"
+                                    : "No departments found"}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {isLoggedInServiceProvider
+                                    ? "Choose a department from Quick Suggestions when adding."
+                                    : departments.length === 0
+                                      ? "Add your first department to get started."
+                                      : "Try changing the search or status filter."}
+                                </p>
+                              </td>
+                            </tr>
+                          )}
 
-              <div className="border-t border-slate-200 px-4 py-3">
+                          {paginatedDepartments.map((dep) => {
+                            const assigned = getDepartmentDoctors(dep.id);
+                            const services = getDepartmentServices(dep.id);
+                            const doctorCount = getDepartmentDoctorCount(dep.id);
+
+                            return (
+                              <tr
+                                key={dep.id}
+                                className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
+                              >
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Department">
+                                  <div className="flex max-[1301px]:justify-end gap-2.5">
+                                    <div
+                                      className={classNames(
+                                        "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                                        get_department_gradient(dep)
+                                      )}
+                                    >
+                                      <FaUserDoctor className="h-4 w-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-slate-900">
+                                        {dep.name}
+                                      </p>
+                                      {dep.description ? (
+                                        <p className="mt-0.5 line-clamp-1 text-sm text-slate-500">
+                                          {dep.description}
+                                        </p>
+                                      ) : (
+                                        <p className="mt-0.5 text-sm text-slate-400">
+                                          {doctorCount} consultant
+                                          {doctorCount !== 1 ? "s" : ""}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Provider">
+                                  {assigned.length === 0 ? (
+                                    <span className="text-sm text-slate-400">
+                                      Unassigned
+                                    </span>
+                                  ) : (
+                                    <div className="flex items-center max-[1301px]:justify-end gap-2.5">
+                                      <div className="flex shrink-0 items-center">
+                                        {assigned.slice(0, 3).map((doctor, index) => (
+                                          <div
+                                            key={doctor.id}
+                                            className={classNames(
+                                              "relative rounded-full ring-2 ring-white",
+                                              index > 0 && "-ml-2"
+                                            )}
+                                            style={{ zIndex: assigned.length - index }}
+                                          >
+                                            <ProviderAvatar
+                                              name={doctor.name}
+                                              initials={provider_initials(doctor.name)}
+                                              avatarUrl={providerAvatarById.get(doctor.id)}
+                                              size="sm"
+                                            />
+                                          </div>
+                                        ))}
+                                        {assigned.length > 3 && (
+                                          <span className="relative -ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600 ring-2 ring-white">
+                                            +{assigned.length - 3}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="min-w-0 text-sm leading-snug text-slate-800">
+                                        {assigned[0]?.name}
+                                        {assigned.length > 1 ? (
+                                          <>
+                                            <br />
+                                            <span className="text-slate-500">
+                                              +{assigned.length - 1} more
+                                            </span>
+                                          </>
+                                        ) : null}
+                                      </p>
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Services">
+                                  {services.length === 0 ? (
+                                    <span className="text-sm text-slate-400">
+                                      No services
+                                    </span>
+                                  ) : (
+                                    <p className="text-sm text-slate-700">
+                                      {services.length} service
+                                      {services.length !== 1 ? "s" : ""}
+                                    </p>
+                                  )}
+                                </td>
+
+                                <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
+                                  <span
+                                    className={classNames(
+                                      "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+                                      departmentStatusBadgeClass(dep.status)
+                                    )}
+                                  >
+                                    {departmentStatusLabel(dep.status)}
+                                  </span>
+                                </td>
+
+                                {showRowActions && (
+                                  <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <PortalActionsMenu
+                                        open={rowMenuId === dep.id}
+                                        onToggle={() =>
+                                          setRowMenuId((prev) =>
+                                            prev === dep.id ? null : dep.id
+                                          )
+                                        }
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() => openEditDepartment(dep)}
+                                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 disabled:opacity-60"
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+                                          Edit
+                                        </button>
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={busyAction}
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            void toggleDepartmentStatus(dep);
+                                          }}
+                                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                                        >
+                                          {dep.status === "inactive" ? (
+                                            <>
+                                              <Power className="h-3.5 w-3.5" />
+                                              Activate
+                                            </>
+                                          ) : (
+                                            <>
+                                              <PowerOff className="h-3.5 w-3.5" />
+                                              Inactivate
+                                            </>
+                                          )}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          disabled={
+                                            busyAction || departments.length === 1
+                                          }
+                                          onClick={() => {
+                                            setRowMenuId(null);
+                                            handleDeleteDepartmentClick(dep.id);
+                                          }}
+                                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                          Delete
+                                        </button>
+                                      </PortalActionsMenu>
+                                    </div>
+                                  </td>
+                                )}
+                              </tr>
+                            );
+                          })}
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </ScreenGate>
+
+
+              <div className="mt-3">
                 {isPageLoading ? (
                   <DepartmentPaginationSkeleton />
                 ) : (
@@ -1343,6 +1673,7 @@ export default function DepartmentsPage() {
             </div>
           </section>
 
+          <ScreenGate minWidth={1024}>
           {showFullDoctorFlow && (
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -1400,6 +1731,8 @@ export default function DepartmentsPage() {
               </div>
             </div>
           )}
+          </ScreenGate>
+
         </div>
       </div>
 
@@ -1430,7 +1763,7 @@ export default function DepartmentsPage() {
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
-              <div className="flex h-full min-h-0 flex-col">
+              <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
                 <div className="flex-1 overflow-y-auto px-5 py-5">
                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     <PanelSection number={1} title="Basic Details">
@@ -1517,7 +1850,7 @@ export default function DepartmentsPage() {
                                       selectedEditDoctors.map((doctor) => (
                                         <span
                                           key={doctor.id}
-                                          className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                                          className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
                                           onClick={(e) => e.stopPropagation()}
                                           onMouseDown={(e) =>
                                             e.stopPropagation()
@@ -1543,7 +1876,7 @@ export default function DepartmentsPage() {
                                                 toggleEditDoctor(doctor.id);
                                               }
                                             }}
-                                            className="rounded-full p-0.5 hover:bg-violet-100"
+                                            className="rounded-full p-0.5 hover:bg-indigo-100"
                                             aria-label={`Remove ${doctor.name}`}
                                           >
                                             <X className="h-3 w-3" />
@@ -1578,7 +1911,7 @@ export default function DepartmentsPage() {
                                             className={classNames(
                                               "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                                               checked
-                                                ? "border-violet-600 bg-violet-600 text-white"
+                                                ? "border-indigo-600 bg-indigo-600 text-white"
                                                 : "border-slate-300"
                                             )}
                                           >
@@ -1638,7 +1971,7 @@ export default function DepartmentsPage() {
                                     selectedEditServices.map((service) => (
                                       <span
                                         key={service.id}
-                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
                                         onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(e) => e.stopPropagation()}
                                       >
@@ -1693,7 +2026,7 @@ export default function DepartmentsPage() {
                                           className={classNames(
                                             "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                                             checked
-                                              ? "border-violet-600 bg-violet-600 text-white"
+                                              ? "border-indigo-600 bg-indigo-600 text-white"
                                               : "border-slate-300"
                                           )}
                                         >
@@ -1713,8 +2046,8 @@ export default function DepartmentsPage() {
                           )}
                         </div>
 
-                        <div className="flex items-start gap-2 rounded-xl border border-violet-100 bg-violet-50 px-3 py-2.5 text-xs text-violet-800">
-                          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <div className="flex items-start gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-indigo-600">
+                          <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
                           <p>
                             Services are not automatically assigned to all
                             department consultants. Consultants are assigned to specific
@@ -1743,7 +2076,7 @@ export default function DepartmentsPage() {
                               )
                             }
                             aria-label="Visibility"
-                            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-violet-400"
+                            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
                           >
                             {VISIBILITY_OPTIONS.map((option) => (
                               <option key={option.value} value={option.value}>
@@ -1778,7 +2111,7 @@ export default function DepartmentsPage() {
                       type="button"
                       onClick={() => void handleSaveEditedDepartment()}
                       disabled={busyAction || !editDepartmentName.trim()}
-                      className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {busyAction ? "Saving…" : "Save Department"}
                     </button>

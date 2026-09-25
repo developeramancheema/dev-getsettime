@@ -869,12 +869,54 @@ export default function BookingCalendar() {
     return () => window.removeEventListener("mousedown", onPointerDown);
   }, [showDayPicker]);
 
+  const filterButtons = (
+    <>
+      <button
+        type="button"
+        onClick={goToToday}
+        className="h-9 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+      >
+        Today
+      </button>
+  
+      <button
+        type="button"
+        onClick={previousPeriod}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
+        aria-label={
+          viewMode === "month"
+            ? "Previous month"
+            : viewMode === "day" || viewMode === "provider"
+              ? "Previous day"
+              : "Previous week"
+        }
+      >
+        <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+      </button>
+  
+      <button
+        type="button"
+        onClick={nextPeriod}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
+        aria-label={
+          viewMode === "month"
+            ? "Next month"
+            : viewMode === "day" || viewMode === "provider"
+              ? "Next day"
+              : "Next week"
+        }
+      >
+        <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+      </button>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-slate-50/40">
       <div className="mx-auto space-y-4">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Booking Calendar</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Booking Calendar</h1>
             <p className="text-sm text-slate-500">View and manage all appointments</p>
           </div>
 
@@ -896,10 +938,10 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("day")}
-                className={`rounded-md px-5 py-2 text-xs font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "day"
-                    ? "bg-indigo-50 border-indigo-700 text-indigo-700"
-                    : "text-slate-500 hover:text-slate-700 border-slate-200"
+                    ? "bg-indigo-600 border-indigo-700 text-white"
+                    : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
                 }`}
               >
                 Day
@@ -907,10 +949,10 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("week")}
-                className={`rounded-md px-5 py-2 text-xs font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "week"
-                    ? "bg-indigo-50 border-indigo-700 text-indigo-700"
-                    : "text-slate-500 hover:text-slate-700 border-slate-200"
+                    ? "bg-indigo-600 border-indigo-700 text-white"
+                    : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
                 }`}
               >
                 Week
@@ -918,10 +960,10 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("month")}
-                className={`rounded-md px-5 py-2 text-xs font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "month"
-                    ? "bg-indigo-50 border-indigo-700 text-indigo-700"
-                    : "text-slate-500 hover:text-slate-700 border-slate-200"
+                    ? "bg-indigo-600 border-indigo-700 text-white"
+                    : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
                 }`}
               >
                 Month
@@ -929,10 +971,10 @@ export default function BookingCalendar() {
               <button
                 type="button"
                 onClick={() => switchViewMode("provider")}
-                className={`rounded-md px-5 py-2 text-xs font-semibold transition border cursor-pointer ${
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "provider"
-                    ? "bg-indigo-50 border-indigo-700 text-indigo-700"
-                    : "text-slate-500 hover:text-slate-700 border-slate-200"
+                    ? "bg-indigo-600 border-indigo-700 text-white"
+                    : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
                 }`}
               >
                 Provider
@@ -940,47 +982,21 @@ export default function BookingCalendar() {
             </div>
             
             <div className="flex flex-wrap items-center gap-1.5">
+            {viewMode === "week" ? (
+              <ScreenGate minWidth={1024}>
+                {filterButtons}
+              </ScreenGate>
+            ) : (
+              filterButtons
+            )}
+
+
               {viewMode === "month" ? (
                 <div className="relative flex gap-1" ref={monthDropdownRef}>
                   <button
                     type="button"
-                    onClick={goToToday}
-                    className="h-9 rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    onClick={previousPeriod}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-                    aria-label={
-                      viewMode === "month"
-                        ? "Previous month"
-                        : viewMode === "day" || viewMode === "provider"
-                          ? "Previous day"
-                          : "Previous week"
-                    }
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={nextPeriod}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-                    aria-label={
-                      viewMode === "month"
-                        ? "Next month"
-                        : viewMode === "day" || viewMode === "provider"
-                          ? "Next day"
-                          : "Next week"
-                    }
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setShowMonthOptions((prev) => !prev)}
-                    className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                     aria-label={`Current month ${monthLabel}`}
                     aria-expanded={showMonthOptions}
                     aria-haspopup="listbox"
@@ -1011,7 +1027,7 @@ export default function BookingCalendar() {
                                 setViewDate(start_of_month(option.date));
                                 setShowMonthOptions(false);
                               }}
-                              className={`flex w-full items-center px-3 py-2 text-left text-xs ${
+                              className={`flex w-full items-center px-3 py-2 text-left text-sm ${
                                 isSelected
                                   ? "bg-indigo-50 font-semibold text-indigo-700"
                                   : "text-slate-700 hover:bg-slate-50"
@@ -1031,23 +1047,11 @@ export default function BookingCalendar() {
                 <div className="relative" ref={dayPickerRef}>
                   <button
                     type="button"
-                    onClick={previousPeriod}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-                    aria-label={
-                      viewMode === "day" || viewMode === "provider"
-                        ? "Previous day"
-                        : "Previous week"
-                    }
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => {
                       setDayPickerMonth(start_of_month(viewDate));
                       setShowDayPicker((prev) => !prev);
                     }}
-                    className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                     aria-label={`Select date ${dayLabel}`}
                     aria-expanded={showDayPicker}
                     aria-haspopup="dialog"
@@ -1061,18 +1065,6 @@ export default function BookingCalendar() {
                       className="h-3.5 w-3.5 text-slate-500"
                       aria-hidden
                     />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={nextPeriod}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-                    aria-label={
-                      viewMode === "day" || viewMode === "provider"
-                          ? "Next day"
-                          : "Next week"
-                    }
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" aria-hidden />
                   </button>
 
                   {showDayPicker && (
@@ -1091,7 +1083,7 @@ export default function BookingCalendar() {
                         >
                           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
                         </button>
-                        <p className="text-xs font-semibold text-slate-800">
+                        <p className="text-sm font-semibold text-slate-800">
                           {dayPickerMonthLabel}
                         </p>
                         <button
@@ -1141,11 +1133,11 @@ export default function BookingCalendar() {
                                     setViewDate(start_of_day(cell.date));
                                     setShowDayPicker(false);
                                   }}
-                                  className={`h-8 rounded-md text-xs font-medium transition ${
+                                  className={`h-8 rounded-md text-sm font-medium transition ${
                                     isSelected
                                       ? "bg-indigo-600 text-white"
                                       : isToday
-                                        ? "bg-blue-50 font-semibold text-blue-700 hover:bg-blue-100"
+                                        ? "bg-indigo-50 font-semibold text-indigo-700 hover:bg-indigo-100"
                                         : cell.isCurrentMonth
                                           ? "text-slate-700 hover:bg-slate-100"
                                           : "text-slate-300 hover:bg-slate-50"
@@ -1175,7 +1167,7 @@ export default function BookingCalendar() {
                     </div>
                   </ScreenGate>
                   <ScreenGate minWidth={1024}>
-                    <div className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700">
+                    <div className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700">
                       {weekLabel}
                     </div>
                   </ScreenGate>
@@ -1228,7 +1220,7 @@ export default function BookingCalendar() {
                       selectedDate={viewDate}
                       bookings={currentDayBookings}
                       loading={loading}
-                      onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                      onSelectBooking={handle_select_booking}
                       selectedBookingId={selectedBookingId ?? undefined}
                       onGoToToday={() => setViewDate(start_of_day(new Date()))}
                     />
@@ -1240,7 +1232,7 @@ export default function BookingCalendar() {
                       providerColumns={dayProviderColumns}
                       loading={loading}
                       timezoneLabel={timezoneLabel}
-                      onSelectBooking={(booking) => setSelectedBookingId(booking.id)}
+                      onSelectBooking={handle_select_booking}
                       selectedBookingId={selectedBookingId ?? undefined}
                     />
                   </ScreenGate>
@@ -1256,16 +1248,30 @@ export default function BookingCalendar() {
                   selectedBookingId={selectedBookingId ?? undefined}
                 />
               ) : (
-                <CalendarWeekGrid
-                  viewMode="week"
-                  weekStart={viewDate}
-                  bookings={currentWeekBookings}
-                  providerColumns={providerColumns}
-                  loading={loading}
-                  timezoneLabel={timezoneLabel}
-                  onSelectBooking={handle_select_booking}
-                  selectedBookingId={selectedBookingId ?? undefined}
-                />
+                <>
+                  <ScreenGate maxWidth={1023}>
+                    <CalendarMobileWeekBookings
+                      selectedDate={viewDate}
+                      bookings={currentDayBookings}
+                      loading={loading}
+                      onSelectBooking={handle_select_booking}
+                      selectedBookingId={selectedBookingId ?? undefined}
+                      onGoToToday={() => setViewDate(start_of_day(new Date()))}
+                    />
+                  </ScreenGate>
+                  <ScreenGate minWidth={1024}>
+                    <CalendarWeekGrid
+                      viewMode="week"
+                      weekStart={viewDate}
+                      bookings={currentWeekBookings}
+                      providerColumns={providerColumns}
+                      loading={loading}
+                      timezoneLabel={timezoneLabel}
+                      onSelectBooking={handle_select_booking}
+                      selectedBookingId={selectedBookingId ?? undefined}
+                    />
+                  </ScreenGate>
+                </>
               )}
 
               <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-slate-200 pt-3">
@@ -1273,10 +1279,10 @@ export default function BookingCalendar() {
                   {CALENDAR_STATUS_LEGEND.map((item) => (
                     <div
                       key={item.key}
-                      className="inline-flex items-center gap-2 text-xs font-medium text-slate-600"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-slate-600"
                     >
                       <span
-                        className={`h-2.5 w-2.5 rounded-full ${getStatusDotClass(item.key)}`}
+                        className={`h-2 w-2 rounded-full ${getStatusDotClass(item.key)}`}
                         aria-hidden
                       />
                       {item.label}
@@ -1297,7 +1303,7 @@ export default function BookingCalendar() {
                     className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
                     aria-label="Refresh calendar"
                   >
-                    {/* <RefreshCw className="h-3.5 w-3.5" aria-hidden /> */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
                   </button>
                 </div>
               </div>

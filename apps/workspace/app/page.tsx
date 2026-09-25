@@ -273,7 +273,7 @@ const Dashboard: React.FC = () => {
   const stat_loading = loading || range_loading;
 
   return (
-    <div className="space-y-6 text-slate-900">
+    <div className="max-[450px]:space-y-3 space-y-6 text-slate-900">
       <DashboardHeader
         user_name={user_name}
         subtitle="Here's what's happening with your workspace today."
@@ -283,7 +283,7 @@ const Dashboard: React.FC = () => {
             <button
               type="button"
               onClick={open_create_booking}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
               <DashboardIcon name="plus" size={17} className="text-indigo-600" />
               <span className="hidden lg:block">Create Booking</span>
@@ -295,7 +295,7 @@ const Dashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => set_show_upgrade_modal(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 <DashboardIcon name="trend" size={17} />
                 Upgrade Plan
@@ -322,8 +322,8 @@ const Dashboard: React.FC = () => {
         no_shows_hint={NO_SHOWS_HINT[range]}
       />
 
-      <section className="grid gap-6 grid-cols-1 xl:grid-cols-[1.4fr_0.85fr]">
-        <div className="space-y-6 order-2 lg:order-1">
+      <section className="grid max-[450px]:gap-3 gap-6 grid-cols-1 xl:grid-cols-[1.4fr_0.85fr]">
+        <div className="max-[450px]:space-y-3 space-y-6 order-2 lg:order-1">
         <ScreenGate minWidth={1024}>
           <WorkspaceOverviewCard
             loading={loading}

@@ -173,7 +173,7 @@ export default function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
+    <header className="sticky top-0 z-999 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center">
           <div className="lg:hidden">
@@ -211,17 +211,13 @@ export default function Topbar() {
         
 
         <div className="flex items-center space-x-2">
-          <Link href="/billings" className="hidden sm:flex text-sm text-gray-500 hover:text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
-            <span className="text-sm font-medium">Current Plan: {currentBillingPlan}</span>
+          <Link href="/billings" className="hidden sm:flex text-emerald-600 px-4 py-2 rounded-lg text-sm border bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200">
+          Current Plan:<span className="font-medium">{currentBillingPlan}</span>
           </Link>
           {!loadingSettings && workspaceProfessionLabel ? (
             <div className="hidden sm:flex items-center max-w-[11rem] md:max-w-[16rem] shrink-0 px-2">
-              <div
-                className="text-sm truncate rounded-lg border-2 border-indigo-700/80 px-3 py-1.5 shadow-sm"
-                style={{ backgroundColor: "var(--color-indigo-600)" }}
-                title={workspaceProfessionLabel}
-              >
-                <span className="text-white/90 font-normal mr-1.5">Profession</span>
+              <div className="text-sm truncate rounded-lg px-4 py-2 shadow-sm bg-indigo-600 hover:bg-indigo-700" title={workspaceProfessionLabel}>
+                <span className="text-white/90 mr-1.5">Profession:</span>
                 <span className="font-bold text-white">{workspaceProfessionLabel}</span>
               </div>
             </div>
@@ -262,7 +258,7 @@ export default function Topbar() {
                   )}
                 </div>
                 <div className="px-4 py-2 border-t border-gray-100 text-center">
-                  <Link href="/notifications/all" className="text-xs text-blue-600 hover:text-blue-800" onClick={() => setIsNotificationOpen(false)}>View all notifications</Link>
+                  <Link href="/notifications/all" className="text-xs text-indigo-600 hover:text-indigo-800" onClick={() => setIsNotificationOpen(false)}>View all notifications</Link>
                 </div>
               </div>
             )}
@@ -270,7 +266,7 @@ export default function Topbar() {
 
           <div className="relative">
             <button id="profile-button" onClick={(e) => { e.stopPropagation(); setIsProfileMenuOpen(!isProfileMenuOpen); setIsNotificationOpen(false);}} className="flex items-center space-x-2 cursor-pointer focus:outline-none" aria-expanded={isProfileMenuOpen} aria-haspopup="true">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white overflow-hidden">
+              <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white overflow-hidden">
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
                 ) : (

@@ -15,6 +15,8 @@ import {
   resolveCustomerTimezone,
   resolveProviderTimezone,
 } from "@/src/utils/timezone";
+import ScreenGate from "@/src/components/ScreenGate";
+
 
 type IconName =
   | "alert"
@@ -481,16 +483,12 @@ export default function EmergencyBookingForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="min-h-screen w-full bg-slate-50"
-      noValidate
-    >
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 rounded-[28px] border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-200">
+    <form onSubmit={handleSubmit} className="min-h-screen w-full" noValidate>
+      <div className="mx-auto">
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-5 p-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="basis-1/2 flex items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-200">
                 <Icon name="ambulance" className="h-7 w-7" />
               </div>
               <div>
@@ -507,6 +505,8 @@ export default function EmergencyBookingForm() {
                 </p>
               </div>
             </div>
+
+            <ScreenGate minWidth={1024}>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard
                 label="Mode"
@@ -529,10 +529,12 @@ export default function EmergencyBookingForm() {
                 icon={<Icon name="admin" className="h-4 w-4" />}
               />
             </div>
+            </ScreenGate>
+
           </div>
         </div>
 
-        <div className="mb-6 rounded-[28px] border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-orange-50 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-orange-50 shadow-sm">
           <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
               <Icon name="alert" className="h-5 w-5" />
@@ -549,7 +551,7 @@ export default function EmergencyBookingForm() {
             <button
               type="button"
               onClick={scrollToReview}
-              className="shrink-0 rounded-2xl border border-amber-200 bg-white px-3 py-2 text-left text-xs font-medium text-amber-700 shadow-sm transition hover:bg-amber-50"
+              className="w-fit rounded-2xl border border-amber-200 bg-white px-3 py-2 text-left text-xs font-medium text-amber-700 shadow-sm transition hover:bg-amber-50"
             >
               Review before submit
             </button>
@@ -581,10 +583,10 @@ export default function EmergencyBookingForm() {
 
         <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
-            <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
                     <Icon name="user" className="h-5 w-5" />
                   </div>
                   <div>
@@ -681,10 +683,10 @@ export default function EmergencyBookingForm() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-700">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-700">
                     <Icon name="doctor" className="h-5 w-5" />
                   </div>
                   <div>
@@ -795,7 +797,7 @@ export default function EmergencyBookingForm() {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <h2 className="text-lg font-semibold text-slate-900">Emergency Summary</h2>
                 <p className="text-sm text-slate-500">Live preview of the booking before submission.</p>
@@ -821,7 +823,7 @@ export default function EmergencyBookingForm() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <h2 className="text-lg font-semibold text-slate-900">Provider Availability</h2>
                 <p className="text-sm text-slate-500">
@@ -865,7 +867,7 @@ export default function EmergencyBookingForm() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <h2 className="text-lg font-semibold text-slate-900">Booking Impact</h2>
                 <p className="text-sm text-slate-500">Explain how this booking affects normal flow.</p>
@@ -885,7 +887,7 @@ export default function EmergencyBookingForm() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <h2 className="text-lg font-semibold text-slate-900">Admin Notes</h2>
                 <p className="text-sm text-slate-500">Recommended checks before creating the booking.</p>
@@ -901,11 +903,8 @@ export default function EmergencyBookingForm() {
         </div>
       </div>
 
-      <div
-        ref={footerRef}
-        className="sticky bottom-0 z-20 mt-6 border-t border-slate-200 bg-slate-50/95 backdrop-blur supports-[backdrop-filter]:bg-slate-50/80"
-      >
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+      <div ref={footerRef} className="relative mt-6">
+        <div className="flex flex-col gap-3 sm:flex-row items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-900">Ready to create this emergency booking?</p>
             <p className="text-xs text-slate-500">Required fields are validated before submission.</p>
@@ -922,7 +921,7 @@ export default function EmergencyBookingForm() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex h-11 min-w-[12rem] items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:scale-[1.01] hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60"
+              className="inline-flex h-11 min-w-[12rem] items-center justify-center rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg transition disabled:opacity-60"
             >
               {loading ? "Saving…" : "Add Emergency Booking"}
             </button>

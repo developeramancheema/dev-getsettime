@@ -496,7 +496,7 @@ export default function LoginForm() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <Link href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-800">
+              <Link href="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-800">
                 Forgot password?
               </Link>
             </div>
@@ -555,7 +555,7 @@ export default function LoginForm() {
             <input
               id="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-indigo-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
               Remember me
@@ -587,7 +587,7 @@ export default function LoginForm() {
           <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-blue-600 hover:text-blue-800 font-medium">
+              <Link href="/register" className="text-indigo-600 hover:text-indigo-800 font-medium">
                 Create one
               </Link>
             </p>
@@ -632,7 +632,7 @@ export default function LoginForm() {
               type="button"
               onClick={() => startGoogleSignupFromModal(modalEmail)}
               disabled={modalGoogleLoading}
-              className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {modalGoogleLoading ? (
                 <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -685,7 +685,7 @@ export default function LoginForm() {
                 setShowNoAccountModal(false);
                 router.push(`/register?email=${encodeURIComponent(modalEmail)}`);
               }}
-              className="w-full text-blue-800 font-medium text-sm flex items-center justify-center gap-2 hover:text-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg py-2"
+              className="w-full text-indigo-800 font-medium text-sm flex items-center justify-center gap-2 hover:text-indigo-950 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg py-2"
             >
               Create account with a password
               <span aria-hidden="true">→</span>

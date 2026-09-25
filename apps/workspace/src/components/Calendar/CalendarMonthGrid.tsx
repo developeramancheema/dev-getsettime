@@ -43,7 +43,7 @@ export function CalendarMonthGrid({
         {WEEK_DAYS.map((day) => (
           <div
             key={day}
-            className="px-2 py-3 text-center text-xs font-semibold text-slate-500"
+            className="px-2 py-3 text-center text-sm font-semibold text-slate-900"
           >
             {day}
           </div>
@@ -69,7 +69,7 @@ export function CalendarMonthGrid({
                   className={cn(
                     "min-h-[140px] border-r border-slate-200 p-2 last:border-r-0",
                     isToday
-                      ? "bg-blue-50/60 ring-2 ring-inset ring-blue-500"
+                      ? "bg-indigo-50/60 ring-2 ring-inset ring-indigo-500"
                       : isCurrentMonth
                         ? "bg-white"
                         : "bg-slate-50/80",
@@ -80,7 +80,7 @@ export function CalendarMonthGrid({
                       className={cn(
                         "inline-flex h-7 min-w-[28px] items-center justify-center rounded-full px-1.5 text-sm font-semibold",
                         isToday
-                          ? "bg-blue-600 text-white"
+                          ? "bg-indigo-600 text-white"
                           : isCurrentMonth
                             ? "text-slate-800"
                             : "text-slate-400",
@@ -119,7 +119,7 @@ export function CalendarMonthGrid({
                               title={`${timeLabel} ${serviceLabel}`}
                               onClick={() => set_preview_booking(booking)}
                               className={cn(
-                                "flex w-full cursor-pointer items-center gap-1 truncate rounded-md px-1.5 py-2 text-left text-[11px] leading-tight transition",
+                                "flex w-full cursor-pointer items-center gap-1 truncate rounded-lg border px-1.5 py-2 text-left text-[11px] leading-tight transition",
                                 chipClass.chip,
                               )}
                             >
@@ -139,7 +139,7 @@ export function CalendarMonthGrid({
                         })}
 
                         {dayBookings.length > 3 && (
-                          <div className="px-1 pt-0.5 text-[11px] font-semibold text-blue-600">
+                          <div className="px-1 pt-0.5 text-[11px] font-semibold text-indigo-600">
                             +{dayBookings.length - 3} more
                           </div>
                         )}

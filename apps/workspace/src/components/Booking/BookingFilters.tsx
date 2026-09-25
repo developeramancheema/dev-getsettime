@@ -49,9 +49,9 @@ interface BookingFiltersProps {
 }
 
 const inputBase =
-  "box-border w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 pl-11 text-sm font-normal leading-normal text-slate-900 shadow-none outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
+  "box-border h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 pl-11 text-sm font-normal leading-normal text-slate-900 shadow-none outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200";
 const selectClass =
-  "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200";
+  "w-full min-w-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm text-slate-900 shadow-none outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200";
 
 const BOOKING_SORT_OPTIONS_WORKSPACE = BOOKING_SORT_OPTIONS.map((opt) =>
   opt.value === "new"
@@ -117,7 +117,7 @@ export function BookingFilters({
   };
 
   const filtersButtonClass =
-    "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 shadow-sm sm:h-11 sm:flex-initial sm:px-4";
+    "inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-800 shadow-sm sm:flex-initial sm:px-4";
 
   const advancedPanel = (
     <div id={panelId} className="lg:mt-4 lg:border-t border-slate-100 pt-4">
@@ -137,7 +137,7 @@ export function BookingFilters({
       </div>
       </ScreenGate>
 
-      <div className="grid grid-cols-1 gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:lg:grid-cols-5">
         <div className="min-w-0">
           <ScreenGate minWidth={1024}>
             <label htmlFor="status-filter" className="mb-1.5 block text-xs font-medium text-slate-500">Status</label>
@@ -274,14 +274,14 @@ export function BookingFilters({
               type="date"
               value={dateFilter}
               onChange={(e) => onDateFilterChange(e.target.value)}
-              className="box-border h-11 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 [color-scheme:light] focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200 [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-datetime-edit-text]:p-0 [&::-webkit-datetime-edit]:m-0 [&::-webkit-datetime-edit]:p-0"
+              className="box-border h-11 min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 [color-scheme:light] focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-datetime-edit-text]:p-0 [&::-webkit-datetime-edit]:m-0 [&::-webkit-datetime-edit]:p-0"
               aria-label="Filter by a specific date"
             />
             {dateFilter ? (
               <button
                 type="button"
                 onClick={onClearDateFilter}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 aria-label="Clear date filter"
               >
                 <LuX className="h-4 w-4" aria-hidden />
@@ -294,7 +294,7 @@ export function BookingFilters({
       </div>
       <ScreenGate minWidth={1024}>
       <div className="mt-3">
-        <span className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-sm font-medium text-violet-700">
+        <span className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600">
           Results: {resultCount}
         </span>
       </div>
@@ -346,7 +346,7 @@ export function BookingFilters({
             type="button"
             onClick={handleReset}
             disabled={!hasActiveFilters}
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:flex-initial sm:px-4"
+            className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:flex-initial sm:px-4"
           >
             <LuRefreshCw className="h-4 w-4 shrink-0" aria-hidden />
             Reset
