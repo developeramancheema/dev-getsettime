@@ -19,6 +19,11 @@ import {
   resolveProviderTimezone,
 } from '@/src/utils/timezone';
 import { useLocationContext } from '@app/location';
+import {
+  event_type_session_duration_minutes,
+  event_type_slot_capacity,
+} from '@/src/features/booking-flow';
+import { slot_occupancy_context_from_event_type } from '@/lib/booking_capacity';
 import type { Booking } from '@/src/types/booking';
 import type { NormalizedIntakeForm } from '@/src/utils/intakeForm';
 import type { IntakeFormSettings } from '@/src/types/workspace';
@@ -162,6 +167,9 @@ export function BookingDetailDatetimeModal({
   } = useBookingFormData({
     selectedDepartment,
     selectedProvider,
+    // Reschedules keep the booking's original department/provider, which may
+    // predate the event type's current assignments, so they stay unscoped.
+    selectedType: null,
     days,
     intakeForm:
       intakeForm != null ? (intakeForm as unknown as IntakeFormSettings) : undefined,
@@ -384,10 +392,13 @@ export function BookingDetailDatetimeModal({
       setError('Cannot select a time in the past.');
       return;
     }
-    const durationMin = resolveEffectiveBookingDurationMinutes(
+    const durationMin = event_type_session_duration_minutes(
       selectedType,
-      intakeServiceIds,
-      serviceCatalogForSlots
+      resolveEffectiveBookingDurationMinutes(
+        selectedType,
+        intakeServiceIds,
+        serviceCatalogForSlots
+      )
     );
     const endDate = new Date(startDate.getTime() + durationMin * 60_000);
     if (
@@ -395,7 +406,9 @@ export function BookingDetailDatetimeModal({
         startDate,
         endDate,
         selectedDate,
-        existing_for_slots as BusySlotBooking[]
+        existing_for_slots as BusySlotBooking[],
+        event_type_slot_capacity(selectedType),
+        slot_occupancy_context_from_event_type(selectedType)
       )
     ) {
       setError('Time slot overlaps another booking.');

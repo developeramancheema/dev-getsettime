@@ -93,13 +93,14 @@ export function getSortedFilteredEventTypes(
   return sortEventTypesByDuration(filtered);
 }
 
-/** Event types owned by the selected provider (or workspace owner when no picker). */
-export function filterEventTypesForServiceProvider(
-  eventTypes: EventType[],
-  serviceProviderId: string | null | undefined
-): EventType[] {
+/** Event types the provider can host: assigned providers when set, else the owner. */
+export function filterEventTypesForServiceProvider<
+  T extends event_type_assignment_fields,
+>(eventTypes: T[], serviceProviderId: string | null | undefined): T[] {
   if (!serviceProviderId) return eventTypes;
-  return eventTypes.filter((et) => et.owner_id === serviceProviderId);
+  return eventTypes.filter((et) =>
+    isProviderAssignedToEventType(serviceProviderId, et)
+  );
 }
 
 export function filterBookableEventTypes<T extends { status?: unknown }>(
@@ -173,6 +174,27 @@ export function isProviderAssignedToEventType(
   const assigned = eventTypeAssignedProviderIds(eventType);
   if (assigned.length === 0) return true;
   return assigned.includes(providerId);
+}
+
+/** Departments bookable for the selected event type; an unassigned type allows all. */
+export function filterDepartmentsForEventType(
+  departments: Department[],
+  eventType: event_type_assignment_fields | null | undefined
+): Department[] {
+  const assigned = eventTypeAssignedDepartmentId(eventType);
+  if (!assigned) return departments;
+  return departments.filter((d) => String(d.id) === assigned);
+}
+
+/** Providers bookable for the selected event type; an unassigned type allows all. */
+export function filterProvidersForEventType<T extends { id: string }>(
+  providers: T[],
+  eventType: event_type_assignment_fields | null | undefined
+): T[] {
+  const assigned = eventTypeAssignedProviderIds(eventType);
+  if (assigned.length === 0) return providers;
+  const allowed = new Set(assigned);
+  return providers.filter((p) => allowed.has(p.id));
 }
 
 /** Workspace owners with no department list act in every department (booking edit). */

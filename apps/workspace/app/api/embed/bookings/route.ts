@@ -9,7 +9,7 @@ import {
   resolveBookingTimezonesForInsert,
   resolveValidationTimezone,
 } from '@/lib/booking-timezone-api';
-import { run_post_booking_processing } from '@/lib/post_booking_processing';
+import { run_post_booking_processing, type post_booking_row } from '@/lib/post_booking_processing';
 import { resolve_booking_service_provider_name_snapshot } from '@/lib/booking_service_provider_phone';
 import {
   list_bookable_meeting_option_keys,
@@ -29,6 +29,13 @@ import {
   fetchActiveDateExceptionsForSlot,
   validateSlotDateExceptions,
 } from '@/src/utils/dateExceptionApiValidation';
+import {
+  insert_validated_booking,
+  load_event_type_for_booking,
+  uses_offered_schedule_slots,
+} from '@/lib/complete_booking_create';
+import { should_block_booking_on_external_calendar } from '@/src/features/booking-flow';
+import { flatten_embed_booking_row } from '@/lib/booking_capacity';
 
 type DayName = "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat";
 
@@ -79,7 +86,9 @@ export async function GET(req: NextRequest) {
     // Build query
     let query = supabase
       .from('bookings')
-      .select('id, start_at, end_at, status, service_provider_id')
+      .select(
+        'id, start_at, end_at, status, service_provider_id, event_type_id, event_types(event_type_format, capacity_per_slot, recurrence)'
+      )
       .eq('workspace_id', workspaceId)
       .order('start_at', { ascending: true });
 
@@ -124,10 +133,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Filter out cancelled bookings
-    const activeBookings = (data || []).filter(
-      (booking) => booking.status !== 'cancelled'
-    );
+    const activeBookings = (data || [])
+      .filter((booking) => {
+        const status = String(booking.status ?? '').toLowerCase();
+        return status !== 'cancelled' && status !== 'deleted' && status !== 'emergency';
+      })
+      .map((booking) => flatten_embed_booking_row(booking as Record<string, unknown>));
 
     // Fetch Google Calendar busy slots for availability (when date or date range requested)
     let calendarBusy: { start_at: string; end_at: string }[] = [];
@@ -178,6 +189,7 @@ export async function POST(req: NextRequest) {
       verified_identifier,
       intake_form,
       location,
+      book_series,
     } = body;
 
     // Validate required fields
@@ -323,6 +335,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const loadedEventType = await load_event_type_for_booking(
+      supabase,
+      workspace_id,
+      event_type_id
+    );
+    const skipTimesheet = uses_offered_schedule_slots(loadedEventType);
+
     // Validate availability before creating booking (startDate already validated above)
     const effectiveDurationMinutes = await resolveEffectiveDurationForBookingRequest(
       supabase,
@@ -413,6 +432,7 @@ export async function POST(req: NextRequest) {
       timesheetEnd
     );
 
+    if (!skipTimesheet) {
     if (exceptionValidation.blocked && exceptionValidation.error?.includes('closed')) {
       return NextResponse.json({ error: exceptionValidation.error }, { status: 400 });
     }
@@ -465,54 +485,24 @@ export async function POST(req: NextRequest) {
         error: exceptionValidation.error || 'This time slot is blocked by an availability exception.',
       }, { status: 400 });
     }
-
-    // Check Google Calendar for busy slots (if integrated)
-    try {
-      const { isSlotBusyInCalendar } = await import('@/lib/google-calendar-service');
-      const endAt = resolvedEndAt;
-      const isBusy = await isSlotBusyInCalendar(
-        workspace_id,
-        start_at,
-        endAt,
-        service_provider_id || undefined
-      );
-      if (isBusy) {
-        return NextResponse.json({
-          error: 'This time slot is already booked or blocked in calendar. Please select another time.',
-        }, { status: 400 });
-      }
-    } catch (calErr) {
-      console.warn('Google Calendar conflict check failed (non-blocking):', calErr);
     }
 
-    // Check for existing booking conflicts for the same service provider
-    // A booking conflicts if: new_start < existing_end AND new_end > existing_start
-    let conflictQuery = supabase
-      .from('bookings')
-      .select('start_at, end_at')
-      .eq('workspace_id', workspace_id)
-      .neq('status', 'cancelled')
-      .gte('start_at', new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).toISOString())
-      .lte('start_at', new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1).toISOString());
-    
-    // Only check conflicts for the same service provider
-    if (service_provider_id) {
-      conflictQuery = conflictQuery.eq('service_provider_id', service_provider_id);
-    }
-    
-    const { data: existingBookings } = await conflictQuery;
-
-    if (existingBookings && existingBookings.length > 0) {
-      const hasConflict = existingBookings.some((booking) => {
-        const bookingStart = new Date(booking.start_at);
-        const bookingEnd = booking.end_at ? new Date(booking.end_at) : new Date(bookingStart);
-        return startDate < bookingEnd && endDate > bookingStart;
-      });
-
-      if (hasConflict) {
-        return NextResponse.json({ 
-          error: 'This time slot is already booked. Please select another time.' 
-        }, { status: 400 });
+    if (should_block_booking_on_external_calendar(loadedEventType)) {
+      try {
+        const { isSlotBusyInCalendar } = await import('@/lib/google-calendar-service');
+        const isBusy = await isSlotBusyInCalendar(
+          workspace_id,
+          start_at,
+          resolvedEndAt,
+          service_provider_id || undefined
+        );
+        if (isBusy) {
+          return NextResponse.json({
+            error: 'This time slot is already booked or blocked in calendar. Please select another time.',
+          }, { status: 400 });
+        }
+      } catch (calErr) {
+        console.warn('Google Calendar conflict check failed (non-blocking):', calErr);
       }
     }
 
@@ -590,10 +580,13 @@ export async function POST(req: NextRequest) {
         service_provider_id || null
       );
 
-    // Create booking with embed source
-    let { data, error } = await supabase
-      .from('bookings')
-      .insert({
+    const created = await insert_validated_booking({
+      supabase,
+      event_type: loadedEventType,
+      book_series: typeof book_series === 'boolean' ? book_series : undefined,
+      timezone: tz || tzFields.provider_timezone || tzFields.customer_timezone || 'UTC',
+      duration_minutes: effectiveDurationMinutes,
+      row: {
         workspace_id,
         event_type_id: event_type_id || null,
         service_provider_id: service_provider_id || null,
@@ -613,17 +606,14 @@ export async function POST(req: NextRequest) {
         payment_id: null,
         metadata: metadataPayload,
         public_code: publicCode,
-      })
-      .select()
-      .single();
+      },
+    });
 
-    if (error) {
-      console.error('Error creating embed booking:', error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    if (!created.ok) {
+      console.error('Error creating embed booking:', created.message);
+      return NextResponse.json({ error: created.message }, { status: 400 });
     }
+    const data = created.data as post_booking_row;
 
     const origin = new URL(req.url).origin;
     const whatsappOptIn = Boolean(

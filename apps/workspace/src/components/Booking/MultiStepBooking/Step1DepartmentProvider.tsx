@@ -21,6 +21,7 @@ interface Step1DepartmentProviderProps {
   onToggleOptionalService: (id: string) => void;
   onSelectDepartment: (dept: Department) => void;
   onSelectProvider: (provider: ServiceProvider) => void;
+  onBack?: () => void;
   onContinue: () => void;
 }
 
@@ -38,6 +39,7 @@ export function Step1DepartmentProvider({
   onToggleOptionalService,
   onSelectDepartment,
   onSelectProvider,
+  onBack,
   onContinue,
 }: Step1DepartmentProviderProps) {
   const canContinue =
@@ -283,11 +285,23 @@ export function Step1DepartmentProvider({
       )}
 
       {canContinue && (
-        <div ref={continueSectionRef} className="flex justify-end pt-4 scroll-mt-6">
+        <div
+          ref={continueSectionRef}
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 scroll-mt-6"
+        >
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all font-semibold text-gray-700 hover:shadow-md"
+            >
+              {BOOKING_BUTTON_LABELS.back}
+            </button>
+          )}
           <button
             type="button"
             onClick={onContinue}
-            className="px-6 sm:px-10 py-3 sm:py-3.5 rounded-xl text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-xl hover:shadow-2xl hover:scale-105 transition-all font-semibold"
+            className="w-full sm:w-auto sm:ml-auto px-6 sm:px-10 py-3 sm:py-3.5 rounded-xl text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 shadow-xl hover:shadow-2xl hover:scale-105 transition-all font-semibold"
           >
             {BOOKING_BUTTON_LABELS.continueToServices}
           </button>

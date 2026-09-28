@@ -140,6 +140,7 @@ export type workspace_shell_patch = {
     profession_name?: string | null;
     type?: string | null;
     admin_professions_id?: number | null;
+    booking_step_order?: string[] | null;
   };
 };
 
@@ -159,6 +160,7 @@ export type WorkspaceSettingsHook = {
   serviceProviderLinkSlug?: string | null;
   /** Catalog profession id from workspace.professions.admin_professions_id */
   workspaceAdminProfessionsId?: number | null;
+  bookingStepOrder?: string[] | null;
   loading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;

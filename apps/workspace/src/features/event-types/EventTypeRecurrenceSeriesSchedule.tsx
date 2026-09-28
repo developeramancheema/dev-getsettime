@@ -132,7 +132,7 @@ export function EventTypeRecurrenceSeriesSchedule({
       {frequency === "daily" ? (
         <label className="block max-w-xs">
           <span className="mb-2 block text-sm font-medium text-slate-700">
-            Time<span className="text-red-500">*</span>
+            Time11<span className="text-red-500">*</span>
           </span>
           <DateTimePicker
             date={false}
@@ -200,7 +200,7 @@ export function EventTypeRecurrenceSeriesSchedule({
           </div>
           <label className="block max-w-xs">
             <span className="mb-2 block text-sm font-medium text-slate-700">
-              Time<span className="text-red-500">*</span>
+              Time22<span className="text-red-500">*</span>
             </span>
             <DateTimePicker
               date={false}
