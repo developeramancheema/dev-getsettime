@@ -935,7 +935,7 @@ export default function TeamMembersPage() {
 
       <div className="mx-auto">
           <section className="relative space-y-4">
-            <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 p-5">
+            <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 p-4 md:p-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur">
@@ -1001,7 +1001,7 @@ export default function TeamMembersPage() {
 
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-5 md:p-7">
+            <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
               <div className="mb-5 flex w-full min-w-0 flex-col gap-3 min-[900px]:flex-row lg:flex-col xl:flex-row min-[900px]:items-center lg:items-start sm:gap-3">
                 <div className="relative w-full">
                   <div
@@ -1125,7 +1125,7 @@ export default function TeamMembersPage() {
                                     </span>
                                   )}
                                   {isRecentlyJoined(member.created_at, member.deactivated) && (
-                                    <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 ring-1 ring-violet-200">
+                                    <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200">
                                       New
                                     </span>
                                   )}

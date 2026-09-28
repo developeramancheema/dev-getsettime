@@ -67,7 +67,7 @@ export function CalendarMonthGrid({
                   key={cell.date.toISOString()}
                   ref={isToday ? todayCellRef : undefined}
                   className={cn(
-                    "min-h-[140px] border-r border-slate-200 p-2 last:border-r-0",
+                    "min-h-[60px] sm:min-h-[140px] border-r border-slate-200 p-2 last:border-r-0",
                     isToday
                       ? "bg-indigo-50/60 ring-2 ring-inset ring-indigo-500"
                       : isCurrentMonth

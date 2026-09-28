@@ -31,20 +31,13 @@ function badge_for_status(status: string | null | undefined): StatusBadge {
   return { label: "Pending", className: "bg-amber-50 text-amber-700 border-amber-200" };
 }
 
-function is_same_local_day(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
 function format_schedule(start_at: string | null): {
-  date_label: string;
+  month_label: string;
+  day_label: string;
   time: string;
   period: string;
 } {
-  if (!start_at) return { date_label: "", time: "—", period: "" };
+  if (!start_at) return { month_label: "", day_label: "", time: "—", period: "" };
   const date = new Date(start_at);
   const parts = date
     .toLocaleTimeString("en-US", {
@@ -53,11 +46,12 @@ function format_schedule(start_at: string | null): {
       hour12: true,
     })
     .split(" ");
-  const date_label = is_same_local_day(date, new Date())
-    ? "Today"
-    : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return {
-    date_label,
+    month_label: date
+      .toLocaleDateString("en-US", { month: "short" })
+      .replace(".", "")
+      .toUpperCase(),
+    day_label: String(date.getDate()).padStart(2, "0"),
     time: parts[0] ?? "—",
     period: parts[1] ?? "",
   };
@@ -102,7 +96,7 @@ export default function UpcomingAppointmentsList({
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
@@ -135,7 +129,7 @@ export default function UpcomingAppointmentsList({
               booking.invitee_name?.trim() ||
               booking.contacts?.name?.trim() ||
               "Guest";
-            const { date_label, time, period } = format_schedule(
+            const { month_label, day_label, time, period } = format_schedule(
               booking.start_at,
             );
             return (
@@ -143,35 +137,48 @@ export default function UpcomingAppointmentsList({
                 type="button"
                 key={booking.id}
                 onClick={() => set_preview_booking(booking)}
-                className="flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
+                className="flex w-full cursor-pointer items-start gap-2 sm:gap-4 rounded-2xl border border-slate-200 p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <div className="flex h-[4.25rem] w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-xl bg-slate-50 px-1 py-1 leading-tight">
-                  {date_label ? (
-                    <span className="text-sm font-bold text-indigo-600">
-                      {date_label}
-                    </span>
+                <div className="flex h-11 w-10 shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-center shadow-sm">
+                  {month_label && day_label ? (
+                    <>
+                      <span className="bg-indigo-600 py-[3px] text-center text-[10px] font-bold uppercase leading-none tracking-wide text-white">
+                        {month_label}
+                      </span>
+                      <span className="flex flex-1 items-center justify-center text-sm font-bold leading-none text-indigo-600">
+                        {day_label}
+                      </span>
+                    </>
                   ) : null}
-                  <span className="text-sm font-bold text-slate-700">
-                    {time}
-                    {period ? ` ${period}` : ""}
-                  </span>
                 </div>
+
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-900">{guest}</p>
-                  <p className="truncate text-sm text-slate-500">
-                    {format_subtitle(booking)}
-                  </p>
+                  <div className="flex items-center flex-wrap gap-1">
+                    <span className="truncate text-sm text-slate-500">
+                      {format_subtitle(booking)}
+                    </span>
+                    <span className="flex items-center gap-1 truncate text-sm text-slate-500">
+                      <svg className="h-3.5 w-3.5 text-indigo-600" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      {time}
+                      {period ? ` ${period}` : ""}
+                    </span>
+                  </div>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold border ${badge.className}`}
-                >
-                  {badge.label}
-                </span>
-                <DashboardIcon
-                  name="chevronRight"
-                  size={16}
-                  className="shrink-0 text-slate-300"
-                />
+
+                <div className="flex max-[450px]:flex-col items-center gap-2">
+                  <span
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold border ${badge.className}`}
+                  >
+                    {badge.label}
+                  </span>
+
+                  <DashboardIcon
+                    name="chevronRight"
+                    size={16}
+                    className="shrink-0 hidden sm:block text-slate-300"
+                  />
+                </div>
               </button>
             );
           })}

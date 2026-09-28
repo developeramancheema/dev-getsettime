@@ -174,7 +174,7 @@ export function CalendarMobileDayBookings({
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <h3 className="text-base font-bold text-slate-800">{dayTitle}</h3>
+        <h3 className="text-sm font-bold text-slate-800">{dayTitle}</h3>
         {onGoToToday && (
           <button
             type="button"

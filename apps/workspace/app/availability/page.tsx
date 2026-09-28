@@ -1091,7 +1091,7 @@ export default function Availability() {
   };
 
   const renderTabNav = () => (
-    <nav className="flex shrink-0 gap-6 border-b border-slate-200">
+    <nav className="flex shrink-0 gap-4 border-b border-slate-200">
       <button
         type="button"
         onClick={() => setActiveTab("general")}
@@ -1344,7 +1344,7 @@ export default function Availability() {
         ) : null}
 
           {activeTab === 'availability' && (
-            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-5">
+            <div className="space-y-4 bg-white sm:space-y-6">
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-2">
                 {/* Filters */}
@@ -1501,12 +1501,12 @@ export default function Availability() {
                         <div className="xl:hidden space-y-4">
                           {weekDays.map((day) => { const dayName = format(day, "EEE") as DayName;
                             return (
-                              <div key={dayName} className="border border-gray-200 rounded-lg p-4 bg-white">
+                              <div key={dayName} className="border border-gray-200 rounded-2xl p-4 bg-white overflow-hidden">
                                 {/* Day Header */}
                                 <div className="flex items-center justify-between mb-3">
                                   <div>
                                     <p className="text-sm font-semibold">{format(day, "EEE")}</p>
-                                    <p className="text-xs text-slate-500">{format(day, "dd MMM yyyy")}</p>
+                                    <p className="text-sm text-slate-500">{format(day, "dd MMM yyyy")}</p>
                                   </div>
                                   <label className={`inline-flex items-center ${ isPastSlot(day) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
                                     <input type="checkbox" checked={!isDateDisabled(day, dayName) && !isPastSlot(day)} disabled={isPastSlot(day)} onChange={() => !isPastSlot(day) && toggleDateAvailability(day, dayName)} className="sr-only" />
@@ -1525,20 +1525,20 @@ export default function Availability() {
                                     return (
                                       <div
                                         key={h}
-                                        className={`p-2 rounded-lg text-center text-xs border-1 transition
+                                        className={`p-2 rounded-lg text-center text-sm border-1 transition
                                           ${
                                             isPast || isBooked
                                               ? isBooked 
                                                 ? "bg-red-200 border-red-400 text-red-700 cursor-not-allowed"
                                                 : "bg-slate-200 border-slate-400 text-slate-500 cursor-not-allowed"
                                               : active
-                                              ? "bg-indigo-600/20 border-indigo-600 text-indigo-600 font-medium cursor-pointer hover:opacity-80"
+                                              ? "bg-indigo-50 border-indigo-600 text-indigo-600 cursor-pointer hover:opacity-80"
                                               : "bg-gray-100 border-gray-200 text-slate-500 cursor-pointer hover:opacity-80"
                                           }
                                         `}
                                         onClick={() => { if (!isPast && !isBooked) toggleTimeSlot(dayName, h, day); }}
                                       >
-                                        <div>{formatHour(h)}</div>
+                                        <div className="font-medium">{formatHour(h)}</div>
                                         <div className="leading-tight mt-1">
                                           {isBooked ? "Booked" : isPast ? "Past" : active ? "Available" : "Unavailable"}
                                         </div>

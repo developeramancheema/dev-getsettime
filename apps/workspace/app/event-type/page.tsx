@@ -215,9 +215,9 @@ function event_type_format_list_label(format: event_type_format): string {
 }
 
 function event_type_format_badge_class(format: event_type_format): string {
-  if (format === "group_class") return "bg-sky-50 text-sky-700";
-  if (format === "recurring") return "bg-emerald-50 text-emerald-700";
-  return "bg-indigo-50 text-indigo-700";
+  if (format === "group_class") return "bg-sky-50 text-sky-600 border border-sky-200";
+  if (format === "recurring") return "bg-emerald-50 text-emerald-600 border border-emerald-200";
+  return "bg-indigo-50 text-indigo-600 border border-indigo-200";
 }
 
 export default function EventTypes() {
@@ -1597,10 +1597,10 @@ export default function EventTypes() {
                             <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
                               <span
                                 className={cn(
-                                  "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
+                                  "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold border",
                                   status === "active"
-                                    ? "bg-emerald-50 text-emerald-700"
-                                    : "bg-amber-50 text-amber-700"
+                                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                    : "bg-amber-50 text-amber-600 border-amber-200"
                                 )}
                               >
                                 {status_label}

@@ -138,35 +138,13 @@ export function EventTypeListMobileCards({
                           </span>
                         </p>
                       </div>
-                    </div> 
-                    <ScreenGate maxWidth={575}>
-                      <div className="flex flex-row gap-1">
-                        <div className="flex">
-                          <span className="text-xs text-indigo-600 bg-indigo-100 px-1.5 py-1 rounded-md">
-                            {format_short_label(format)}
-                          </span>
-                        </div>
-                        <p>
-                          <span className="flex items-center gap-2 text-sm text-slate-700">
-                          <ProviderAvatar
-                            name={provider_label === "—" ? "Provider" : provider_label}
-                            initials={provider_initials(
-                              provider_label === "—" ? "?" : provider_label
-                            )}
-                            avatarUrl={provider_avatar}
-                            size="sm"
-                          />
-                            <span className="truncate">{provider_label}</span>
-                          </span>
-                        </p>
-                      </div>
-                    </ScreenGate>                
+                    </div>                
                   </div>
                   
                   <ScreenGate minWidth={576}>
                   <div className="flex flex-col gap-1">
                     <div className="flex">
-                      <span className="text-xs text-indigo-600 bg-indigo-100 px-1.5 py-1 rounded-md">
+                      <span className="text-xs text-indigo-600 border border-indigo-200 bg-indigo-100 px-3 py-1 rounded-full">
                         {format_short_label(format)}
                       </span>
                     </div>
@@ -189,45 +167,39 @@ export function EventTypeListMobileCards({
                   <div>
                     <span
                       className={cn(
-                        "shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold",
+                        "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold border",
                         status === "active"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-amber-50 text-amber-700"
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
                       )}
                     >
                       {status_label}
                     </span>
-
-                    {/* <div className="flex items-center justify-end">
-                      <EventTypeActionsMenu
-                        open={open_menu_id === item.id}
-                        copy_disabled={loadingSlug || !item.slug}
-                        copy_copied={copiedId === item.id}
-                        on_toggle={() =>
-                          set_open_menu_id((prev) =>
-                            prev === item.id ? null : item.id
-                          )
-                        }
-                        on_copy_link={() => {
-                          //void handle_copy_link_from_menu(item);
-                        }}
-                        on_duplicate={() => {
-                          //void handleDuplicate(item);
-                          set_open_menu_id(null);
-                        }}
-                        on_delete={() => {
-                          //handleDeleteClick(item.id);
-                          set_open_menu_id(null);
-                        }}
-                        on_edit={() => {
-                          //handleEdit(item);
-                          set_open_menu_id(null);
-                        }}
-                      />
-                    </div> */}
                   </div>
-
               </div>
+
+              <ScreenGate maxWidth={575}>
+                <div className="flex flex-row gap-1">
+                  <div className="flex">
+                    <span className="text-xs text-indigo-600 border border-indigo-200 bg-indigo-100 px-3 py-1 rounded-full">
+                      {format_short_label(format)}
+                    </span>
+                  </div>
+                  <p>
+                    <span className="flex items-center gap-2 text-sm text-slate-700">
+                    <ProviderAvatar
+                      name={provider_label === "—" ? "Provider" : provider_label}
+                      initials={provider_initials(
+                        provider_label === "—" ? "?" : provider_label
+                      )}
+                      avatarUrl={provider_avatar}
+                      size="sm"
+                    />
+                      <span className="truncate">{provider_label}</span>
+                    </span>
+                  </p>
+                </div>
+              </ScreenGate> 
             </div>
           );
         })}

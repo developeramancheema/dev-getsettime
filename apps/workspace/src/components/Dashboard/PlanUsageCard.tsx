@@ -34,14 +34,15 @@ export default function PlanUsageCard({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="zap" size={20} />
           </div>
-          
-          <h3 className="text-lg font-bold text-slate-900">Plan Usage</h3>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Plan Usage</h3>
+            {!loading && remaining !== null ? (
+              <span className="text-sm font-medium text-slate-600">
+                {remaining} remaining this month
+              </span>
+            ) : null}
+          </div>
         </div>
-        {!loading && remaining !== null ? (
-          <span className="text-sm font-semibold text-slate-600">
-            {remaining} remaining this month
-          </span>
-        ) : null}
       </div>
 
       <p className="text-sm font-semibold text-slate-700">

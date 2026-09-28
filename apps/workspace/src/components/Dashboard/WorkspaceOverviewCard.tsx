@@ -38,8 +38,8 @@ function TrendCaption({ trend }: { trend: MetricTrend }) {
   return (
     <p className="mt-0.5 flex items-center gap-1 text-sm font-medium">
       <span
-        className={`inline-flex items-center gap-0.5 font-bold ${
-          is_up ? "text-emerald-600" : "text-rose-500"
+        className={`inline-flex items-center gap-0.5 font-medium ${
+          is_up ? "text-emerald-600" : "text-red-600"
         }`}
       >
         <svg
@@ -66,7 +66,7 @@ function TrendCaption({ trend }: { trend: MetricTrend }) {
         </svg>
         {trend.percent}%
       </span>
-      <span className="text-slate-400">{trend.label}</span>
+      <span className="text-slate-500">{trend.label}</span>
     </p>
   );
 }
@@ -95,14 +95,14 @@ function MetricTile({
         <DashboardIcon name={icon} size={20} />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-slate-500">{label}</p>
+        <p className="truncate text-sm font-medium text-slate-900">{label}</p>
         <p className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900">
           {value}
         </p>
         {trend ? (
           <TrendCaption trend={trend} />
         ) : (
-          <p className="mt-0.5 truncate text-sm font-medium text-slate-400">
+          <p className="mt-0.5 truncate text-sm font-medium text-slate-500">
             {secondary}
           </p>
         )}
@@ -178,9 +178,7 @@ export default function WorkspaceOverviewCard({
               icon_bg="bg-indigo-50"
               icon_color="text-indigo-600"
             />
-          </ScreenGate>
-
-          <ScreenGate minWidth={1024}>
+          
             <MetricTile
               label="Completion Rate"
               value={loading ? "…" : completion_rate_display}
@@ -216,12 +214,12 @@ export default function WorkspaceOverviewCard({
                 <DashboardIcon name={integration.icon} size={20} />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-700">
+                <p className="truncate text-sm font-medium text-slate-900">
                   {integration.label}
                 </p>
                 <p
-                  className={`text-sm font-bold ${
-                    integration.active ? "text-emerald-600" : "text-slate-400"
+                  className={`text-sm font-medium ${
+                    integration.active ? "text-emerald-600" : "text-slate-500"
                   }`}
                 >
                   {integration.state_label}

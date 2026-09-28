@@ -62,40 +62,41 @@ function RuleCategoryCard({
   readOnly?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-5 sm:p-5">
-      <div className="flex min-w-0 flex-1 items-center sm:items-start gap-3 sm:gap-4">
+    <div className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-start sm:gap-5 sm:p-5">
+      <div className="flex min-w-0 flex-1 items-center sm:items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
           {icon}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-bold text-slate-900 sm:text-base">
-            <span>{number}.</span> {title}
-          </h3>
+          <div className="flex items-center justify-between gap-1">
+            <h3 className="text-sm font-bold text-slate-900 sm:text-base">
+              <span>{number}.</span> {title}
+            </h3>
+            {!readOnly && onEdit ? (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
+              >
+                <SquarePen className="h-4 w-4" />
+                Edit
+              </button>
+            ) : null}
+          </div>
+
           <ScreenGate minWidth={640}>
           <dl className="mt-3 grid grid-cols-1 min-[400px]:grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-3 lg:grid-cols-4">
             {children}
           </dl>
           </ScreenGate>
-
         </div>
       </div>
 
       <ScreenGate maxWidth={639}>
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
         {children}
       </dl>
       </ScreenGate>
-
-      {!readOnly && onEdit ? (
-        <button
-          type="button"
-          onClick={onEdit}
-          className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 cursor-pointer"
-        >
-          <SquarePen className="h-4 w-4" />
-          Edit
-        </button>
-      ) : null}
     </div>
   );
 }
@@ -387,7 +388,6 @@ export function BookingRulesList({
               </div>
             </ScreenGate>
 
-
             {/* Desktop view */}
             <ScreenGate minWidth={1024}>
               <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
@@ -481,7 +481,6 @@ export function BookingRulesList({
                 </tbody>
               </table>
             </ScreenGate>
-
           </div>
         </div>
       </div>
