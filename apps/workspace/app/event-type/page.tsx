@@ -1702,7 +1702,7 @@ export default function EventTypes() {
                 </button>
               </div>
 
-              <div className="flex min-h-0 h-full flex-1 flex-col overflow-x-scroll pb-[60px] lg:pb-0">
+              <div className="flex min-h-0 h-full flex-1 flex-col pb-[60px] lg:pb-0">
                 {editingId !== null ? (
                   <EventTypeEditForm
                     key={editingId}
