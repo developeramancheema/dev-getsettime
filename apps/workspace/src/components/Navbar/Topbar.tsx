@@ -12,6 +12,7 @@ import { useCreateBookingModal } from "@/src/providers/CreateBookingModalProvide
 import DashboardIcon from "@/src/components/Dashboard/DashboardIcon";
 import { WorkspaceBrandLogo } from "../molecules/WorkspaceBrandLogo";
 import GlobalSearch from "./GlobalSearch";
+import ScreenGate from "../ScreenGate";
 interface TopbarProps {
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
@@ -178,21 +179,11 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
+    <header className="sticky top-0 z-999 shrink-0 bg-white border-b border-gray-200 h-16 flex items-center px-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center">
-          <button onClick={toggleSidebar} className="p-2 rounded-md text-gray-500 hover:bg-gray-100 lg:hidden" aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {isSidebarOpen ? (
-                <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-              ) : (
-                <path strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
-              )}
-            </svg>
-          </button>
-          
           <div className="lg:hidden">
-            <div className="h-16 px-3 flex items-center justify-start border-b border-gray-200">
+            <div className="h-16 flex items-center justify-start border-b border-gray-200">
               <Link href="/" className="logo flex flex-col items-start gap-0.5">
                 {!loadingSettings && (
                   <>
@@ -201,13 +192,15 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
                       alt={`${accountName} Logo`}
                       width={150}
                       height={40}
-                      className="h-8 w-auto object-contain"
+                      className="h-10 sm:h-12 lg:h-8 w-auto object-contain"
                     />
+                    <ScreenGate minWidth={1024}>
                     {accountName && accountName !== "GetSetTime" && (
                       <span className="text-xs sm:text-sm font-semibold text-gray-700 truncate max-w-[180px]">
                         {accountName}
                       </span>
                     )}
+                    </ScreenGate>
                   </>
                 )}
               </Link>
@@ -231,8 +224,8 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
             <DashboardIcon name="plus" size={17} className="text-indigo-600" />
             Create Booking
           </button>
-          <Link href="/billings" className="hidden sm:flex text-sm text-gray-500 hover:text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
-            <span className="text-sm font-medium">Current Plan: {currentBillingPlan}</span>
+          <Link href="/billings" className="hidden sm:flex text-emerald-600 px-4 py-2 rounded-lg text-sm border bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200">
+            Current Plan: <span className="font-medium"> {currentBillingPlan}</span>
           </Link>
           <div className="relative">
             <button id="notification-button" onClick={(e) => { e.stopPropagation(); setIsNotificationOpen(!isNotificationOpen); setIsProfileMenuOpen(false);}} className="p-2 bg-gray-100 rounded-full text-gray-500 cursor-pointer hover:bg-gray-100 relative" aria-label="Notifications" aria-expanded={isNotificationOpen} aria-haspopup="true">
@@ -270,7 +263,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
                   )}
                 </div>
                 <div className="px-4 py-2 border-t border-gray-100 text-center">
-                  <Link href="/notifications/all" className="text-xs text-blue-600 hover:text-blue-800" onClick={() => setIsNotificationOpen(false)}>View all notifications</Link>
+                  <Link href="/notifications/all" className="text-xs text-indigo-600 hover:text-indigo-800" onClick={() => setIsNotificationOpen(false)}>View all notifications</Link>
                 </div>
               </div>
             )}
@@ -278,7 +271,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
 
           <div className="relative">
             <button id="profile-button" onClick={(e) => { e.stopPropagation(); setIsProfileMenuOpen(!isProfileMenuOpen); setIsNotificationOpen(false);}} className="flex items-center space-x-2 cursor-pointer focus:outline-none" aria-expanded={isProfileMenuOpen} aria-haspopup="true">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white overflow-hidden">
+              <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white overflow-hidden">
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
                 ) : (
