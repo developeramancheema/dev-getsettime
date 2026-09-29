@@ -2940,7 +2940,7 @@ export function EventTypeFormLayout({
                   Cancel
                 </button>
               )}
-              <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+              <div className="flex flex-col min-w-0 flex-1 items-end justify-end gap-3">
                 {step_banner_error ? (
                   <p
                     id="event-type-step-banner-error"
