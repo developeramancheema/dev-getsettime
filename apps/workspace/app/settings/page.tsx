@@ -996,7 +996,7 @@ export default function SettingsPage() {
                         <h2 className="text-lg font-bold text-slate-950">
                           Account Details
                         </h2>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="text-sm text-slate-500">
                           Basic information about your workspace
                         </p>
                       </div>
@@ -1008,7 +1008,7 @@ export default function SettingsPage() {
 
                   <div className="grid gap-5">
                     <div className="grid gap-5 sm:grid-cols-3">
-                      <label className="block">
+                      <label className="col-span-2 sm:col-span-1 block">
                         <span className="mb-2 block text-sm font-bold text-slate-700">
                           Workspace Name
                         </span>
@@ -1111,7 +1111,7 @@ export default function SettingsPage() {
                         type="button"
                         onClick={() => void shareBookingPage()}
                         disabled={!publicBookingUrl}
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <SettingsIcon name="share" className="h-4 w-4" />
                         Share
@@ -1185,7 +1185,7 @@ export default function SettingsPage() {
                       <h2 className="text-lg font-bold text-slate-950">
                         Logo &amp; Branding
                       </h2>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="text-sm text-slate-500">
                         Upload logo and add tagline for your booking pages
                       </p>
                     </div>
@@ -1224,7 +1224,7 @@ export default function SettingsPage() {
                           />
                         </label>
                       </div>
-                      <p className="mt-2 text-xs text-slate-500">
+                      <p className="mt-1 text-sm text-slate-500">
                         Recommended: PNG, JPG (300x300px)
                       </p>
                       {logoUrl && canEditAllSettings ? (
@@ -1232,7 +1232,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleLogoRemove}
                           disabled={isUploadingLogo}
-                          className="mt-1 text-xs font-medium text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="text-sm font-medium text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Remove logo
                         </button>
@@ -1252,7 +1252,7 @@ export default function SettingsPage() {
                         placeholder="Book appointments with ease"
                         maxLength={TAGLINE_MAX_LENGTH}
                       />
-                      <p className="mt-2 text-xs text-slate-500">
+                      <p className="mt-2 text-sm text-slate-500">
                         {tagline.length}/{TAGLINE_MAX_LENGTH} characters
                         {tagline.length > 0
                           ? ` · ${TAGLINE_MAX_LENGTH - tagline.length} remaining`
@@ -1271,7 +1271,7 @@ export default function SettingsPage() {
                       <h2 className="text-lg font-bold text-slate-950">
                         Regional Preferences
                       </h2>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="text-sm text-slate-500">
                         Set your timezone, language and date/time formats
                       </p>
                     </div>
@@ -1351,7 +1351,7 @@ export default function SettingsPage() {
                       <h2 className="flex items-center gap-2 text-lg font-bold text-slate-950">
                         Booking Rules &amp; Notifications
                       </h2>
-                      <p className="mt-1 break-words text-sm text-slate-500">
+                      <p className="break-words text-sm text-slate-500">
                         Important SaaS controls for booking flow, reminders, and
                         customer actions.
                       </p>
@@ -1415,7 +1415,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
-                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-amber-300/60 ring-2 ring-amber-400/50 ring-offset-2">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-lg shadow-amber-300/60 ring-2 ring-amber-400/50 ring-offset-2">
                         <SettingsIcon name="sparkles" className="h-4 w-4" />
                         Coming Soon!
                       </span>
@@ -1684,7 +1684,7 @@ function ToggleRow({
         if (!disabled) setValue(!value);
       }}
       disabled={disabled}
-      className={`relative inline-flex h-6 w-10 shrink-0 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+      className={`relative inline-flex h-6 w-10 shrink-0 rounded-full transition focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60 ${
         value ? "bg-indigo-600" : "bg-slate-300"
       }`}
     >
@@ -1699,7 +1699,7 @@ function ToggleRow({
   if (layout === "inline") {
     return (
       <div className="flex gap-3 flex-row sm:items-center sm:justify-between sm:gap-4">
-        <span className="min-w-0 text-sm font-bold leading-snug text-slate-800 sm:flex-1">
+        <span className="min-w-0 text-sm font-semibold leading-snug text-slate-800 sm:flex-1">
           {label}
         </span>
         {switchControl}
@@ -1709,7 +1709,7 @@ function ToggleRow({
 
   return (
     <div className="flex w-full min-w-0 items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 transition hover:border-indigo-200 hover:bg-indigo-50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 sm:gap-4 sm:px-4">
-      <span className="min-w-0 flex-1 text-sm font-bold leading-snug text-slate-700">
+      <span className="min-w-0 flex-1 text-sm font-semibold leading-snug text-slate-700">
         {label}
       </span>
       {switchControl}
@@ -1733,7 +1733,7 @@ function ColorRow({
   return (
     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 md:gap-4">
       <span
-        className={`text-sm font-bold leading-snug text-slate-800 sm:shrink-0 ${labelClassName}`}
+        className={`text-sm font-semibold leading-snug text-slate-800 sm:shrink-0 ${labelClassName}`}
       >
         {label}
       </span>

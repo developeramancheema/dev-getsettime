@@ -34,7 +34,7 @@ const STAT_CARDS: readonly StatCardConfig[] = [
     icon_color: "text-indigo-600",
   },
   {
-    label: "Upcoming Appointments",
+    label: "Upcoming Bookings",
     icon: "calendarDays",
     hint: "Across all future dates",
     icon_bg: "bg-sky-50",
@@ -58,7 +58,7 @@ const STAT_CARDS: readonly StatCardConfig[] = [
 
 function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
   if (!trend) {
-    return <p className="mt-1.5 text-sm font-medium text-slate-600">{hint}</p>;
+    return <p className="mt-1.5 text-sm text-slate-500">{hint}</p>;
   }
   const is_up = trend.direction === "up";
   return (
@@ -88,7 +88,7 @@ function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
         </svg>
         {trend.percent}%
       </span>
-      <span className="text-slate-600">vs yesterday</span>
+      <span className="text-slate-500">vs yesterday</span>
     </p>
   );
 }

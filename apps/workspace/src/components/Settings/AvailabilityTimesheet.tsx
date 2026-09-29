@@ -1225,7 +1225,7 @@ const AvailabilityTimesheet = forwardRef<
 
   return (
     <>
-      <div className="space-y-5">
+      <div className="space-y-4">
         <p className="text-sm text-slate-500">
           {readOnly
             ? "View regular weekly availability, working hours, and breaks."

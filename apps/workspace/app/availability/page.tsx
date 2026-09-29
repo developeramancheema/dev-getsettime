@@ -1271,10 +1271,10 @@ export default function Availability() {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl space-y-5">
+      <div className="bg-white p-4 rounded-2xl mb-0">
         {renderTabNav()}
 
-        <div className={activeTab === "general" ? "space-y-4" : "hidden"}>
+        <div className={activeTab === "general" ? "relative mt-4" : "hidden"}>
           {timesheetSaveFeedback !== null && (
             <AlertMessage
               type={timesheetSaveFeedback.type === "success" ? "success" : "error"}
@@ -1344,7 +1344,7 @@ export default function Availability() {
         ) : null}
 
           {activeTab === 'availability' && (
-            <div className="space-y-4 bg-white sm:space-y-6">
+            <div className="space-y-4 bg-white sm:space-y-6 mt-4">
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-2">
                 {/* Filters */}
@@ -1424,8 +1424,9 @@ export default function Availability() {
                     {/* Desktop Week View - Horizontal Scroll */}
                     {viewMode === "week" && (
                       <>
+                        <ScreenGate minWidth={1280}>
                         {/* Desktop Grid View */}
-                        <div className="hidden xl:block overflow-x-auto">
+                        <div className="overflow-x-auto">
                           {/* Hours Header */}
                           <div className="grid grid-cols-[100px_repeat(12,minmax(80px,1fr))]">
                             <div></div>
@@ -1496,9 +1497,11 @@ export default function Availability() {
                             );
                           })}
                         </div>
-
+                        </ScreenGate>
+                        
+                        <ScreenGate maxWidth={1279}>
                         {/* Mobile Vertical Card View */}
-                        <div className="xl:hidden space-y-4">
+                        <div className="space-y-4">
                           {weekDays.map((day) => { const dayName = format(day, "EEE") as DayName;
                             return (
                               <div key={dayName} className="border border-gray-200 rounded-2xl p-4 bg-white overflow-hidden">
@@ -1550,6 +1553,7 @@ export default function Availability() {
                             );
                           })}
                         </div>
+                        </ScreenGate>
                       </>
                     )}
 

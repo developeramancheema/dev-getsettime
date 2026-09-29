@@ -1758,6 +1758,7 @@ export default function EventTypes() {
         />
       )}
 
+
       {settings_open && (
         <div className="fixed inset-0 z-999 flex">
           <button

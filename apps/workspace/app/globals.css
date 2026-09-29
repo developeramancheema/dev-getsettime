@@ -165,11 +165,10 @@ body{
 }
 
 .booking-phone-input .booking-phone-input__country-btn {
-  height: 52px;
+  height: 48px;
   min-width: 4.25rem;
   border: 0 !important;
   border-right: 1px solid #e5e7eb !important;
-  border-radius: 0 !important;
   margin-right: 0 !important;
   background-color: #f9fafb !important;
   padding: 0 0.5rem;
@@ -181,14 +180,13 @@ body{
 
 .booking-phone-input .booking-phone-input__dial-code {
   flex: 0 0 auto;
-  height: 52px;
+  height: 48px;
   border: 0 !important;
   border-right: 1px solid #e5e7eb !important;
   margin-right: 0 !important;
   background-color: #f9fafb !important;
   padding: 0 0.625rem;
   color: #374151;
-  font-size: 1rem;
   font-weight: 500;
   user-select: none;
   cursor: default;
@@ -199,10 +197,9 @@ body{
   flex: 1 1 0%;
   min-width: 0;
   width: auto !important;
-  min-height: 52px;
+  min-height: 48px;
   height: auto !important;
   border: 0 !important;
-  border-radius: 0 !important;
   margin: 0 !important;
   background: transparent !important;
   padding: 1rem !important;
@@ -224,7 +221,6 @@ body{
 }
 
 .booking-phone-input .react-international-phone-country-selector-dropdown__list-item {
-  border-radius: 12px;
   padding: 10px 12px;
   font-size: 14px;
   transition: background 0.2s ease;
@@ -238,28 +234,19 @@ body{
 .settings-phone-input.booking-phone-input {
   max-width: 100%;
   min-width: 0;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.settings-phone-input.booking-phone-input:focus-within {
-  border-color: #818cf8;
-  background-color: #fff;
-  box-shadow: 0 0 0 4px rgb(99 102 241 / 0.1);
 }
 
 .settings-phone-input.booking-phone-input .booking-phone-input__country-btn,
 .settings-phone-input.booking-phone-input .booking-phone-input__dial-code {
-  height: 3.5rem;
   background-color: #f8fafc !important;
+  height: 48px;
+  
+
 }
 
 .settings-phone-input.booking-phone-input .react-international-phone-input,
 .settings-phone-input.booking-phone-input .booking-phone-input__field {
-  min-height: 3.5rem;
   padding: 0 1rem !important;
-  font-size: 1rem !important;
-  font-weight: 500;
+  height: 48px;
+  font-size: .875rem !important;
 }

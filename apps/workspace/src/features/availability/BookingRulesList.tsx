@@ -124,7 +124,7 @@ export function BookingRulesList({
   onEdit,
 }: BookingRulesListProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 mt-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-slate-900">

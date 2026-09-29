@@ -331,14 +331,14 @@ export function ProviderCreateModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
       <section className="relative z-10 flex max-h-[min(90vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="border-b border-slate-100 px-6 py-5">
+        <div className="border-b border-slate-100 px-4 py-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 space-y-3">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
@@ -367,7 +367,7 @@ export function ProviderCreateModal({
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {inviteUrl ? (
-            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+            <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
               <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
                 <p className="text-sm font-semibold text-indigo-900">Provider invite sent</p>
                 <p className="mt-1 text-sm text-slate-500">
@@ -387,7 +387,7 @@ export function ProviderCreateModal({
             </div>
           ) : (
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
             <ModalErrorBanner error={error} />
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -440,7 +440,7 @@ export function ProviderCreateModal({
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 justify-between">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
                   <LuStethoscope className="h-5 w-5 text-indigo-600" aria-hidden />
                 </div>
@@ -472,7 +472,7 @@ export function ProviderCreateModal({
             </div>
           </div>
 
-          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-4 py-4">
             <button
               type="button"
               onClick={onCancel}
@@ -524,14 +524,14 @@ export function StaffInviteModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
       <section className="relative z-10 flex max-h-[min(90vh,900px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="border-b border-slate-100 px-6 py-5">
+        <div className="border-b border-slate-100 px-4 py-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 space-y-3 pr-2">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -561,7 +561,7 @@ export function StaffInviteModal({
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {inviteUrl ? (
-            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+            <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                 <p className="text-sm font-semibold text-emerald-900">Invite created successfully</p>
                 <p className="mt-1 text-sm text-emerald-800">
@@ -581,7 +581,7 @@ export function StaffInviteModal({
             </div>
           ) : (
             <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-              <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              <div className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
                 <ModalErrorBanner error={error} />
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4">
                   <p className="text-md font-semibold text-emerald-900">Internal team invite flow</p>
@@ -689,7 +689,7 @@ export function StaffInviteModal({
                 </div>
               </div>
 
-              <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
+              <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-4 py-4">
                 <button
                   type="button"
                   onClick={onCancel}
@@ -772,14 +772,14 @@ export function EditTeamMemberModal({
   const primaryRoleOptions = getEditablePrimaryRoleOptions(editingMember);
 
   return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
       <section className="relative z-10 flex max-h-[min(90vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="border-b border-slate-100 px-6 py-5">
+        <div className="border-b border-slate-100 px-4 py-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 space-y-3">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
@@ -807,7 +807,7 @@ export function EditTeamMemberModal({
         </div>
 
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
             <ModalSuccessBanner success={success} />
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -988,7 +988,7 @@ export function EditTeamMemberModal({
 
             {showDepartments && (
               <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
                     <LuBuilding2 className="h-5 w-5 text-indigo-600" aria-hidden />
                   </div>
@@ -1014,7 +1014,7 @@ export function EditTeamMemberModal({
             )}
           </div>
 
-          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-4 py-4">
             <button
               type="button"
               onClick={onCancel}
@@ -1092,14 +1092,14 @@ export function ManageRoleModal({
   const primaryRoleOptions = getEditablePrimaryRoleOptions(member);
 
   return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
       <section className="relative z-10 flex max-h-[min(90vh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-4 py-5">
           <div className="min-w-0 space-y-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
               <LuUserCog className="h-3.5 w-3.5" aria-hidden />
@@ -1126,7 +1126,7 @@ export function ManageRoleModal({
         </div>
 
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
             <ModalSuccessBanner success={success} />
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
@@ -1263,7 +1263,7 @@ export function ManageRoleModal({
             ) : null}
           </div>
 
-          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-4 py-4">
             <button
               type="button"
               onClick={onCancel}

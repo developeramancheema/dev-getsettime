@@ -1117,7 +1117,7 @@ export default function ContactsCreative() {
             aria-modal="true"
             aria-labelledby="contact-form-title"
           >
-            <div className="shrink-0 border-b border-slate-100 px-6 pb-5 pt-6 sm:px-8">
+            <div className="shrink-0 border-b border-slate-100 px-4 pb-5 pt-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3
@@ -1147,7 +1147,7 @@ export default function ContactsCreative() {
               onSubmit={handle_submit}
               className="flex min-h-0 flex-1 flex-col"
             >
-              <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
+              <div className="flex-1 overflow-y-auto px-4 py-6">
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
                     <label
@@ -1332,7 +1332,7 @@ export default function ContactsCreative() {
                 </div>
               </div>
 
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 sm:px-8">
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-4 py-4">
                 <button
                   type="button"
                   onClick={handle_close_modal}
@@ -1360,7 +1360,7 @@ export default function ContactsCreative() {
 
       {view_contact && (
         <div
-          className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-1000001 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
           role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -1369,12 +1369,12 @@ export default function ContactsCreative() {
           }}
         >
           <div
-            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl"
+            className="max-h-[min(90vh,880px)] w-full max-w-2xl flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="contact-view-title"
           >
-            <div className="border-b border-slate-100 px-6 pb-5 pt-6 sm:px-8">
+            <div className="border-b border-slate-100 pb-5 pt-6 px-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3
@@ -1400,7 +1400,7 @@ export default function ContactsCreative() {
               </div>
             </div>
 
-            <div className="max-h-[min(70vh,640px)] space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
+            <div className="max-h-[min(70vh,640px)] space-y-6 overflow-y-auto px-4 py-6">
               <div className="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-2xl font-black text-indigo-800">
                   {get_initials(view_contact.name ?? "")}
@@ -1477,7 +1477,7 @@ export default function ContactsCreative() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 sm:px-8">
+            <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-4 py-4">
               <button
                 type="button"
                 onClick={() => set_view_contact(null)}

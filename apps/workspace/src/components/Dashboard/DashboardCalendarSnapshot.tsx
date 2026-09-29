@@ -147,7 +147,7 @@ export default function DashboardCalendarSnapshot() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Calendar Snapshot</h3>
+          <h3 className="text-lg font-bold text-slate-900">Calendar <span className="hidden sm:inline">Snapshot</span></h3>
         </div>
         
         <div className="flex items-center gap-2">
