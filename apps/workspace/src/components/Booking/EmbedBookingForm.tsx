@@ -4,9 +4,13 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspens
 import type { Workspace } from '@app/db';
 import type { Department, EventType, IntakeValues, ServiceProvider, Timeslot } from '@/src/types/bookingForm';
 import { useEmbedBookingFormData } from '@/src/hooks/useEmbedBookingFormData';
-import { useAutoAdvanceStep1 } from '@/src/hooks/useAutoAdvanceStep1';
+import { useAutoSelectSoleBookingOptions } from '@/src/hooks/useAutoSelectSoleBookingOptions';
+import { useAutoAdvanceSkippableBookingSteps } from '@/src/hooks/useAutoAdvanceSkippableBookingSteps';
+import { useBookingStepStates } from '@/src/hooks/useBookingStepStates';
 import { useTimeslots } from '@/src/hooks/useTimeslots';
 import { useIntakeValidation } from '@/src/hooks/useIntakeValidation';
+import { useBookingStepFlow } from '@/src/hooks/useBookingStepFlow';
+import { useBookSeriesOption } from '@/src/hooks/useBookSeriesOption';
 import {
   DEFAULT_ACCENT_COLOR,
   DEFAULT_PRIMARY_COLOR,
@@ -52,7 +56,22 @@ import {
   can_navigate_to_booking_step,
   type booking_step_nav_context,
 } from '@/src/utils/booking_step_navigation';
+import {
+  booking_step_number,
+  event_type_max_window_days,
+  event_type_session_duration_minutes,
+  event_type_slot_capacity,
+  department_step_is_ready,
+  event_type_step_is_ready,
+  indicator_booking_step_ids,
+  is_booking_step_resolving,
+  is_event_type_before_department,
+  parse_booking_step_order,
+  previous_booking_step_id,
+  resolve_next_booking_step_id,
+} from '@/src/features/booking-flow';
 import { resolve_provider_scoped_service_gate } from '@/src/utils/provider_scoped_service_gate';
+import { slot_occupancy_context_from_event_type } from '@/lib/booking_capacity';
 
 const Step3DateTime = lazy(() =>
   import('./MultiStepBooking/Step3DateTime').then((m) => ({ default: m.Step3DateTime }))
@@ -79,22 +98,9 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
   const [rescheduleNotAllowed, setRescheduleNotAllowed] = useState(false);
   const [previousStartAt, setPreviousStartAt] = useState<string | null>(null);
   const [previousEndAt, setPreviousEndAt] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
-  // Once the user manually steps backward, stop auto-advancing/masking so they can
-  // review earlier steps (department, event type) even when each has a single option.
   const [disableAutoAdvance, setDisableAutoAdvance] = useState(false);
   const stepTopRef = useRef<HTMLDivElement | null>(null);
   const hasMountedRef = useRef(false);
-
-  // Scroll the step content back to the top whenever the step changes (skip the
-  // initial render so loading the form doesn't trigger an unwanted scroll).
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-    stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [step]);
 
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
@@ -124,6 +130,10 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedMeetingOption, setSelectedMeetingOption] = useState('');
+  const { bookSeries, setBookSeries, showBookSeriesOption } = useBookSeriesOption({
+    selectedType,
+    enabled: !isRescheduleMode,
+  });
 
   const targetDuration = parseEventTypeDurationParam(eventType);
   const [days, setDays] = useState<Date[]>(() =>
@@ -163,6 +173,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     generalSettings,
     workspaceOwnerAdminNotice,
     meetingOptions,
+    bookingStepOrder,
   } = useEmbedBookingFormData({
     workspace,
     eventTypeSlug,
@@ -170,10 +181,33 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     selectedDepartment,
     selectedProvider,
     selectedType,
+    lockEventTypeCatalog: !!selectedType,
     days,
     intakeForm: undefined,
     onAvailabilityChange,
   });
+
+  const parsed_step_order = useMemo(
+    () => parse_booking_step_order(bookingStepOrder),
+    [bookingStepOrder]
+  );
+  const {
+    current_step_id,
+    step_order,
+    is_step,
+    go_to_step,
+    progress_ids,
+  } = useBookingStepFlow({
+    step_order: parsed_step_order,
+  });
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [current_step_id]);
 
   useEffect(() => {
     if (!serviceProviderId || selectedDepartment || loadingDepartments) return;
@@ -181,6 +215,15 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       setSelectedDepartment(departments[0]);
     }
   }, [serviceProviderId, selectedDepartment, loadingDepartments, departments]);
+
+  const event_type_before_department = is_event_type_before_department(step_order);
+
+  useEffect(() => {
+    if (!selectedType || !event_type_before_department) return;
+    setSelectedDepartment(null);
+    setSelectedProvider(null);
+    setSelectedServiceIds([]);
+  }, [selectedType?.id, event_type_before_department]);
 
   useEffect(() => {
     if (
@@ -234,9 +277,15 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     setSelectedServiceIds((prev) => (prev.length === 1 && prev[0] === id ? prev : [id]));
   }, []);
 
-  useAutoAdvanceStep1({
-    enabled: !isRescheduleMode && !disableAutoAdvance,
-    step,
+  const sortedEventTypes = getSortedFilteredEventTypes(eventTypes, {
+    slug: eventTypeSlug,
+    duration: targetDuration,
+  });
+
+  const department_step_ready = department_step_is_ready(step_order, selectedType);
+
+  useAutoSelectSoleBookingOptions({
+    enabled: !isRescheduleMode && !disableAutoAdvance && department_step_ready,
     loadingDepartments,
     departments,
     selectedDepartment,
@@ -246,17 +295,40 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     showProviderPicker,
     serviceProviders,
     onClearOptionalServices: () => setSelectedServiceIds([]),
-    advanceToNextStep: () => setStep(2),
     loadingProviderScopedCatalog,
     providerScopedCatalogServices,
     providerCatalogContextReady,
     providerScopedCatalogSettled,
     onAutoSelectSingleService: handleAutoSelectSingleService,
+    loadingEventTypes,
+    eventTypes: sortedEventTypes,
+    selectedType,
+    setSelectedType,
+    eventTypeContextReady: event_type_step_is_ready(step_order, {
+      departmentsCount: departments.length,
+      hasSelectedDepartment: !!selectedDepartment,
+      showProviderPicker,
+      hasSelectedProvider: !!selectedProvider,
+    }),
   });
 
-  const sortedEventTypes = getSortedFilteredEventTypes(eventTypes, {
-    slug: eventTypeSlug,
-    duration: targetDuration,
+  const step_states = useBookingStepStates({
+    step_order,
+    loadingEventTypes,
+    eventTypesCount: sortedEventTypes.length,
+    selectedType,
+    departmentsCount: departments.length,
+    loadingDepartments,
+    selectedDepartment,
+    showProviderPicker,
+    serviceProvidersCount: serviceProviders.length,
+    loadingProviders,
+    selectedProvider,
+    providerCatalogContextReady,
+    loadingProviderScopedCatalog,
+    providerScopedCatalogServices,
+    providerScopedCatalogSettled,
+    selectedServiceIds,
   });
 
   const serviceCatalogForSlots = useMemo(
@@ -364,10 +436,22 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
   );
   const isStep4Valid = Object.keys(intakeValidation).length === 0;
 
+  const visible_progress_ids = useMemo(
+    () => indicator_booking_step_ids(progress_ids),
+    [progress_ids]
+  );
+
+  const visible_progress_step = useMemo(
+    () => booking_step_number(visible_progress_ids, current_step_id),
+    [visible_progress_ids, current_step_id]
+  );
+
+  // Navigation adjacency follows the steps the user actually sees, so a skipped
+  // single-option step never blocks the progress indicator.
   const step_nav_context = useMemo(
     (): booking_step_nav_context => ({
-      step,
-      totalSteps: 5,
+      current_step_id,
+      step_order: visible_progress_ids,
       departmentsCount: departments.length,
       showProviderPicker,
       hasSelectedDepartment: !!selectedDepartment,
@@ -378,10 +462,11 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       hasSelectedTime: !!selectedTime,
       isRescheduleMode,
       rescheduleContinueDisabled: loading,
-      isSuccessScreen: step === 5,
+      isSuccessScreen: is_step('success'),
     }),
     [
-      step,
+      current_step_id,
+      visible_progress_ids,
       departments.length,
       showProviderPicker,
       selectedDepartment,
@@ -392,67 +477,67 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       selectedTime,
       isRescheduleMode,
       loading,
+      is_step,
     ]
   );
 
   const can_click_booking_step = useCallback(
-    (target: number) => can_navigate_to_booking_step(step_nav_context, target),
-    [step_nav_context]
+    (target: number) => {
+      const target_id = visible_progress_ids[target - 1];
+      return !!target_id && can_navigate_to_booking_step(step_nav_context, target_id);
+    },
+    [visible_progress_ids, step_nav_context]
   );
 
   const handle_step_click = useCallback(
     (target: number) => {
-      if (!can_navigate_to_booking_step(step_nav_context, target)) return;
-      if (target < step) setDisableAutoAdvance(true);
-      if (step === 3 && target < 3) {
+      const target_id = visible_progress_ids[target - 1];
+      if (!target_id || !can_navigate_to_booking_step(step_nav_context, target_id)) return;
+      const current_index = step_order.indexOf(current_step_id);
+      const target_index = step_order.indexOf(target_id);
+      setDisableAutoAdvance(true);
+      if (is_step('date_time') && target_index < current_index) {
         setSelectedDate(null);
         setSelectedTime('');
       }
-      setStep(target);
+      go_to_step(target_id);
     },
-    [step_nav_context, step]
+    [step_nav_context, current_step_id, step_order, visible_progress_ids, is_step, go_to_step]
   );
+
+  const go_to_next_step = useCallback(() => {
+    const next_id = resolve_next_booking_step_id(step_order, current_step_id, step_states);
+    if (next_id) go_to_step(next_id);
+  }, [current_step_id, go_to_step, step_order, step_states]);
+
+  const previous_step_id = useMemo(
+    () => previous_booking_step_id(step_order, current_step_id),
+    [current_step_id, step_order]
+  );
+
+  const go_to_previous_step = useCallback(() => {
+    if (!previous_step_id) return;
+    setDisableAutoAdvance(true);
+    go_to_step(previous_step_id);
+  }, [go_to_step, previous_step_id]);
 
   const workspacePrimaryColor = generalSettings?.primaryColor ?? DEFAULT_PRIMARY_COLOR;
   const workspaceAccentColor = generalSettings?.accentColor ?? null;
-  // The event type is auto-resolvable whenever exactly one bookable type remains,
-  // whether narrowed by a slug/duration link or simply the only type available.
-  const eventTypeAutoResolved = Boolean(
-    selectedType && sortedEventTypes.length === 1 && !loadingEventTypes
-  );
-  const canSkipToStep3 = eventTypeAutoResolved && serviceGate.canAutoAdvancePastStep1;
 
-  // Step 1 only needs the user when there is a genuine choice to make: multiple
-  // departments, multiple providers in the chosen department, or multiple services.
-  const step1RequiresUserInput =
-    departments.length > 1 ||
-    (!!selectedDepartment && showProviderPicker && serviceProviders.length > 1) ||
-    serviceGate.requiresManualSelection;
-
-  // While single-option levels are still resolving (or about to skip ahead), show a
-  // loader instead of flashing Step 1/2 so single-option links open straight on Step 3.
-  const autoAdvanceResolving =
+  // While a step with nothing to choose settles its sole option, show a loader
+  // instead of flashing the step we are about to skip.
+  const current_step_resolving =
     !isRescheduleMode &&
     !disableAutoAdvance &&
-    ((step === 1 && !step1RequiresUserInput) ||
-      (step === 2 && (loadingEventTypes || canSkipToStep3)));
+    is_booking_step_resolving(step_states, current_step_id);
 
-  useEffect(() => {
-    if (!loadingEventTypes && sortedEventTypes.length === 1 && !selectedType) {
-      setSelectedType(sortedEventTypes[0]);
-    }
-  }, [loadingEventTypes, sortedEventTypes, selectedType]);
-
-  useEffect(() => {
-    if (isRescheduleMode || disableAutoAdvance) return;
-    if (!loadingDepartments && departments.length === 0 && step === 1) {
-      setStep(canSkipToStep3 ? 3 : 2);
-    }
-  }, [loadingDepartments, departments.length, step, canSkipToStep3, isRescheduleMode, disableAutoAdvance]);
-
-  useEffect(() => {
-    if (canSkipToStep3 && step === 2 && !disableAutoAdvance) setStep(3);
-  }, [canSkipToStep3, step, disableAutoAdvance]);
+  useAutoAdvanceSkippableBookingSteps({
+    enabled: !isRescheduleMode && !disableAutoAdvance,
+    current_step_id,
+    step_order,
+    step_states,
+    go_to_step,
+  });
 
   useEffect(() => {
     if (selectedType) {
@@ -462,14 +547,14 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
   }, [selectedType]);
 
   useEffect(() => {
-    if (step === 3 && !selectedDate) setCurrentMonth(new Date());
-  }, [step, selectedDate]);
+    if (is_step('date_time') && !selectedDate) setCurrentMonth(new Date());
+  }, [current_step_id, selectedDate, is_step]);
 
   useEffect(() => {
-    if (step === 3 && !hasManualTimezone) {
+    if (is_step('date_time') && !hasManualTimezone) {
       void refreshLocation();
     }
-  }, [step, hasManualTimezone, refreshLocation]);
+  }, [current_step_id, hasManualTimezone, refreshLocation, is_step]);
 
   useEffect(() => {
     if (selectedDate && selectedTime) {
@@ -487,11 +572,11 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
   }, [intakeForm]);
 
   useEffect(() => {
-    if (step === 4) {
+    if (is_step('intake')) {
       setTouched({ name: false, email: false, phone: false });
       setTouchedCustomFields({});
     }
-  }, [step]);
+  }, [current_step_id, is_step]);
 
   useEffect(() => {
     setSelectedMeetingOption((prev) => {
@@ -569,7 +654,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     const match = eventTypes.find((et) => et.id === rescheduleEventTypeId);
     if (match) {
       setSelectedType(match);
-      setStep(3);
+      go_to_step('date_time');
     }
   }, [isRescheduleMode, rescheduleReady, rescheduleEventTypeId, loadingEventTypes, eventTypes, selectedType]);
 
@@ -626,10 +711,13 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     setError(null);
 
     try {
-      const durationMin = resolveEffectiveBookingDurationMinutes(
+      const durationMin = event_type_session_duration_minutes(
         selectedType,
-        selectedServiceIds,
-        serviceCatalogForSlots
+        resolveEffectiveBookingDurationMinutes(
+          selectedType,
+          selectedServiceIds,
+          serviceCatalogForSlots
+        )
       );
       const startDate = new Date(selectedSlot.startUtc);
       if (startDate < new Date()) {
@@ -639,7 +727,16 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       }
 
       const endDate = new Date(startDate.getTime() + durationMin * 60_000);
-      if (isTimeSlotBooked(startDate, endDate, selectedDate, existingBookings)) {
+      if (
+        isTimeSlotBooked(
+          startDate,
+          endDate,
+          selectedDate,
+          existingBookings,
+          event_type_slot_capacity(selectedType),
+          slot_occupancy_context_from_event_type(selectedType)
+        )
+      ) {
         setError('This time slot has already been booked. Please select another time.');
         setLoading(false);
         return;
@@ -664,7 +761,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       }
       if (result.preview_url) setPreviewUrl(result.preview_url);
       setConfirmed(true);
-      setStep(5);
+      go_to_step('success');
     } catch (err) {
       setError((err as Error).message || 'An error occurred');
     } finally {
@@ -712,10 +809,13 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     setError(null);
 
     try {
-      const durationMin = resolveEffectiveBookingDurationMinutes(
+      const durationMin = event_type_session_duration_minutes(
         selectedType,
-        selectedServiceIds,
-        serviceCatalogForSlots
+        resolveEffectiveBookingDurationMinutes(
+          selectedType,
+          selectedServiceIds,
+          serviceCatalogForSlots
+        )
       );
       const startDate = new Date(selectedSlot.startUtc);
       if (startDate < new Date()) {
@@ -725,7 +825,16 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       }
 
       const endDate = new Date(startDate.getTime() + durationMin * 60_000);
-      if (isTimeSlotBooked(startDate, endDate, selectedDate, existingBookings)) {
+      if (
+        isTimeSlotBooked(
+          startDate,
+          endDate,
+          selectedDate,
+          existingBookings,
+          event_type_slot_capacity(selectedType),
+          slot_occupancy_context_from_event_type(selectedType)
+        )
+      ) {
         setError('This time slot has already been booked. Please refresh and select another time.');
         setLoading(false);
         return;
@@ -820,6 +929,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
           customer_timezone: viewerTimezone,
           provider_timezone: providerTimezone,
           timezone: viewerTimezone,
+          book_series: bookSeries,
         }),
       });
 
@@ -829,7 +939,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
       }
       if (result.preview_url) setPreviewUrl(result.preview_url);
       setConfirmed(true);
-      setStep(5);
+      go_to_step('success');
     } catch (err) {
       setError((err as Error).message || 'An error occurred');
     } finally {
@@ -894,7 +1004,8 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
             selectedType={selectedType}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
-            step={step}
+            current_step_id={current_step_id}
+            step={visible_progress_step}
             name={name}
             email={email}
             phone={phone}
@@ -909,9 +1020,10 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
             meetingChoiceLabel={meetingChoiceLabel.trim() || undefined}
           />
           <div ref={stepTopRef} className="scroll-mt-4 p-4 sm:p-6 lg:p-8 xl:p-10 bg-white relative">
-            {!autoAdvanceResolving && (
+            {!current_step_resolving && (
               <ProgressIndicator
-                step={step}
+                step={visible_progress_step}
+                totalSteps={visible_progress_ids.length}
                 onStepClick={handle_step_click}
                 canClickStep={can_click_booking_step}
               />
@@ -922,8 +1034,8 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
               </div>
             )}
             <div className="relative">
-              {autoAdvanceResolving && <StepFallback />}
-              {step === 1 && !autoAdvanceResolving && (
+              {current_step_resolving && <StepFallback />}
+              {is_step('department_provider') && !current_step_resolving && (
                 <Step1DepartmentProvider
                   departments={departments}
                   selectedDepartment={selectedDepartment}
@@ -946,27 +1058,29 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
                     setSelectedServiceIds([]);
                   }}
                   onSelectProvider={setSelectedProvider}
-                  onContinue={() => setStep(canSkipToStep3 ? 3 : 2)}
+                  onBack={
+                    isRescheduleMode || !previous_step_id
+                      ? undefined
+                      : go_to_previous_step
+                  }
+                  onContinue={go_to_next_step}
                 />
               )}
-              {step === 2 && !autoAdvanceResolving && (
+              {is_step('event_type') && !current_step_resolving && (
                 <Step2ServiceSelection
                   eventTypes={sortedEventTypes}
                   selectedType={selectedType}
                   loadingEventTypes={loadingEventTypes}
                   onSelectType={setSelectedType}
                   onBack={
-                    isRescheduleMode || departments.length === 0
+                    isRescheduleMode || !previous_step_id
                       ? undefined
-                      : () => {
-                          setDisableAutoAdvance(true);
-                          setStep(1);
-                        }
+                      : go_to_previous_step
                   }
-                  onContinue={() => setStep(3)}
+                  onContinue={go_to_next_step}
                 />
               )}
-              {step === 3 && (
+              {is_step('date_time') && (
                 <Suspense fallback={<StepFallback />}>
                   <Step3DateTime
                     selectedDate={selectedDate}
@@ -1005,22 +1119,26 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
                       })
                     }
                     onSetCurrentMonth={(d) => setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1))}
-                    onBack={isRescheduleMode ? undefined : () => {
-                      setDisableAutoAdvance(true);
-                      setStep(departments.length === 0 ? 2 : 1);
+                    onBack={isRescheduleMode || !previous_step_id ? undefined : () => {
+                      go_to_previous_step();
                       setSelectedDate(null);
                       setSelectedTime('');
                     }}
-                    onContinue={isRescheduleMode ? handleRescheduleConfirm : () => setStep(4)}
+                    onContinue={isRescheduleMode ? handleRescheduleConfirm : go_to_next_step}
                     continueLabel={isRescheduleMode ? (loading ? 'Rescheduling...' : 'Confirm Reschedule') : undefined}
                     continueDisabled={isRescheduleMode ? loading : undefined}
                     onDaysChange={setDays}
                     previousStartAt={isRescheduleMode ? previousStartAt : undefined}
                     previousEndAt={isRescheduleMode ? previousEndAt : undefined}
+                    bookSeries={bookSeries}
+                    onBookSeriesChange={setBookSeries}
+                    showBookSeriesOption={showBookSeriesOption}
+                    maxWindowDays={event_type_max_window_days(selectedType)}
+                    allowAutoAdvance={!isRescheduleMode && !disableAutoAdvance}
                   />
                 </Suspense>
               )}
-              {step === 4 && (
+              {is_step('intake') && (
                 <Step4IntakeForm
                   intakeForm={intakeForm}
                   name={name}
@@ -1056,7 +1174,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
                   files={files}
                   onFilesChange={handleFilesChange}
                   fileError={fileError}
-                  onBack={() => setStep(3)}
+                  onBack={go_to_previous_step}
                   onConfirm={handleConfirm}
                   hideIntakeCatalogServices={hideIntakeCatalogServices}
                   enabledMeetingOptionKeys={bookableMeetingOptionKeys}
@@ -1064,7 +1182,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
                   onMeetingOptionChange={setSelectedMeetingOption}
                 />
               )}
-              {step === 5 && (
+              {is_step('success') && (
                 <Step5Success
                   selectedType={selectedType}
                   selectedDate={selectedDate}

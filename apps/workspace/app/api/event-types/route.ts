@@ -22,6 +22,7 @@ import {
   parse_min_booking_notice_minutes,
   parse_waitlist_capacity,
 } from '@/src/features/event-types/event_type_booking_options';
+import { filterEventTypesForServiceProvider } from '@/src/utils/bookingFormUtils';
 
 /**
  * Creates an authenticated Supabase client using the anon key (respects RLS)
@@ -454,9 +455,9 @@ export async function GET(req: NextRequest) {
 
     let event_types = data || [];
     if (serviceProviderIdParam) {
-      event_types = event_types.filter(
-        (row: { owner_id?: string | null }) =>
-          row.owner_id === serviceProviderIdParam
+      event_types = filterEventTypesForServiceProvider(
+        event_types,
+        serviceProviderIdParam
       );
     } else if (role === ROLE_SERVICE_PROVIDER) {
       event_types = event_types.filter(

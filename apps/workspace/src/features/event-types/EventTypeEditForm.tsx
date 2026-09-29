@@ -91,6 +91,8 @@ type EventTypeEditFormProps = {
   embedded?: boolean;
   variant?: "page" | "panel";
   onClose?: () => void;
+  /** Panel save: show success on the list page and close the sidebar. */
+  onSaved?: (message: string) => void;
 };
 
 export function EventTypeEditForm({
@@ -98,6 +100,7 @@ export function EventTypeEditForm({
   embedded = false,
   variant = "page",
   onClose,
+  onSaved,
 }: EventTypeEditFormProps) {
   const router = useRouter();
   const { user } = useAuth();
@@ -501,17 +504,6 @@ export function EventTypeEditForm({
       return;
     }
 
-    const {
-      data: { session: precheckSession },
-    } = await supabase.auth.getSession();
-    if (!precheckSession?.access_token) {
-      setFormError("You are not signed in. Please refresh and try again.");
-      return;
-    }
-
-    const normalized_slug = await verify_slug(precheckSession.access_token, form.slug);
-    if (!normalized_slug) return;
-
     if (submitInFlightRef.current) return;
     submitInFlightRef.current = true;
     setSubmitting(true);
@@ -525,6 +517,9 @@ export function EventTypeEditForm({
         setFormError("You are not signed in. Please refresh and try again.");
         return;
       }
+
+      const normalized_slug = await verify_slug(session.access_token, form.slug);
+      if (!normalized_slug) return;
 
       const payload = {
         id: eventTypeId,
@@ -581,10 +576,13 @@ export function EventTypeEditForm({
       }
 
       succeeded = true;
-      if (onClose) {
+      const saved_message = "Event type updated successfully.";
+      if (onSaved) {
+        onSaved(saved_message);
+      } else if (onClose) {
         onClose();
       } else {
-        setSuccessMessage("Event type updated successfully.");
+        setSuccessMessage(saved_message);
         setTimeout(() => {
           router.push("/event-type");
         }, 1200);
@@ -609,7 +607,7 @@ export function EventTypeEditForm({
   };
 
   const wrapper_class = embedded
-    ? "flex h-full min-h-0 pb-[60px] lg:pb-0 flex-col overflow-x-scroll "
+    ? "flex h-full min-h-0 pb-[60px] lg:pb-0 flex-col overflow-x-scroll"
     : "mr-auto space-y-6 rounded-2xl";
 
   if (load_state.status === "loading") {

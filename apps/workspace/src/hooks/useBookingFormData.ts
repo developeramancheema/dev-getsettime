@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type {
   AvailabilitySettings,
   Booking,
@@ -10,16 +10,26 @@ import type {
 import type { IntakeFormSettings, meeting_options_settings } from '@/src/types/workspace';
 import type { workspace_notifications_settings } from '@/lib/workspace-notification-flags';
 import { getAllowedServiceIds, isServicesEnabled } from '@/src/utils/intakeForm';
-import { CALENDAR_BUFFER_DAYS, CALENDAR_BUFFER_DAYS_BEFORE } from '@/src/constants/booking';
+import {
+  event_type_session_duration_minutes,
+  resolve_booking_data_fetch_range,
+} from '@/src/features/booking-flow';
 import { userActsAsServiceProviderFromMetadata } from '@/lib/service_provider_role';
 import { serviceIdsFromUserServiceAssignments } from '@/src/utils/bookingServiceAssignments';
 import {
   filterBookableDepartments,
   filterBookableEventTypes,
+  filterDepartmentsForEventType,
   filterEventTypesForServiceProvider,
+  filterProvidersForEventType,
   memberActsInDepartment,
 } from '@/src/utils/bookingFormUtils';
 import { resolveAvailabilityForServiceProvider } from '@/src/utils/availabilityResolution';
+import {
+  calendar_busy_without_booking_overlap,
+  flatten_embed_booking_row,
+} from '@/lib/booking_capacity';
+import { parse_event_type_recurrence } from '@/src/features/event-types/event_type_recurrence';
 import { useWorkspaceSettings } from '@/src/hooks/useWorkspaceSettings';
 
 interface TeamMemberRow {
@@ -39,6 +49,10 @@ interface TeamMemberRow {
 interface UseBookingFormDataParams {
   selectedDepartment: Department | null;
   selectedProvider: ServiceProvider | null;
+  /** Scopes departments and providers to the ones assigned to this event type. */
+  selectedType: EventType | null;
+  /** Keeps the event-type list stable after the user picks a type (event-type-first flows). */
+  lockEventTypeCatalog?: boolean;
   days: Date[];
   intakeForm: IntakeFormSettings | undefined;
   onAvailabilityChange?: () => void;
@@ -47,12 +61,15 @@ interface UseBookingFormDataParams {
 export function useBookingFormData({
   selectedDepartment,
   selectedProvider,
+  selectedType,
+  lockEventTypeCatalog = false,
   days,
   intakeForm,
   onAvailabilityChange,
 }: UseBookingFormDataParams) {
   const {
     settings: workspaceSettings,
+    general,
     availability: workspaceAvailability,
     workspaceName: cachedWorkspaceName,
     workspaceLogo: cachedWorkspaceLogo,
@@ -63,8 +80,12 @@ export function useBookingFormData({
   const [workspaceMembers, setWorkspaceMembers] = useState<TeamMemberRow[]>([]);
 
   const departments = useMemo(
-    () => filterBookableDepartments(allDepartments, workspaceMembers),
-    [allDepartments, workspaceMembers]
+    () =>
+      filterDepartmentsForEventType(
+        filterBookableDepartments(allDepartments, workspaceMembers),
+        selectedType
+      ),
+    [allDepartments, workspaceMembers, selectedType]
   );
   const [workspaceOwnerUserId, setWorkspaceOwnerUserId] = useState<string | null>(null);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
@@ -90,7 +111,7 @@ export function useBookingFormData({
 
   const providersActingInDepartment = useMemo((): ServiceProvider[] => {
     if (!selectedDepartment) return [];
-    return workspaceMembers
+    const acting = workspaceMembers
       .filter(
         (m) =>
           !m.deactivated &&
@@ -113,7 +134,8 @@ export function useBookingFormData({
         additional_roles: m.additional_roles,
         role: m.role ?? null,
       }));
-  }, [selectedDepartment, workspaceMembers]);
+    return filterProvidersForEventType(acting, selectedType);
+  }, [selectedDepartment, workspaceMembers, selectedType]);
 
   const showProviderPicker = useMemo(
     () => providersActingInDepartment.length > 0,
@@ -141,10 +163,24 @@ export function useBookingFormData({
 
   const bookableEventTypes = useMemo(() => {
     if (needsExplicitProvider && !effectiveProviderId) return [];
-    return filterBookableEventTypes(
-      filterEventTypesForServiceProvider(eventTypes, effectiveProviderId)
+    const provider_scope_id = lockEventTypeCatalog ? null : effectiveProviderId;
+    const filtered = filterBookableEventTypes(
+      filterEventTypesForServiceProvider(eventTypes, provider_scope_id)
     );
-  }, [eventTypes, effectiveProviderId, needsExplicitProvider]);
+    if (
+      selectedType &&
+      !filtered.some((et) => String(et.id) === String(selectedType.id))
+    ) {
+      return [selectedType, ...filtered];
+    }
+    return filtered;
+  }, [
+    eventTypes,
+    effectiveProviderId,
+    needsExplicitProvider,
+    lockEventTypeCatalog,
+    selectedType,
+  ]);
 
   useEffect(() => {
     const fetchInitial = async () => {
@@ -192,15 +228,23 @@ export function useBookingFormData({
     }
   }, [selectedDepartment, onAvailabilityChange]);
 
+  const eventTypesCatalogLoadedRef = useRef(false);
+
+  useEffect(() => {
+    eventTypesCatalogLoadedRef.current = false;
+  }, []);
+
   useEffect(() => {
     if (needsExplicitProvider && !effectiveProviderId) {
       setEventTypes([]);
       setLoadingEventTypes(false);
       return;
     }
+    if (lockEventTypeCatalog && eventTypesCatalogLoadedRef.current) return;
 
+    let cancelled = false;
     const fetchEventTypes = async () => {
-      setLoadingEventTypes(true);
+      if (!cancelled) setLoadingEventTypes(true);
       try {
         const { supabase } = await import('@/lib/supabaseClient');
         const {
@@ -209,7 +253,7 @@ export function useBookingFormData({
         if (!session?.access_token) return;
 
         const params = new URLSearchParams();
-        if (effectiveProviderId) {
+        if (effectiveProviderId && !lockEventTypeCatalog) {
           params.set('service_provider_id', effectiveProviderId);
         }
         const query = params.toString();
@@ -221,16 +265,26 @@ export function useBookingFormData({
         );
         if (res.ok) {
           const result = await res.json();
-          setEventTypes(result.data || []);
+          if (!cancelled) setEventTypes(result.data || []);
         }
       } catch (e) {
         console.error('Error fetching event types:', e);
       } finally {
-        setLoadingEventTypes(false);
+        if (!cancelled) {
+          setLoadingEventTypes(false);
+          eventTypesCatalogLoadedRef.current = true;
+        }
       }
     };
-    fetchEventTypes();
-  }, [effectiveProviderId, needsExplicitProvider]);
+    void fetchEventTypes();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    needsExplicitProvider,
+    lockEventTypeCatalog,
+    lockEventTypeCatalog ? undefined : effectiveProviderId,
+  ]);
 
   useEffect(() => {
     if (!effectiveProviderId && needsExplicitProvider) {
@@ -313,12 +367,16 @@ export function useBookingFormData({
       setExistingBookings([]);
       return;
     }
-    const startDate = days[0] ?? new Date();
-    const endDate = days[days.length - 1] ?? new Date();
-    const rangeStart = new Date(startDate);
-    rangeStart.setDate(rangeStart.getDate() - CALENDAR_BUFFER_DAYS_BEFORE);
-    const rangeEnd = new Date(endDate);
-    rangeEnd.setDate(rangeEnd.getDate() + CALENDAR_BUFFER_DAYS);
+    const providerTimezone = general?.timezone?.trim() || 'UTC';
+    const duration = selectedType
+      ? event_type_session_duration_minutes(selectedType, selectedType.duration_minutes ?? 30)
+      : 30;
+    const { rangeStart, rangeEnd } = resolve_booking_data_fetch_range({
+      days,
+      event_type: selectedType,
+      provider_timezone: providerTimezone,
+      duration_minutes: duration,
+    });
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const fetchBookings = async () => {
@@ -337,15 +395,38 @@ export function useBookingFormData({
         });
         if (res.ok) {
           const result = await res.json();
-          const active = (result.data || []).filter(
-            (b: Booking & { service_provider_id?: string }) => {
-              if (b.status === 'cancelled' || b.status === 'emergency' || b.status === 'deleted') return false;
-              if (effectiveProviderId && b.service_provider_id !== effectiveProviderId) return false;
+          const active = (result.data || [])
+            .filter((b: Booking & { service_provider_id?: string }) => {
+              if (b.status === 'cancelled' || b.status === 'emergency' || b.status === 'deleted') {
+                return false;
+              }
+              if (
+                effectiveProviderId &&
+                b.service_provider_id &&
+                b.service_provider_id !== effectiveProviderId
+              ) {
+                return false;
+              }
               return true;
-            }
+            })
+            .map((b: Record<string, unknown>) => {
+              const row = flatten_embed_booking_row(b);
+              const nested = b.event_types as Record<string, unknown> | null | undefined;
+              if (!row.recurrence_audience && nested?.recurrence) {
+                row.recurrence_audience = parse_event_type_recurrence(nested.recurrence).audience;
+              }
+              return row as Booking;
+            });
+          const deduped_calendar_busy = calendar_busy_without_booking_overlap(
+            active,
+            result.calendar_busy || []
           );
-          const calendarBusy = (result.calendar_busy || []).map(
-            (b: { start_at: string; end_at: string }) => ({ ...b, status: 'confirmed' as const })
+          const calendarBusy = deduped_calendar_busy.map(
+            (b: { start_at: string; end_at: string }) => ({
+              ...b,
+              status: 'confirmed' as const,
+              occupancy_source: 'calendar' as const,
+            })
           );
           setExistingBookings([...active, ...calendarBusy]);
         }
@@ -356,7 +437,7 @@ export function useBookingFormData({
       }
     };
     fetchBookings();
-  }, [effectiveProviderId, days, departments.length, needsExplicitProvider]);
+  }, [effectiveProviderId, days, departments.length, needsExplicitProvider, selectedType, general?.timezone]);
 
   useEffect(() => {
     const hasReqs = departments.length === 0 || !needsExplicitProvider || effectiveProviderId;
@@ -364,12 +445,16 @@ export function useBookingFormData({
       setDateExceptions([]);
       return;
     }
-    const startDate = days[0] ?? new Date();
-    const endDate = days[days.length - 1] ?? new Date();
-    const rangeStart = new Date(startDate);
-    rangeStart.setDate(rangeStart.getDate() - CALENDAR_BUFFER_DAYS_BEFORE);
-    const rangeEnd = new Date(endDate);
-    rangeEnd.setDate(rangeEnd.getDate() + CALENDAR_BUFFER_DAYS);
+    const providerTimezone = general?.timezone?.trim() || 'UTC';
+    const duration = selectedType
+      ? event_type_session_duration_minutes(selectedType, selectedType.duration_minutes ?? 30)
+      : 30;
+    const { rangeStart, rangeEnd } = resolve_booking_data_fetch_range({
+      days,
+      event_type: selectedType,
+      provider_timezone: providerTimezone,
+      duration_minutes: duration,
+    });
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -403,7 +488,7 @@ export function useBookingFormData({
       }
     };
     void fetchExceptions();
-  }, [effectiveProviderId, days, departments.length, needsExplicitProvider]);
+  }, [effectiveProviderId, days, departments.length, needsExplicitProvider, selectedType, general?.timezone]);
 
   useEffect(() => {
     if (!isServicesEnabled(intakeForm)) {

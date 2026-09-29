@@ -3,9 +3,13 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { useWorkspaceSettings } from '../../hooks/useWorkspaceSettings';
 import { useBookingFormData } from '../../hooks/useBookingFormData';
-import { useAutoAdvanceStep1 } from '../../hooks/useAutoAdvanceStep1';
+import { useAutoSelectSoleBookingOptions } from '../../hooks/useAutoSelectSoleBookingOptions';
+import { useAutoAdvanceSkippableBookingSteps } from '../../hooks/useAutoAdvanceSkippableBookingSteps';
+import { useBookingStepStates } from '../../hooks/useBookingStepStates';
 import { useTimeslots } from '../../hooks/useTimeslots';
 import { useIntakeValidation } from '../../hooks/useIntakeValidation';
+import { useBookingStepFlow } from '../../hooks/useBookingStepFlow';
+import { useBookSeriesOption } from '../../hooks/useBookSeriesOption';
 import type {
   Department,
   EventType,
@@ -33,6 +37,7 @@ import {
   resolveEffectiveBookingDurationMinutes,
 } from '../../utils/bookingDuration';
 import { isTimeSlotBooked } from '../../utils/bookingTime';
+import { slot_occupancy_context_from_event_type } from '@/lib/booking_capacity';
 import {
   isWorkspaceTimezoneConfigured,
   resolveCustomerTimezone,
@@ -45,6 +50,20 @@ import {
   can_navigate_to_booking_step,
   type booking_step_nav_context,
 } from '@/src/utils/booking_step_navigation';
+import {
+  booking_step_number,
+  event_type_max_window_days,
+  event_type_session_duration_minutes,
+  event_type_slot_capacity,
+  department_step_is_ready,
+  event_type_step_is_ready,
+  indicator_booking_step_ids,
+  is_booking_step_resolving,
+  is_event_type_before_department,
+  parse_booking_step_order,
+  previous_booking_step_id,
+  resolve_next_booking_step_id,
+} from '@/src/features/booking-flow';
 import {
   step3PerfDateCommitted,
   step3PerfSlotCommitted,
@@ -75,9 +94,23 @@ const MultiStepBookingForm = ({
   onSave,
   onCancel,
 }: MultiStepBookingFormProps) => {
-  const { general, settings, loading: loadingSettings } = useWorkspaceSettings();
+  const { general, settings, loading: loadingSettings, bookingStepOrder } = useWorkspaceSettings();
   const { user } = useAuth();
-  const [step, setStep] = useState(1);
+  const parsed_step_order = useMemo(
+    () => parse_booking_step_order(bookingStepOrder),
+    [bookingStepOrder]
+  );
+  const {
+    current_step_id,
+    step_order,
+    is_step,
+    go_to_step,
+    progress_ids,
+  } = useBookingStepFlow({
+    step_order: parsed_step_order,
+    hide_success_in_progress: true,
+  });
+  const event_type_before_department = is_event_type_before_department(step_order);
   // Once the user manually steps backward, stop auto-advancing/masking so they can
   // review earlier steps (department, event type) even when each has a single option.
   const [disableAutoAdvance, setDisableAutoAdvance] = useState(false);
@@ -92,7 +125,7 @@ const MultiStepBookingForm = ({
       return;
     }
     stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [step]);
+  }, [current_step_id]);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [selectedType, setSelectedType] = useState<EventType | null>(null);
@@ -118,6 +151,9 @@ const MultiStepBookingForm = ({
   const [workspacePrimaryColor, setWorkspacePrimaryColor] = useState(DEFAULT_PRIMARY_COLOR);
   const [workspaceAccentColor, setWorkspaceAccentColor] = useState<string | null>(null);
   const [selectedMeetingOption, setSelectedMeetingOption] = useState('');
+  const { bookSeries, setBookSeries, showBookSeriesOption } = useBookSeriesOption({
+    selectedType,
+  });
 
   const intakeForm = settings.intake_form;
 
@@ -164,6 +200,8 @@ const MultiStepBookingForm = ({
   } = useBookingFormData({
     selectedDepartment,
     selectedProvider,
+    selectedType,
+    lockEventTypeCatalog: event_type_before_department && !!selectedType,
     days,
     intakeForm,
     onAvailabilityChange,
@@ -193,6 +231,13 @@ const MultiStepBookingForm = ({
     const k = effective_meeting_option_key(bookableMeetingOptionKeys, selectedMeetingOption);
     return k ? label_for_meeting_option_key(k) : '';
   }, [bookableMeetingOptionKeys, selectedMeetingOption]);
+
+  useEffect(() => {
+    if (!selectedType || !event_type_before_department) return;
+    setSelectedDepartment(null);
+    setSelectedProvider(null);
+    setSelectedServiceIds([]);
+  }, [selectedType?.id, event_type_before_department]);
 
   useEffect(() => {
     if (
@@ -239,9 +284,12 @@ const MultiStepBookingForm = ({
     setSelectedServiceIds((prev) => (prev.length === 1 && prev[0] === id ? prev : [id]));
   }, []);
 
-  useAutoAdvanceStep1({
-    enabled: !disableAutoAdvance,
-    step,
+  const sortedEventTypes = useMemo(() => sortEventTypesByDuration(eventTypes), [eventTypes]);
+
+  const department_step_ready = department_step_is_ready(step_order, selectedType);
+
+  useAutoSelectSoleBookingOptions({
+    enabled: !disableAutoAdvance && department_step_ready,
     loadingDepartments,
     departments,
     selectedDepartment,
@@ -251,45 +299,46 @@ const MultiStepBookingForm = ({
     showProviderPicker,
     serviceProviders,
     onClearOptionalServices: () => setSelectedServiceIds([]),
-    advanceToNextStep: () => setStep(2),
     loadingProviderScopedCatalog,
     providerScopedCatalogServices,
     providerCatalogContextReady,
     providerScopedCatalogSettled,
     onAutoSelectSingleService: handleAutoSelectSingleService,
+    loadingEventTypes,
+    eventTypes: sortedEventTypes,
+    selectedType,
+    setSelectedType,
+    eventTypeContextReady: event_type_step_is_ready(step_order, {
+      departmentsCount: departments.length,
+      hasSelectedDepartment: !!selectedDepartment,
+      showProviderPicker,
+      hasSelectedProvider: !!selectedProvider,
+    }),
   });
 
-  const sortedEventTypes = useMemo(() => sortEventTypesByDuration(eventTypes), [eventTypes]);
+  const step_states = useBookingStepStates({
+    step_order,
+    loadingEventTypes,
+    eventTypesCount: sortedEventTypes.length,
+    selectedType,
+    departmentsCount: departments.length,
+    loadingDepartments,
+    selectedDepartment,
+    showProviderPicker,
+    serviceProvidersCount: serviceProviders.length,
+    loadingProviders,
+    selectedProvider,
+    providerCatalogContextReady,
+    loadingProviderScopedCatalog,
+    providerScopedCatalogServices,
+    providerScopedCatalogSettled,
+    selectedServiceIds,
+  });
 
-  // When exactly one bookable event type remains, auto-select it so Step 2 has no
-  // decision left and the flow can skip straight to date/time selection.
-  const eventTypeAutoResolved =
-    !!selectedType && sortedEventTypes.length === 1 && !loadingEventTypes;
-  const canSkipToStep3 = eventTypeAutoResolved && serviceGate.canAutoAdvancePastStep1;
-
-  // Step 1 only needs the user when there is a genuine choice to make: multiple
-  // departments, multiple providers in the chosen department, or multiple services.
-  const step1RequiresUserInput =
-    departments.length > 1 ||
-    (!!selectedDepartment && showProviderPicker && serviceProviders.length > 1) ||
-    serviceGate.requiresManualSelection;
-
-  // While single-option levels are still resolving (or about to skip ahead), show a
-  // loader instead of flashing Step 1/2 so single-option links open straight on Step 3.
-  const autoAdvanceResolving =
-    !disableAutoAdvance &&
-    ((step === 1 && !step1RequiresUserInput) ||
-      (step === 2 && (loadingEventTypes || canSkipToStep3)));
-
-  useEffect(() => {
-    if (!loadingEventTypes && sortedEventTypes.length === 1 && !selectedType) {
-      setSelectedType(sortedEventTypes[0]);
-    }
-  }, [loadingEventTypes, sortedEventTypes, selectedType]);
-
-  useEffect(() => {
-    if (canSkipToStep3 && step === 2 && !disableAutoAdvance) setStep(3);
-  }, [canSkipToStep3, step, disableAutoAdvance]);
+  // While a step with nothing to choose settles its sole option, show a loader
+  // instead of flashing the step we are about to skip.
+  const current_step_resolving =
+    !disableAutoAdvance && is_booking_step_resolving(step_states, current_step_id);
 
   const serviceCatalogForSlots = useMemo(
     () => mergeServiceCatalogForDuration(providerScopedCatalogServices, services),
@@ -381,10 +430,22 @@ const MultiStepBookingForm = ({
   );
   const isStep4Valid = Object.keys(intakeValidation).length === 0;
 
+  const visible_progress_ids = useMemo(
+    () => indicator_booking_step_ids(progress_ids),
+    [progress_ids]
+  );
+
+  const visible_progress_step = useMemo(
+    () => booking_step_number(visible_progress_ids, current_step_id),
+    [visible_progress_ids, current_step_id]
+  );
+
+  // Navigation adjacency follows the steps the user actually sees, so a skipped
+  // single-option step never blocks the progress indicator.
   const step_nav_context = useMemo(
     (): booking_step_nav_context => ({
-      step,
-      totalSteps: 5,
+      current_step_id,
+      step_order: visible_progress_ids,
       departmentsCount: departments.length,
       showProviderPicker,
       hasSelectedDepartment: !!selectedDepartment,
@@ -393,10 +454,11 @@ const MultiStepBookingForm = ({
       loadingEventTypes,
       hasSelectedDate: !!selectedDate,
       hasSelectedTime: !!selectedTime,
-      isSuccessScreen: step === 5,
+      isSuccessScreen: is_step('success'),
     }),
     [
-      step,
+      current_step_id,
+      visible_progress_ids,
       departments.length,
       showProviderPicker,
       selectedDepartment,
@@ -405,34 +467,58 @@ const MultiStepBookingForm = ({
       loadingEventTypes,
       selectedDate,
       selectedTime,
+      is_step,
     ]
   );
 
   const can_click_booking_step = useCallback(
-    (target: number) => can_navigate_to_booking_step(step_nav_context, target),
-    [step_nav_context]
+    (target: number) => {
+      const target_id = visible_progress_ids[target - 1];
+      return !!target_id && can_navigate_to_booking_step(step_nav_context, target_id);
+    },
+    [visible_progress_ids, step_nav_context]
   );
 
   const handle_step_click = useCallback(
     (target: number) => {
-      if (!can_navigate_to_booking_step(step_nav_context, target)) return;
-      if (target < step) setDisableAutoAdvance(true);
-      if (step === 3 && target < 3) {
+      const target_id = visible_progress_ids[target - 1];
+      if (!target_id || !can_navigate_to_booking_step(step_nav_context, target_id)) return;
+      const current_index = step_order.indexOf(current_step_id);
+      const target_index = step_order.indexOf(target_id);
+      setDisableAutoAdvance(true);
+      if (is_step('date_time') && target_index < current_index) {
         setSelectedDate(null);
         setSelectedTime('');
         setSelectedStartUtc(null);
       }
-      setStep(target);
+      go_to_step(target_id);
     },
-    [step_nav_context, step]
+    [step_nav_context, current_step_id, step_order, visible_progress_ids, is_step, go_to_step]
   );
 
-  useEffect(() => {
-    if (disableAutoAdvance) return;
-    if (!loadingDepartments && departments.length === 0 && step === 1) {
-      setStep(canSkipToStep3 ? 3 : 2);
-    }
-  }, [loadingDepartments, departments.length, step, canSkipToStep3, disableAutoAdvance]);
+  const go_to_next_step = useCallback(() => {
+    const next_id = resolve_next_booking_step_id(step_order, current_step_id, step_states);
+    if (next_id) go_to_step(next_id);
+  }, [current_step_id, go_to_step, step_order, step_states]);
+
+  const previous_step_id = useMemo(
+    () => previous_booking_step_id(step_order, current_step_id),
+    [current_step_id, step_order]
+  );
+
+  const go_to_previous_step = useCallback(() => {
+    if (!previous_step_id) return;
+    setDisableAutoAdvance(true);
+    go_to_step(previous_step_id);
+  }, [go_to_step, previous_step_id]);
+
+  useAutoAdvanceSkippableBookingSteps({
+    enabled: !disableAutoAdvance,
+    current_step_id,
+    step_order,
+    step_states,
+    go_to_step,
+  });
 
   useEffect(() => {
     if (selectedType) {
@@ -443,14 +529,14 @@ const MultiStepBookingForm = ({
   }, [selectedType]);
 
   useEffect(() => {
-    if (step === 3 && !selectedDate) setCurrentMonth(new Date());
-  }, [step, selectedDate]);
+    if (is_step('date_time') && !selectedDate) setCurrentMonth(new Date());
+  }, [current_step_id, selectedDate, is_step]);
 
   useEffect(() => {
-    if (step === 3 && !hasManualTimezone) {
+    if (is_step('date_time') && !hasManualTimezone) {
       void refreshLocation();
     }
-  }, [step, hasManualTimezone, refreshLocation]);
+  }, [current_step_id, hasManualTimezone, refreshLocation, is_step]);
 
   useEffect(() => {
     if (selectedDate && (selectedTime || selectedStartUtc)) {
@@ -479,11 +565,11 @@ const MultiStepBookingForm = ({
   }, [intakeForm]);
 
   useEffect(() => {
-    if (step === 4) {
+    if (is_step('intake')) {
       setTouched({ name: false, email: false, phone: false });
       setTouchedCustomFields({});
     }
-  }, [step]);
+  }, [current_step_id, is_step]);
 
   useEffect(() => {
     setSelectedMeetingOption((prev) => {
@@ -626,10 +712,13 @@ const MultiStepBookingForm = ({
         bookingStatus = 'confirmed';
       }
 
-      const durationMin = resolveEffectiveBookingDurationMinutes(
+      const durationMin = event_type_session_duration_minutes(
         selectedType,
-        selectedServiceIds,
-        serviceCatalogForSlots
+        resolveEffectiveBookingDurationMinutes(
+          selectedType,
+          selectedServiceIds,
+          serviceCatalogForSlots
+        )
       );
       const startDate = new Date(selectedSlot.startUtc);
       if (startDate < new Date()) {
@@ -639,7 +728,16 @@ const MultiStepBookingForm = ({
       }
 
       const endDate = new Date(startDate.getTime() + durationMin * 60_000);
-      if (isTimeSlotBooked(startDate, endDate, selectedDate, existingBookings)) {
+      if (
+        isTimeSlotBooked(
+          startDate,
+          endDate,
+          selectedDate,
+          existingBookings,
+          event_type_slot_capacity(selectedType),
+          slot_occupancy_context_from_event_type(selectedType)
+        )
+      ) {
         setError('This time slot has already been booked. Please refresh and select another time.');
         setLoading(false);
         return;
@@ -737,6 +835,7 @@ const MultiStepBookingForm = ({
           customer_timezone: viewerTimezone,
           provider_timezone: providerTimezone,
           timezone: viewerTimezone,
+          book_series: bookSeries,
         }),
       });
 
@@ -745,7 +844,7 @@ const MultiStepBookingForm = ({
         throw new Error(result.error || 'Failed to create booking');
       }
       if (result.preview_url) setPreviewUrl(result.preview_url);
-      setStep(5);
+      go_to_step('success');
       window.dispatchEvent(new Event(BOOKINGS_LIST_REFRESH_EVENT));
       window.dispatchEvent(new Event('bookings-viewed-update'));
     } catch (err) {
@@ -803,7 +902,8 @@ const MultiStepBookingForm = ({
             selectedType={selectedType}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
-            step={step}
+            current_step_id={current_step_id}
+            step={visible_progress_step}
             name={name}
             email={email}
             phone={phone}
@@ -829,10 +929,10 @@ const MultiStepBookingForm = ({
                 </button>
               </div>
             )}
-            {!autoAdvanceResolving && (
+            {!current_step_resolving && (
               <ProgressIndicator
-                step={step > 4 ? 4 : step}
-                totalSteps={4}
+                step={visible_progress_step}
+                totalSteps={visible_progress_ids.length}
                 onStepClick={handle_step_click}
                 canClickStep={can_click_booking_step}
               />
@@ -843,8 +943,8 @@ const MultiStepBookingForm = ({
               </div>
             )}
             <div className="relative">
-              {autoAdvanceResolving && <StepFallback />}
-              {step === 1 && !autoAdvanceResolving && (
+              {current_step_resolving && <StepFallback />}
+              {is_step('department_provider') && !current_step_resolving && (
                 <Step1DepartmentProvider
                   departments={departments}
                   selectedDepartment={selectedDepartment}
@@ -867,27 +967,21 @@ const MultiStepBookingForm = ({
                     setSelectedServiceIds([]);
                   }}
                   onSelectProvider={setSelectedProvider}
-                  onContinue={() => setStep(canSkipToStep3 ? 3 : 2)}
+                  onBack={previous_step_id ? go_to_previous_step : undefined}
+                  onContinue={go_to_next_step}
                 />
               )}
-              {step === 2 && !autoAdvanceResolving && (
+              {is_step('event_type') && !current_step_resolving && (
                 <Step2ServiceSelection
                   eventTypes={sortedEventTypes}
                   selectedType={selectedType}
                   loadingEventTypes={loadingEventTypes}
                   onSelectType={setSelectedType}
-                  onBack={
-                    departments.length > 0
-                      ? () => {
-                          setDisableAutoAdvance(true);
-                          setStep(1);
-                        }
-                      : undefined
-                  }
-                  onContinue={() => setStep(3)}
+                  onBack={previous_step_id ? go_to_previous_step : undefined}
+                  onContinue={go_to_next_step}
                 />
               )}
-              {step === 3 && (
+              {is_step('date_time') && (
                 <Suspense fallback={<StepFallback />}>
                   <Step3DateTime
                     selectedDate={selectedDate}
@@ -923,19 +1017,23 @@ const MultiStepBookingForm = ({
                       return next;
                     })}
                     onSetCurrentMonth={(d) => setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1))}
-                    onBack={() => {
-                      setDisableAutoAdvance(true);
-                      setStep(departments.length === 0 ? 2 : 1);
+                    onBack={previous_step_id ? () => {
+                      go_to_previous_step();
                       setSelectedDate(null);
                       setSelectedTime('');
                       setSelectedStartUtc(null);
-                    }}
-                    onContinue={() => setStep(4)}
+                    } : undefined}
+                    onContinue={go_to_next_step}
                     onDaysChange={setDays}
+                    bookSeries={bookSeries}
+                    onBookSeriesChange={setBookSeries}
+                    showBookSeriesOption={showBookSeriesOption}
+                    maxWindowDays={event_type_max_window_days(selectedType)}
+                    allowAutoAdvance={!disableAutoAdvance}
                   />
                 </Suspense>
               )}
-              {step === 4 && (
+              {is_step('intake') && (
                 <Step4IntakeForm
                   intakeForm={intakeForm}
                   name={name}
@@ -970,7 +1068,7 @@ const MultiStepBookingForm = ({
                   files={files}
                   onFilesChange={handleFilesChange}
                   fileError={fileError}
-                  onBack={() => setStep(3)}
+                  onBack={go_to_previous_step}
                   onConfirm={handleConfirm}
                   hideIntakeCatalogServices={hideIntakeCatalogServices}
                   enabledMeetingOptionKeys={bookableMeetingOptionKeys}
@@ -983,7 +1081,7 @@ const MultiStepBookingForm = ({
                   }
                 />
               )}
-              {step === 5 && (
+              {is_step('success') && (
                 <Step5Success
                   selectedType={selectedType}
                   selectedDate={selectedDate}
