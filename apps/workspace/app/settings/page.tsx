@@ -886,17 +886,17 @@ export default function SettingsPage() {
   };
 
   const link_field_class = (hasError: boolean) =>
-    `relative flex min-w-0 overflow-hidden rounded-2xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100 flex-row ${
+    `relative flex min-w-0 overflow-hidden rounded-xl border bg-slate-50 transition focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100 flex-row ${
       hasError
         ? "border-red-400 focus-within:border-red-500"
         : "border-slate-200 focus-within:border-indigo-400"
     }`;
 
   const link_prefix_class =
-    "flex max-w-full shrink-0 items-center gap-2 truncate border-b border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-500 sm:border-b-0 sm:border-r sm:px-4 sm:py-0 sm:text-sm";
+    "flex max-w-full shrink-0 items-center gap-2 truncate border-b border-slate-200 bg-white px-3 py-2.5 font-semibold text-slate-500 sm:border-b-0 sm:border-r sm:px-4 sm:py-0 text-sm";
 
   const link_slug_input_class =
-    "h-14 min-w-0 w-full bg-transparent px-4 pr-16 text-base font-medium outline-none disabled:cursor-not-allowed disabled:opacity-60";
+    "h-12 min-w-0 w-full bg-transparent px-4 pr-16 text-sm font-medium outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
   const link_action_buttons = (
     <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
@@ -921,7 +921,7 @@ export default function SettingsPage() {
   );
 
   const settings_input_class =
-    "h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-base font-medium outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60";
+    "h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60";
 
   const settings_select_class = settings_input_class;
 
@@ -1001,7 +1001,7 @@ export default function SettingsPage() {
                         </p>
                       </div>
                     </div>
-                    <span className="shrink-0 w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                    <span className="shrink-0 w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                       Active
                     </span>
                   </div>

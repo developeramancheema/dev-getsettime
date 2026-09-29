@@ -323,7 +323,7 @@ function StatCard({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug text-slate-500">{label}</p>
           <p className={`text-2xl font-bold text-slate-900 ${valueClassName ?? ""}`}>{value}</p>
-          <p className="truncate text-xs font-medium text-slate-400">{helper}</p>
+          <p className="truncate text-sm font-medium text-slate-600">{helper}</p>
         </div>
     </div>
   );

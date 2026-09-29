@@ -58,7 +58,7 @@ const STAT_CARDS: readonly StatCardConfig[] = [
 
 function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
   if (!trend) {
-    return <p className="mt-1.5 text-sm font-medium text-slate-500">{hint}</p>;
+    return <p className="mt-1.5 text-sm font-medium text-slate-600">{hint}</p>;
   }
   const is_up = trend.direction === "up";
   return (
@@ -88,7 +88,7 @@ function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
         </svg>
         {trend.percent}%
       </span>
-      <span className="text-slate-500">vs yesterday</span>
+      <span className="text-slate-600">vs yesterday</span>
     </p>
   );
 }
@@ -139,7 +139,7 @@ export default function DashboardStatCards({
               <DashboardIcon name={stat.icon} size={20} />
             </div>
             <div className="min-w-0 flex flex-col max-[450px]:flex-col-reverse gap-1">
-              <p className="truncate text-sm font-bold text-slate-900">{labels[index]}</p>
+              <p className="truncate text-sm font-semibold text-slate-500">{labels[index]}</p>
               <h3 className="text-xl xl:text-3xl font-bold leading-tight tracking-tight text-slate-900">{values[index]}</h3>
             </div>
           </div>

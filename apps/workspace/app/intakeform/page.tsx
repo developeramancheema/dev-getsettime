@@ -94,7 +94,7 @@ function FormsStatCard({
           <Icon name={icon} className="h-4 w-4 md:h-5 md:w-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">{label}</p>
+          <p className="text-sm font-semibold text-slate-500">{label}</p>
           <p className="mt-1 text-3xl font-bold leading-none text-slate-950">{value}</p>
           <p className="mt-1 text-sm font-medium text-slate-600">{helper}</p>
         </div>
