@@ -31,6 +31,7 @@ import { BookingPreviewPanel } from "./BookingPreviewPanel";
 import { StatusBadge } from "./StatusBadge";
 import { Pagination } from "@app/ui";
 import { BookingTableSkeleton } from "./BookingTableSkeleton";
+import AlertMessage from "@/src/components/Auth/AlertMessage";
 import { AlertModal } from "@/src/components/ui/AlertModal";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 import { PortalActionsMenu } from "@/src/components/ui/PortalActionsMenu";
@@ -91,6 +92,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [alertModal, setAlertModal] = useState<{ message: string } | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: ITEMS_PER_PAGE,
@@ -269,6 +271,12 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [mobileActionsId]);
 
+  useEffect(() => {
+    if (!successMessage) return;
+    const timer = window.setTimeout(() => setSuccessMessage(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [successMessage]);
+
   const handleDeleteClick = useCallback((id: string) => {
     setDeleteConfirmModal({ id });
   }, []);
@@ -293,6 +301,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
 
         if (response.ok) {
           setDeleteConfirmModal(null);
+          setSuccessMessage("Booking deleted successfully.");
           await fetchBookings(
             currentPage,
             debouncedFilter,
@@ -386,6 +395,11 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       if (response.ok) {
         setBulkDeleteConfirm(false);
         clearSelection();
+        setSuccessMessage(
+          ids.length === 1
+            ? "Booking deleted successfully."
+            : `${ids.length} bookings deleted successfully.`
+        );
         await fetchBookings(
           currentPage,
           debouncedFilter,
@@ -675,6 +689,10 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-xl p-4 space-y-4">
+          {successMessage ? (
+            <AlertMessage type="success" message={successMessage} />
+          ) : null}
+
           {/* Filters card */}
           <div className="relative">
             <BookingFilters

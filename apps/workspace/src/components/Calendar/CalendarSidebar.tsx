@@ -352,27 +352,15 @@ export function CalendarSidebar({
                 </>
               );
 
-              if (viewMode === "day" || viewMode === "week") {
-                return (
-                  <button
-                    key={booking.id}
-                    type="button"
-                    onClick={() => onSelectBooking?.(booking)}
-                    className={agendaItemClassName}
-                  >
-                    {agendaContent}
-                  </button>
-                );
-              }
-
               return (
-                <Link
+                <button
                   key={booking.id}
-                  href={`/bookings/${booking.id}`}
+                  type="button"
+                  onClick={() => onSelectBooking?.(booking)}
                   className={agendaItemClassName}
                 >
                   {agendaContent}
-                </Link>
+                </button>
               );
             })}
 
@@ -416,10 +404,11 @@ export function CalendarSidebar({
             )}
 
             {scheduleBookings.map((booking) => (
-              <Link
+              <button
                 key={booking.id}
-                href={`/bookings/${booking.id}`}
-                className="grid grid-cols-[72px_minmax(0,1fr)_76px] items-start gap-2 rounded-lg p-1.5 transition hover:bg-slate-50"
+                type="button"
+                onClick={() => onSelectBooking?.(booking)}
+                className="grid w-full grid-cols-[72px_minmax(0,1fr)_76px] items-start gap-2 rounded-lg p-1.5 text-left transition hover:bg-slate-50"
               >
                 <p className="text-sm font-semibold text-indigo-700">
                   {booking.start_at ? formatTime(booking.start_at) : "—"}
@@ -448,7 +437,7 @@ export function CalendarSidebar({
                     {(booking.status ?? "pending").replace("-", " ")}
                   </span>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
           {/* <Link
