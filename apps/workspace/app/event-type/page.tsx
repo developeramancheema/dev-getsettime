@@ -266,6 +266,7 @@ export default function EventTypes() {
     useServiceProviders();
   const [settings_open, set_settings_open] = useState(false);
   const [settings_saved_message, set_settings_saved_message] = useState("");
+  const [event_type_saved_message, set_event_type_saved_message] = useState("");
   const [event_settings, set_event_settings] = useState<event_settings_state>(
     DEFAULT_EVENT_SETTINGS
   );
@@ -601,15 +602,6 @@ export default function EventTypes() {
       return;
     }
 
-    const { data: { session: precheckSession } } = await supabase.auth.getSession();
-    if (!precheckSession?.access_token) {
-      setFormError("You are not signed in. Please refresh and try again.");
-      return;
-    }
-
-    const normalized_slug = await verify_slug(precheckSession.access_token, form.slug);
-    if (!normalized_slug) return;
-
     if (submitInFlightRef.current) return;
     submitInFlightRef.current = true;
     setSubmitting(true);
@@ -620,6 +612,9 @@ export default function EventTypes() {
         setFormError("You are not signed in. Please refresh and try again.");
         return;
       }
+
+      const normalized_slug = await verify_slug(session.access_token, form.slug);
+      if (!normalized_slug) return;
 
       const payload = {
         title: form.title,
@@ -678,6 +673,8 @@ export default function EventTypes() {
       setItems((prev) => [result.data, ...prev]);
 
       setFormError(null);
+      set_event_type_saved_message("Event type created successfully.");
+      window.setTimeout(() => set_event_type_saved_message(""), 4000);
       closePanelAnimated();
       await fetchEventTypes();
     } catch (err) {
@@ -1304,6 +1301,13 @@ export default function EventTypes() {
           panel_animated_open && "hidden md:block"
         )}
       >
+          {event_type_saved_message ? (
+            <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{event_type_saved_message}</span>
+            </div>
+          ) : null}
+
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -1320,6 +1324,7 @@ export default function EventTypes() {
                 onClick={() => set_settings_open(true)}
                 className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
+                
                 <Settings2 className="mr-2 h-4 w-4" />
                 View Settings
               </button>
@@ -1333,7 +1338,7 @@ export default function EventTypes() {
                   Add Event Type
                 </button>
               ) : null}
-            </div>            
+            </div>
           </div>
 
           <ScreenGate minWidth={768}>
@@ -1416,7 +1421,6 @@ export default function EventTypes() {
           </ScreenGate>
 
           <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-xl p-4">
-          
             <div className="pb-4">
               <EventTypeFilters
                 search={search}
@@ -1471,178 +1475,180 @@ export default function EventTypes() {
                     }}
                   />
                 </ScreenGate>
-
+                
                 <ScreenGate minWidth={1024}>
-                <div className="overflow-x-auto max-[1301px]:p-3">
-                  <table className="w-full border-collapse">
-                    <thead className="bg-slate-100">
-                      <tr className="text-left text-sm text-slate-900">
-                        <th className="px-6 py-4 font-semibold">
-                          <input
-                            type="checkbox"
-                            checked={all_page_selected}
-                            ref={(el) => {
-                              if (el) el.indeterminate = some_page_selected;
-                            }}
-                            onChange={toggle_select_all_page}
-                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            aria-label="Select all event types on this page"
-                          />
-                        </th>
-                        <th className="px-6 py-4 font-semibold">
-                          Event Type
-                        </th>
-                        <th className="px-6 py-4 font-semibold">
-                          Format
-                        </th>
-                        <th className="px-6 py-4 font-semibold">
-                          Duration
-                        </th>
-                        <th className="px-6 py-4 font-semibold">
-                          Capacity
-                        </th>
-                        <th className="px-6 py-4 font-semibold">
-                          Team / Provider
-                        </th>
-                        <th className="px-6 py-4 font-semibold">
-                          Status
-                        </th>
-                        {!isStaffUser ? (
-                          <th className="px-6 py-4 text-right font-semibold">
-                            Action
+                  <div className="overflow-x-auto max-[1301px]:p-3">
+                    <table className="w-full border-collapse">
+                      <thead className="bg-slate-100">
+                        <tr className="text-left text-sm text-slate-900">
+                          <th className="px-6 py-4 font-semibold">
+                            <input
+                              type="checkbox"
+                              checked={all_page_selected}
+                              ref={(el) => {
+                                if (el) el.indeterminate = some_page_selected;
+                              }}
+                              onChange={toggle_select_all_page}
+                              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                              aria-label="Select all event types on this page"
+                            />
                           </th>
-                        ) : null}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginated_items.map((item) => {
-                        const status = parse_event_type_status(item.status);
-                        const status_label = event_type_status_label(status);
-                        const format = parse_event_type_format(item.event_type_format);
-                        const short_description =
-                          parse_short_description_from_settings(item.settings);
-                        const provider_label = get_provider_label(item.owner_id);
-                        const provider_avatar = get_provider_avatar_url(item.owner_id);
-                        const capacity =
-                          typeof item.capacity_per_slot === "number" &&
-                          Number.isFinite(item.capacity_per_slot)
-                            ? item.capacity_per_slot
-                            : format === "group_class"
-                              ? 10
-                              : 1;
-                        const selected = selected_ids.has(item.id);
-                        return (
-                          <tr
-                            key={item.id}
-                            className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
-                          >
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Select">
-                              <input
-                                type="checkbox"
-                                checked={selected}
-                                onChange={() => toggle_select_row(item.id)}
-                                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                aria-label={`Select ${item.title}`}
-                              />
-                            </td>
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Event Type">
-                              <div className="flex items-center max-[1301px]:justify-end gap-3">
-                                <div className={cn( "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
-                                    get_card_gradient(item.id)
-                                  )}
-                                >
-                                  <CalendarDays className="h-4 w-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="truncate font-semibold text-slate-900">
-                                    {item.title}
-                                  </p>
-                                  {short_description ? (
-                                    <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
-                                      {short_description}
-                                    </p>
-                                  ) : null}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Format">
-                              <span
-                                className={cn(
-                                  "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
-                                  event_type_format_badge_class(format)
-                                )}
-                              >
-                                {event_type_format_list_label(format)}
-                              </span>
-                            </td>
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Duration">
-                              {format_duration_short(item.duration_minutes)}
-                            </td>
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Capacity">
-                              {capacity}
-                            </td>
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
-                              <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
-                                <ProviderAvatar
-                                  name={provider_label === "—" ? "Provider" : provider_label}
-                                  initials={provider_initials(
-                                    provider_label === "—" ? "?" : provider_label
-                                  )}
-                                  avatarUrl={provider_avatar}
-                                  size="sm"
+                          <th className="px-6 py-4 font-semibold">
+                            Event Type
+                          </th>
+                          <th className="px-6 py-4 font-semibold">
+                            Format
+                          </th>
+                          <th className="px-6 py-4 font-semibold">
+                            Duration
+                          </th>
+                          <th className="px-6 py-4 font-semibold">
+                            Capacity
+                          </th>
+                          <th className="px-6 py-4 font-semibold">
+                            Team / Provider
+                          </th>
+                          <th className="px-6 py-4 font-semibold">
+                            Status
+                          </th>
+                          {!isStaffUser ? (
+                            <th className="px-6 py-4 text-right font-semibold">
+                              Action
+                            </th>
+                          ) : null}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginated_items.map((item) => {
+                          const status = parse_event_type_status(item.status);
+                          const status_label = event_type_status_label(status);
+                          const format = parse_event_type_format(item.event_type_format);
+                          const short_description =
+                            parse_short_description_from_settings(item.settings);
+                          const provider_label = get_provider_label(item.owner_id);
+                          const provider_avatar = get_provider_avatar_url(item.owner_id);
+                          const capacity =
+                            typeof item.capacity_per_slot === "number" &&
+                            Number.isFinite(item.capacity_per_slot)
+                              ? item.capacity_per_slot
+                              : format === "group_class"
+                                ? 10
+                                : 1;
+                          const selected = selected_ids.has(item.id);
+                          return (
+                            <tr
+                              key={item.id}
+                              className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
+                            >
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Select">
+                                <input
+                                  type="checkbox"
+                                  checked={selected}
+                                  onChange={() => toggle_select_row(item.id)}
+                                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                  aria-label={`Select ${item.title}`}
                                 />
-                                <span className="truncate">{provider_label}</span>
-                              </div>
-                            </td>
-                            <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
-                              <span
-                                className={cn(
-                                  "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold border",
-                                  status === "active"
-                                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                                    : "bg-amber-50 text-amber-600 border-amber-200"
-                                )}
-                              >
-                                {status_label}
-                              </span>
-                            </td>
-                            {!isStaffUser ? (
-                              <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
-                                <div className="flex items-center justify-end">
-                                  <EventTypeActionsMenu
-                                    open={open_menu_id === item.id}
-                                    copy_disabled={loadingSlug || !item.slug}
-                                    copy_copied={copiedId === item.id}
-                                    on_toggle={() =>
-                                      set_open_menu_id((prev) =>
-                                        prev === item.id ? null : item.id
-                                      )
-                                    }
-                                    on_copy_link={() => {
-                                      void handle_copy_link_from_menu(item);
-                                    }}
-                                    on_duplicate={() => {
-                                      void handleDuplicate(item);
-                                      set_open_menu_id(null);
-                                    }}
-                                    on_delete={() => {
-                                      handleDeleteClick(item.id);
-                                      set_open_menu_id(null);
-                                    }}
-                                    on_edit={() => {
-                                      handleEdit(item);
-                                      set_open_menu_id(null);
-                                    }}
-                                  />
+                              </td>
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Event Type">
+                                <div className="flex items-center max-[1301px]:justify-end gap-3">
+                                  <div
+                                    className={cn(
+                                      "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
+                                      get_card_gradient(item.id)
+                                    )}
+                                  >
+                                    <CalendarDays className="h-4 w-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate font-semibold text-slate-900">
+                                      {item.title}
+                                    </p>
+                                    {short_description ? (
+                                      <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                                        {short_description}
+                                      </p>
+                                    ) : null}
+                                  </div>
                                 </div>
                               </td>
-                            ) : null}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Format">
+                                <span
+                                  className={cn(
+                                    "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
+                                    event_type_format_badge_class(format)
+                                  )}
+                                >
+                                  {event_type_format_list_label(format)}
+                                </span>
+                              </td>
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Duration">
+                                {format_duration_short(item.duration_minutes)}
+                              </td>
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Capacity">
+                                {capacity}
+                              </td>
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
+                                <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
+                                  <ProviderAvatar
+                                    name={provider_label === "—" ? "Provider" : provider_label}
+                                    initials={provider_initials(
+                                      provider_label === "—" ? "?" : provider_label
+                                    )}
+                                    avatarUrl={provider_avatar}
+                                    size="sm"
+                                  />
+                                  <span className="truncate">{provider_label}</span>
+                                </div>
+                              </td>
+                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
+                                <span
+                                  className={cn(
+                                    "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold border",
+                                    status === "active"
+                                      ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                      : "bg-amber-50 text-amber-600 border-amber-200"
+                                  )}
+                                >
+                                  {status_label}
+                                </span>
+                              </td>
+                              {!isStaffUser ? (
+                                <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
+                                  <div className="flex items-center justify-end">
+                                    <EventTypeActionsMenu
+                                      open={open_menu_id === item.id}
+                                      copy_disabled={loadingSlug || !item.slug}
+                                      copy_copied={copiedId === item.id}
+                                      on_toggle={() =>
+                                        set_open_menu_id((prev) =>
+                                          prev === item.id ? null : item.id
+                                        )
+                                      }
+                                      on_copy_link={() => {
+                                        void handle_copy_link_from_menu(item);
+                                      }}
+                                      on_duplicate={() => {
+                                        void handleDuplicate(item);
+                                        set_open_menu_id(null);
+                                      }}
+                                      on_delete={() => {
+                                        handleDeleteClick(item.id);
+                                        set_open_menu_id(null);
+                                      }}
+                                      on_edit={() => {
+                                        handleEdit(item);
+                                        set_open_menu_id(null);
+                                      }}
+                                    />
+                                  </div>
+                                </td>
+                              ) : null}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </ScreenGate>
 
                 <div className="py-3">
@@ -1710,6 +1716,13 @@ export default function EventTypes() {
                     embedded
                     variant="panel"
                     onClose={handleEditPanelClose}
+                    onSaved={(message) => {
+                      set_event_type_saved_message(message);
+                      window.setTimeout(() => set_event_type_saved_message(""), 4000);
+                      closePanelAnimated(() => {
+                        void fetchEventTypes();
+                      });
+                    }}
                   />
                 ) : (
                   <EventTypeFormLayout

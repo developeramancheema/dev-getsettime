@@ -718,14 +718,35 @@ const AvailabilityTimesheet = forwardRef<
     }
   };
 
-  const handleSaveDay = async (day: DayName): Promise<boolean> => {
+  const handleSaveDay = async (
+    day: DayName,
+    scheduleOverride?: DaySchedule,
+    options?: { usePageFeedback?: boolean; persistPanelFeedback?: boolean }
+  ): Promise<boolean> => {
     setSavingDay(day);
     pushDaySaveFeedback(day, null);
     onSaveFeedback?.(null);
 
+    const pushSaveDayResult = (
+      payload: { type: 'success' | 'error'; text: string },
+      clearAfterMs?: number
+    ) => {
+      const autoClearMs =
+        options?.persistPanelFeedback && payload.type === 'success'
+          ? undefined
+          : clearAfterMs;
+
+      if (options?.usePageFeedback) {
+        pushSaveFeedback(payload, autoClearMs);
+      } else {
+        pushDaySaveFeedback(day, payload, autoClearMs);
+      }
+    };
+
     try {
-      const clampedDay = clampBreaksForDay(schedules[day]);
-      if (dayScheduleSignature(clampedDay) !== dayScheduleSignature(schedules[day])) {
+      const sourceDay = scheduleOverride ?? schedules[day];
+      const clampedDay = clampBreaksForDay(sourceDay);
+      if (dayScheduleSignature(clampedDay) !== dayScheduleSignature(sourceDay)) {
         setSchedules((prev) => ({ ...prev, [day]: cloneDaySchedule(clampedDay) }));
       }
 
@@ -745,8 +766,7 @@ const AvailabilityTimesheet = forwardRef<
           ...prev,
           [day]: cloneDaySchedule(merged[day]),
         }));
-        pushDaySaveFeedback(
-          day,
+        pushSaveDayResult(
           { type: 'success', text: `${DAY_NAMES[day]} availability saved successfully!` },
           3000
         );
@@ -763,8 +783,7 @@ const AvailabilityTimesheet = forwardRef<
         ...prev,
         [day]: cloneDaySchedule(merged[day]),
       }));
-      pushDaySaveFeedback(
-        day,
+      pushSaveDayResult(
         { type: 'success', text: `${DAY_NAMES[day]} availability saved successfully!` },
         3000
       );
@@ -779,7 +798,7 @@ const AvailabilityTimesheet = forwardRef<
         error instanceof Error
           ? error.message
           : 'Failed to save availability timesheet. Please try again.';
-      pushDaySaveFeedback(day, { type: 'error', text: errText }, 5000);
+      pushSaveDayResult({ type: 'error', text: errText }, 5000);
       return false;
     } finally {
       setSavingDay(null);
@@ -881,6 +900,26 @@ const AvailabilityTimesheet = forwardRef<
         [day]: newSchedule,
       };
     });
+  };
+
+  const handleToggleDayEnabled = (day: DayName, enabled: boolean) => {
+    updateDaySchedule(day, { enabled: !enabled });
+  };
+
+  const handleMobileToggleDayEnabled = async (day: DayName, enabled: boolean) => {
+    if (readOnly || isSaving || savingDay !== null) return;
+
+    const nextEnabled = !enabled;
+    const toggledSchedule: DaySchedule = {
+      ...schedules[day],
+      enabled: nextEnabled,
+    };
+
+    updateDaySchedule(day, { enabled: nextEnabled });
+    const ok = await handleSaveDay(day, toggledSchedule, { usePageFeedback: true });
+    if (!ok) {
+      updateDaySchedule(day, { enabled });
+    }
   };
 
   const addBreak = (day: DayName) => {
@@ -1178,6 +1217,9 @@ const AvailabilityTimesheet = forwardRef<
   };
 
   const closeDayPanel = (revert: boolean) => {
+    if (editingDay) {
+      pushDaySaveFeedback(editingDay, null);
+    }
     if (revert) {
       if (preCopySnapshot) {
         setSchedules(cloneSchedules(preCopySnapshot));
@@ -1196,12 +1238,13 @@ const AvailabilityTimesheet = forwardRef<
     if (!editingDay) return;
     if (preCopySnapshot) {
       await handleSavePendingCopyAllDays();
-      closeDayPanel(false);
       return;
     }
-    const ok = await handleSaveDay(editingDay);
+    const ok = await handleSaveDay(editingDay, undefined, {
+      persistPanelFeedback: true,
+    });
     if (ok) {
-      closeDayPanel(false);
+      setPanelSnapshot(cloneDaySchedule(schedulesRef.current[editingDay]));
     }
   };
 
@@ -1256,14 +1299,15 @@ const AvailabilityTimesheet = forwardRef<
                           type="button"
                           aria-label={`Toggle ${DAY_NAMES[day]}`}
                           aria-pressed={schedule.enabled}
-                          onClick={() => {
-
-                          }}
+                          disabled={readOnly || isSaving || savingDay !== null}
+                          onClick={() => void handleMobileToggleDayEnabled(day, schedule.enabled)}
                           className={classNames(
                             "relative h-[20px] w-[32px] rounded-full transition-colors duration-200",
                             schedule.enabled
                               ? "bg-indigo-600"
-                              : "bg-slate-300"
+                              : "bg-slate-300",
+                            (readOnly || isSaving || savingDay !== null) &&
+                              "cursor-not-allowed opacity-50"
                           )}
                         >
                           <span
@@ -1537,9 +1581,7 @@ const AvailabilityTimesheet = forwardRef<
                     <button
                       type="button"
                       onClick={() =>
-                        updateDaySchedule(editingDay, {
-                          enabled: !editingSchedule.enabled,
-                        })
+                        handleToggleDayEnabled(editingDay, editingSchedule.enabled)
                       }
                       className={classNames(
                         "relative h-6 w-11 rounded-full transition",
@@ -1765,13 +1807,27 @@ const AvailabilityTimesheet = forwardRef<
                   {daySaveFeedback[editingDay] ? (
                     <div
                       className={classNames(
-                        "rounded-lg border px-3 py-2 text-sm font-medium",
+                        "flex items-start justify-between gap-3 rounded-lg border px-3 py-2 text-sm font-medium",
                         daySaveFeedback[editingDay]?.type === "success"
                           ? "border-green-200 bg-green-50 text-green-700"
                           : "border-red-200 bg-red-50 text-red-700"
                       )}
+                      role="status"
                     >
-                      {daySaveFeedback[editingDay]?.text}
+                      <span>{daySaveFeedback[editingDay]?.text}</span>
+                      <button
+                        type="button"
+                        onClick={() => pushDaySaveFeedback(editingDay, null)}
+                        className={classNames(
+                          "shrink-0 rounded-md p-0.5 transition hover:bg-black/5",
+                          daySaveFeedback[editingDay]?.type === "success"
+                            ? "text-green-700"
+                            : "text-red-700"
+                        )}
+                        aria-label="Dismiss message"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
                   ) : null}
                 </div>

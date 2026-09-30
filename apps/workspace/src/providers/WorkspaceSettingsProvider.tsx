@@ -57,6 +57,7 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
   const [workspaceAdminProfessionsId, setWorkspaceAdminProfessionsId] = useState<number | null>(
     null
   );
+  const [bookingStepOrder, setBookingStepOrder] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -67,6 +68,7 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
       setWorkspaceProfessionLabel(null);
       setWorkspaceSlug(null);
       setWorkspaceAdminProfessionsId(null);
+      setBookingStepOrder(null);
       return;
     }
     setWorkspaceName(w.name || null);
@@ -75,6 +77,11 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
     setWorkspaceProfessionLabel(resolve_profession_label(w));
     setWorkspaceAdminProfessionsId(
       typeof w.admin_professions_id === 'number' ? w.admin_professions_id : null
+    );
+    setBookingStepOrder(
+      Array.isArray(w.booking_step_order)
+        ? w.booking_step_order.filter((id): id is string => typeof id === 'string')
+        : null
     );
   }, []);
 
@@ -106,6 +113,7 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
     setWorkspaceSlug(null);
     setServiceProviderLinkSlug(null);
     setWorkspaceAdminProfessionsId(null);
+    setBookingStepOrder(null);
     setError(null);
   }, []);
 
@@ -264,6 +272,7 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
     workspaceSlug,
     serviceProviderLinkSlug,
     workspaceAdminProfessionsId,
+    bookingStepOrder,
     loading,
     error,
     refetch,

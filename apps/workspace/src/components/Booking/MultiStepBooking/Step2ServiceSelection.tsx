@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import type { EventType } from '@/src/types/bookingForm';
 import {
   BOOKING_BUTTON_LABELS,
@@ -28,6 +28,27 @@ export function Step2ServiceSelection({
   onBack,
   onContinue,
 }: Step2ServiceSelectionProps) {
+  const continueSectionRef = useRef<HTMLDivElement | null>(null);
+
+  const handleSelectType = useCallback(
+    (eventType: EventType) => {
+      onSelectType(eventType);
+    },
+    [onSelectType]
+  );
+
+  // Scroll after the parent re-render settles so a catalog refetch does not
+  // unmount this step before the continue button is on screen.
+  useEffect(() => {
+    if (!selectedType) return;
+    requestAnimationFrame(() => {
+      continueSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  }, [selectedType?.id]);
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fadeIn">
       <div className="text-center lg:text-left">
@@ -60,7 +81,7 @@ export function Step2ServiceSelection({
             return (
               <button
                 key={t.id}
-                onClick={() => onSelectType(t)}
+                onClick={() => handleSelectType(t)}
                 className={`group relative w-full text-left p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border-2 flex items-center gap-3 sm:gap-4 lg:gap-5 transition-all duration-300 overflow-hidden ${
                   isSelected
                     ? 'border-indigo-400 bg-gradient-to-br from-white to-indigo-50/30 shadow-2xl scale-[1.02]'
@@ -92,7 +113,7 @@ export function Step2ServiceSelection({
                 </div>
                 <div
                   className={`relative z-10 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors flex-shrink-0 ${
-                    isSelected ? 'bg-indigo-100' : 'bg-indigo-50 group-hover:bg-indigo-100'
+                    isSelected ? 'bg-blue-100' : 'bg-blue-50 group-hover:bg-blue-100'
                   }`}
                 >
                   <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: DEFAULT_ACCENT_COLOR }}>
@@ -113,7 +134,10 @@ export function Step2ServiceSelection({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 lg:mt-10 pt-6 sm:pt-8 border-t border-gray-200">
+      <div
+        ref={continueSectionRef}
+        className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 lg:mt-10 pt-6 sm:pt-8 border-t border-gray-200 scroll-mt-6"
+      >
         {onBack && (
           <button
             type="button"

@@ -28,6 +28,8 @@ import {
   fetchActiveDateExceptionsForSlot,
   validateSlotDateExceptions,
 } from '@/src/utils/dateExceptionApiValidation';
+import { load_event_type_for_booking } from '@/lib/complete_booking_create';
+import { should_block_booking_on_external_calendar } from '@/src/features/booking-flow';
 
 type DayName = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 
@@ -223,19 +225,30 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Google Calendar busy check
-    try {
-      const { isSlotBusyInCalendar } = await import('@/lib/google-calendar-service');
-      const isBusy = await isSlotBusyInCalendar(
-        booking.workspace_id,
-        start_at,
-        resolvedEndAt,
-        booking.service_provider_id || undefined
-      );
-      if (isBusy) {
-        return NextResponse.json({ error: 'This time slot is already blocked in calendar.' }, { status: 400 });
+    const loadedEventType = await load_event_type_for_booking(
+      supabase,
+      booking.workspace_id,
+      booking.event_type_id
+    );
+    if (should_block_booking_on_external_calendar(loadedEventType)) {
+      try {
+        const { isSlotBusyInCalendar } = await import('@/lib/google-calendar-service');
+        const isBusy = await isSlotBusyInCalendar(
+          booking.workspace_id,
+          start_at,
+          resolvedEndAt,
+          booking.service_provider_id || undefined
+        );
+        if (isBusy) {
+          return NextResponse.json(
+            { error: 'This time slot is already blocked in calendar.' },
+            { status: 400 }
+          );
+        }
+      } catch {
+        /* non-blocking */
       }
-    } catch { /* non-blocking */ }
+    }
 
     // Check booking conflicts (exclude the current booking being rescheduled)
     let conflictQuery = supabase

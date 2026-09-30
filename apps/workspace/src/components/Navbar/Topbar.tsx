@@ -8,9 +8,15 @@ import { signOutWithAuthLog } from "@/src/lib/auth_activity_log_client";
 import { useAuth } from "../../providers/AuthProvider";
 import { useWorkspaceSettings } from "../../hooks/useWorkspaceSettings";
 import { useSubscription } from "@/src/hooks/useSubscription";
+import { useCreateBookingModal } from "@/src/providers/CreateBookingModalProvider";
+import DashboardIcon from "@/src/components/Dashboard/DashboardIcon";
 import { WorkspaceBrandLogo } from "../molecules/WorkspaceBrandLogo";
 import GlobalSearch from "./GlobalSearch";
 import ScreenGate from "../ScreenGate";
+interface TopbarProps {
+  toggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}
 
 interface NotificationItem {
   id: string;
@@ -30,7 +36,7 @@ function getRelativeTime(dateIso: string) {
   return `${days}d ago`;
 }
 
-export default function Topbar() {
+export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
   const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
   const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -46,9 +52,9 @@ export default function Topbar() {
     loading: loadingSettings,
     workspaceLogoResolved,
     workspaceName,
-    workspaceProfessionLabel,
   } = useWorkspaceSettings();
   const { data: subscriptionData } = useSubscription();
+  const { open: open_create_booking } = useCreateBookingModal();
 
   const accountName =
     workspaceName?.trim() || general.accountName || "GetSetTime";
@@ -195,7 +201,6 @@ export default function Topbar() {
                       </span>
                     )}
                     </ScreenGate>
-
                   </>
                 )}
               </Link>
@@ -211,17 +216,17 @@ export default function Topbar() {
         
 
         <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={open_create_booking}
+            className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 md:px-4 md:py-2.5"
+          >
+            <DashboardIcon name="plus" size={17} className="text-indigo-600" />
+            Create Booking
+          </button>
           <Link href="/billings" className="hidden sm:flex text-emerald-600 px-4 py-2 rounded-lg text-sm border bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200">
-          Current Plan:<span className="font-medium">{currentBillingPlan}</span>
+            Current Plan: <span className="font-medium"> {currentBillingPlan}</span>
           </Link>
-          {!loadingSettings && workspaceProfessionLabel ? (
-            <div className="hidden sm:flex items-center max-w-[11rem] md:max-w-[16rem] shrink-0 px-2">
-              <div className="text-sm truncate rounded-lg px-4 py-2 shadow-sm bg-indigo-600 hover:bg-indigo-700" title={workspaceProfessionLabel}>
-                <span className="text-white/90 mr-1.5">Profession:</span>
-                <span className="font-bold text-white">{workspaceProfessionLabel}</span>
-              </div>
-            </div>
-          ) : null}
           <div className="relative">
             <button id="notification-button" onClick={(e) => { e.stopPropagation(); setIsNotificationOpen(!isNotificationOpen); setIsProfileMenuOpen(false);}} className="p-2 bg-gray-100 rounded-full text-gray-500 cursor-pointer hover:bg-gray-100 relative" aria-label="Notifications" aria-expanded={isNotificationOpen} aria-haspopup="true">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

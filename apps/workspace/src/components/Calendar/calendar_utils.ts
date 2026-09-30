@@ -15,6 +15,13 @@ export function toDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export function formatCalendarDayHeading(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+  });
+}
+
 export function buildCalendarCells(viewDate: Date): CalendarCell[] {
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -121,6 +128,20 @@ export function getStatusCalendarChipClass(
         time: "text-slate-700",
       };
   }
+}
+
+/** Bordered card styles for day/week timed calendar events */
+export function getStatusCalendarCardClass(
+  status: string | null | undefined,
+): string {
+  const card = getStatusCalendarChipClass(status).chip;
+  if (card.includes("blue")) return "border-blue-200 bg-indigo-50";
+  if (card.includes("emerald")) return "border-emerald-200 bg-emerald-50";
+  if (card.includes("amber")) return "border-amber-200 bg-amber-50";
+  if (card.includes("red")) return "border-red-200 bg-red-50";
+  if (card.includes("violet")) return "border-violet-200 bg-violet-50";
+  if (card.includes("indigo")) return "border-indigo-200 bg-indigo-50";
+  return "border-slate-200 bg-white";
 }
 
 export function getStatusDotClass(status: string | null | undefined): string {

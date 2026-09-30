@@ -23,6 +23,7 @@ import {
   resolve_workspace_logo_src,
   workspace_logo_is_remote,
 } from '@/src/utils/workspace_logo';
+import type { booking_step_id } from '@/src/features/booking-flow';
 import {
   intakeCustomFieldHasDisplayValue,
   formatIntakeFieldValueForDisplay,
@@ -60,6 +61,7 @@ interface BookingPreviewSidebarProps {
   customFieldValues?: Record<string, string>;
   /** Resolved meeting preference label (step 4 / 5) */
   meetingChoiceLabel?: string | null;
+  current_step_id?: booking_step_id;
 }
 
 export function BookingPreviewSidebar({
@@ -88,6 +90,7 @@ export function BookingPreviewSidebar({
   intakeForm,
   customFieldValues = {},
   meetingChoiceLabel,
+  current_step_id,
 }: BookingPreviewSidebarProps) {
   const departmentWithStep1Services = (deptName: string) => {
     if (!selectedStep1ServiceIds.length || !step1CatalogServices.length) return deptName;
@@ -105,7 +108,9 @@ export function BookingPreviewSidebar({
   const logoTreatAsRemote = workspace_logo_is_remote(resolvedLogoSrc);
   const displayTagline = workspaceTagline?.trim() || '';
   const hasSelection = selectedDepartment || selectedProvider || selectedType;
-  const showIntakeInPreview = step === 4 || step === 5;
+  const showIntakeInPreview = current_step_id
+    ? current_step_id === 'intake' || current_step_id === 'success'
+    : step === 4 || step === 5;
   const customFieldRows =
     (intakeForm?.custom_fields ?? []).filter((field) =>
       intakeCustomFieldHasDisplayValue(customFieldValues[field.id])
@@ -245,7 +250,7 @@ export function BookingPreviewSidebar({
                     {selectedType.title}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600 pl-9 sm:pl-11 flex items-center gap-1.5 mt-1">
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{selectedType.duration_minutes || 30} minutes</span>
@@ -273,7 +278,7 @@ export function BookingPreviewSidebar({
                 <div className="details-box">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
