@@ -138,7 +138,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
         <div className="flex-1 flex flex-col w-full min-w-0 min-h-0 ml-0 lg:ml-64 transition-all duration-300">
           <Topbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <main className="relative w-full overflow-x-hidden bg-gray-100 lg:pb-0">
+          <main className="relative w-full overflow-x-hidden lg:pb-0">
             <div className={`overflow-y-auto p-4 lg:p-8 ${isMobileMenuOpen ? "hidden lg:flex" : ""}`}>
               <div className="w-full max-w-full pb-[68px] lg:pb-0">
                 <SubscriptionBanners />
