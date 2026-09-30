@@ -239,14 +239,12 @@ body{
 .settings-phone-input.booking-phone-input .booking-phone-input__country-btn,
 .settings-phone-input.booking-phone-input .booking-phone-input__dial-code {
   background-color: #f8fafc !important;
-  height: 48px;
-  
-
+  height: 48px !important;
 }
 
 .settings-phone-input.booking-phone-input .react-international-phone-input,
 .settings-phone-input.booking-phone-input .booking-phone-input__field {
   padding: 0 1rem !important;
-  height: 48px;
+  height: 48px !important;
   font-size: .875rem !important;
 }

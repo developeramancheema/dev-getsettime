@@ -219,7 +219,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
           <button
             type="button"
             onClick={open_create_booking}
-            className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 md:px-4 md:py-2.5"
+            className="hidden lg:inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 md:px-4 md:py-2.5"
           >
             <DashboardIcon name="plus" size={17} className="text-indigo-600" />
             Create Booking
