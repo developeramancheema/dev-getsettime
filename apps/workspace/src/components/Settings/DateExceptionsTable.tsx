@@ -19,6 +19,8 @@ type provider_option = {
   name: string;
 };
 
+const weekday = (date: Date) => format(date, "EEEE");
+
 export type DateExceptionsTableProps = {
   exceptions: date_exception[];
   providers: provider_option[];
@@ -64,12 +66,13 @@ function DateBadge({ dateStr }: { dateStr: string }) {
           {day}
         </span>
       </div>
-      
 
+      <ScreenGate minWidth={1024}>
       <div>
-        <p className="text-sm font-semibold text-slate-500 lg:text-slate-900">{full}</p>
+        <p className="text-sm font-semibold text-slate-700 lg:text-slate-900">{full}</p>
         <p className="text-sm text-slate-500">{weekday}</p>
       </div>
+      </ScreenGate>
     </div>
   );
 }
@@ -187,20 +190,22 @@ export function DateExceptionsTable({
                   <div key={ex.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 flex-col items-start gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <DateBadge dateStr={ex.exception_date} />
                         <div className="min-w-0">
                           <p className="truncate text-md font-semibold text-slate-900">
                             {ex.name}
                           </p>
+                          <div className="flex flex-wrap items-center gap-1">
+                            {ex.repeat_yearly ? (
+                              <p className="mt-0.5 text-sm text-slate-500">
+                                Repeats yearly
+                              </p>
+                            ) : null}
 
-                          {ex.repeat_yearly ? (
-                            <p className="mt-0.5 text-sm text-slate-500">
-                              Repeats yearly
-                            </p>
-                          ) : null}
+                            <p className="text-xs text-indigo-600 border border-indigo-200 bg-indigo-50 px-2 py-1 rounded-full">{weekday(new Date(ex.exception_date))}</p>
+                          </div>
                         </div>
-
-                        <DateBadge dateStr={ex.exception_date} />
                       </div>
                       
                       <ScreenGate minWidth={640}>

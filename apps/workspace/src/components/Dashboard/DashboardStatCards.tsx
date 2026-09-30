@@ -34,7 +34,7 @@ const STAT_CARDS: readonly StatCardConfig[] = [
     icon_color: "text-indigo-600",
   },
   {
-    label: "Upcoming Appointments",
+    label: "Upcoming Bookings",
     icon: "calendarDays",
     hint: "Across all future dates",
     icon_bg: "bg-sky-50",
@@ -58,7 +58,7 @@ const STAT_CARDS: readonly StatCardConfig[] = [
 
 function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
   if (!trend) {
-    return <p className="mt-1.5 max-[450px]:text-xs text-sm font-medium text-slate-600">{hint}</p>;
+    return <p className="mt-1.5 text-sm text-slate-500">{hint}</p>;
   }
   const is_up = trend.direction === "up";
   return (
@@ -88,7 +88,7 @@ function TrendLine({ trend, hint }: { trend?: StatTrend; hint: string }) {
         </svg>
         {trend.percent}%
       </span>
-      <span className="text-slate-600">vs yesterday</span>
+      <span className="text-slate-500">vs yesterday</span>
     </p>
   );
 }
@@ -135,11 +135,11 @@ export default function DashboardStatCards({
       {STAT_CARDS.map((stat, index) => (
         <article key={stat.label} className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition duration-300 hover:shadow-md">
           <div className="flex items-start xl:items-center max-[450px]:flex-col max-[450px]:justify-between max-[450px]:gap-2 gap-4">
-            <div className={`flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center rounded-2xl ${stat.icon_bg} ${stat.icon_color}`}>
+            <div className={`flex h-10 w-10 xl:h-14 xl:w-14 shrink-0 items-center justify-center max-[450px]:rounded-xl rounded-2xl ${stat.icon_bg} ${stat.icon_color}`}>
               <DashboardIcon name={stat.icon} size={20} />
             </div>
             <div className="min-w-0 flex flex-col max-[450px]:flex-col-reverse gap-1">
-              <p className="truncate max-[450px]:text-xs text-sm font-bold text-slate-900">{labels[index]}</p>
+              <p className="truncate text-sm font-semibold text-slate-500">{labels[index]}</p>
               <h3 className="text-xl xl:text-3xl font-bold leading-tight tracking-tight text-slate-900">{values[index]}</h3>
             </div>
           </div>

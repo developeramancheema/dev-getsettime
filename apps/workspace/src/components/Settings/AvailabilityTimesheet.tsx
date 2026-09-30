@@ -1268,7 +1268,7 @@ const AvailabilityTimesheet = forwardRef<
 
   return (
     <>
-      <div className="space-y-5">
+      <div className="space-y-4">
         <p className="text-sm text-slate-500">
           {readOnly
             ? "View regular weekly availability, working hours, and breaks."
@@ -1290,7 +1290,7 @@ const AvailabilityTimesheet = forwardRef<
                         className="grid grid-cols-[38px_38px_minmax(0,1fr)_30px] items-center gap-2"
                       >
                         {/* Day */}
-                        <span className="text-[13px] font-semibold text-slate-700">
+                        <span className="text-sm font-semibold text-slate-700">
                           {DAY_NAMES[day].slice(0, 3)}
                         </span>
 
@@ -1402,7 +1402,7 @@ const AvailabilityTimesheet = forwardRef<
                       Timezone
                     </span>
 
-                    <span className="mt-0.5 block text-[13px] font-semibold text-slate-700">
+                    <span className="mt-0.5 block text-sm font-semibold text-slate-700">
                       {displayTimezone}
                     </span>
                   </span>

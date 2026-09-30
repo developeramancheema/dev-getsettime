@@ -607,7 +607,7 @@ export function EventTypeEditForm({
   };
 
   const wrapper_class = embedded
-    ? "flex h-full min-h-0 pb-[60px] lg:pb-0 flex-col overflow-x-scroll"
+    ? "flex h-full min-h-0 flex-col"
     : "mr-auto space-y-6 rounded-2xl";
 
   if (load_state.status === "loading") {

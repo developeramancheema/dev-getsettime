@@ -147,7 +147,7 @@ export default function DashboardCalendarSnapshot() {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <DashboardIcon name="calendarDays" size={20} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Calendar Snapshot</h3>
+          <h3 className="text-lg font-bold text-slate-900">Calendar <span className="hidden sm:inline">Snapshot</span></h3>
         </div>
         
         <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function DashboardCalendarSnapshot() {
         </div>
       </div>
 
-      <p className="lg:mb-4 mb-2 text-sm font-bold text-slate-700">{range_label}</p>
+      <p className="lg:mb-4 mb-2 text-sm font-semibold text-slate-700">{range_label}</p>
 
       <div className="overflow-hidden rounded-xl border border-slate-200">
         <div className="grid grid-cols-7 divide-x divide-slate-200">
@@ -194,20 +194,20 @@ export default function DashboardCalendarSnapshot() {
       </div>
       
 
-      <div className="lg:mt-5 mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-3">
+      <div className="lg:mt-5 mt-4 flex flex-wrap items-center max-[450px]:gap-x-2 gap-x-5 gap-y-2 border-t border-slate-100 pt-3">
         {loading ? (
           <span className="text-sm font-semibold text-slate-400">Loading…</span>
         ) : (
           <>
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600">
               <span className="h-2 w-2 rounded-full bg-indigo-500" />
               {total_count} Bookings
             </span>
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               {confirmed_count} Appointments
             </span>
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               {pending_count} Pending
             </span>

@@ -89,9 +89,9 @@ function departmentStatusLabel(status: DepartmentStatus): string {
 }
 
 function departmentStatusBadgeClass(status: DepartmentStatus): string {
-  if (status === "active") return "bg-emerald-50 text-emerald-700";
-  if (status === "draft") return "bg-slate-100 text-slate-600";
-  return "bg-amber-50 text-amber-700";
+  if (status === "active") return "bg-emerald-50 text-emerald-600 border border-emerald-200";
+  if (status === "draft") return "bg-slate-50 text-slate-600 border border-slate-200";
+  return "bg-amber-50 text-amber-600 border border-amber-200";
 }
 
 interface DepartmentServiceProviderMeta {

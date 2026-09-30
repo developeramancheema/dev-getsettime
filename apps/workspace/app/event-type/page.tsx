@@ -1708,7 +1708,7 @@ export default function EventTypes() {
                 </button>
               </div>
 
-              <div className="flex min-h-0 h-full flex-1 flex-col overflow-x-scroll pb-[60px] lg:pb-0">
+              <div className="flex min-h-0 h-full flex-1 flex-col pb-[60px] lg:pb-0">
                 {editingId !== null ? (
                   <EventTypeEditForm
                     key={editingId}
@@ -1770,6 +1770,7 @@ export default function EventTypes() {
           onClose={() => setAlertMessage(null)}
         />
       )}
+
 
       {settings_open && (
         <div className="fixed inset-0 z-999 flex">

@@ -16,6 +16,7 @@ import {
   createdByDisplayLabel,
   getStatusDotClass,
 } from "@/src/components/Calendar/calendar_utils";
+import ScreenGate from "@/src/components/ScreenGate";
 
 function cn(...classes: Array<string | false | undefined>): string {
   return classes.filter(Boolean).join(" ");
@@ -280,9 +281,10 @@ export function CalendarSidebar({
                 booking.service_provider_name?.trim() ||
                 createdByDisplayLabel(booking);
               const agendaItemClassName =
-                "flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left transition bg-slate-50 border border-slate-200";
+                "flex max-[400px]:flex-col gap-1 w-full items-start sm:gap-2.5 rounded-lg px-3 py-2 text-left transition bg-slate-50 border border-slate-200";
               const agendaContent = (
                 <>
+                  <ScreenGate minWidth={640}>
                   <span
                     className={cn(
                       "mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
@@ -298,6 +300,7 @@ export function CalendarSidebar({
                       <Clock3 className="h-4 w-4" />
                     )}
                   </span>
+                  </ScreenGate>
 
                   <div className="min-w-0 flex-1">
                     {viewMode === "day" ? (
@@ -308,7 +311,7 @@ export function CalendarSidebar({
                         <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
                           {customerName}
                         </p>
-                        <p className="truncate text-xs text-slate-500">{providerName}</p>
+                        <p className="truncate text-sm text-slate-500">{providerName}</p>
                       </>
                     ) : (
                       <>
@@ -330,7 +333,7 @@ export function CalendarSidebar({
                             • {eventTitle}
                           </span>
                         </p>
-                        <p className="truncate text-xs text-slate-500">
+                        <p className="truncate text-sm text-slate-500">
                           {providerName}
                         </p>
                       </>
@@ -345,7 +348,7 @@ export function CalendarSidebar({
                       )}
                       aria-hidden
                     />
-                    <span className="text-xs font-medium capitalize text-slate-600">
+                    <span className="text-sm font-medium text-slate-600 capitalize">
                       {statusLabel(booking.status)}
                     </span>
                   </div>
@@ -377,7 +380,7 @@ export function CalendarSidebar({
         <div className="mt-3 border-t border-slate-100 pt-3 text-center">
           <Link
             href="/bookings"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
           >
             {viewMode === "day"
               ? "View full agenda"

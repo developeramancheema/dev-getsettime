@@ -88,18 +88,18 @@ function BookingCard({
     <button
       type="button"
       onClick={onSelect}
-      className={`flex min-w-0 flex-1 items-start gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:brightness-[0.98] ${getCardClass(
+      className={`flex max-[400px]:flex-col gap-1 min-w-0 flex-1 items-start gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:brightness-[0.98] ${getCardClass(
         booking.status,
       )} ${selected ? "ring-2 ring-indigo-300" : ""}`}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate flex gap-2 text-xs">
+        <p className="truncate flex gap-2 text-sm">
           <span className="font-medium text-slate-600">
             {booking.start_at ? formatTime(booking.start_at) : "—"}
           </span>{" "}
           <span className="text-slate-900 font-bold">{getGuestName(booking)}</span>
         </p>
-        <p className="mt-0.5 truncate text-xs text-slate-500">
+        <p className="mt-0.5 truncate text-sm text-slate-500">
           {getServiceLabel(booking)} • {getDurationLabel(booking)}
         </p>
       </div>
@@ -169,7 +169,7 @@ export function CalendarMobileWeekBookings({
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <h3 className="text-base font-bold text-slate-800">{dayTitle}</h3>
+        <h3 className="text-sm font-bold text-slate-800">{dayTitle}</h3>
         {onGoToToday && (
           <button
             type="button"
