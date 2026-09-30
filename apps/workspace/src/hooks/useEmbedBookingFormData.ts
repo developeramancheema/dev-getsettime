@@ -175,7 +175,9 @@ export function useEmbedBookingFormData({
     showProviderPicker;
 
   const bookableEventTypes = useMemo(() => {
-    if (needsExplicitProvider && !effectiveProviderId) return [];
+    if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
+      return [];
+    }
     const provider_scope_id = lockEventTypeCatalog ? null : effectiveProviderId;
     const filtered = filterBookableEventTypes(
       filterEventTypesForServiceProvider(eventTypes, provider_scope_id)

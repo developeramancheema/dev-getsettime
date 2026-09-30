@@ -1312,10 +1312,10 @@ const AvailabilityTimesheet = forwardRef<
                         >
                           <span
                             className={classNames(
-                              "absolute top-[2px] right-0 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
+                              "absolute top-[2px] right-0 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 transition",
                               schedule.enabled
-                                ? "translate-x-[0px]"
-                                : "translate-x-[2px]"
+                                ? "left-[15px]"
+                                : "left-0.5"
                             )}
                           />
                         </button>

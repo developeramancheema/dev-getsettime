@@ -162,7 +162,9 @@ export function useBookingFormData({
     departments.length > 0 && selectedDepartment !== null && showProviderPicker;
 
   const bookableEventTypes = useMemo(() => {
-    if (needsExplicitProvider && !effectiveProviderId) return [];
+    if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
+      return [];
+    }
     const provider_scope_id = lockEventTypeCatalog ? null : effectiveProviderId;
     const filtered = filterBookableEventTypes(
       filterEventTypesForServiceProvider(eventTypes, provider_scope_id)
@@ -235,7 +237,7 @@ export function useBookingFormData({
   }, []);
 
   useEffect(() => {
-    if (needsExplicitProvider && !effectiveProviderId) {
+    if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
       setEventTypes([]);
       setLoadingEventTypes(false);
       return;
