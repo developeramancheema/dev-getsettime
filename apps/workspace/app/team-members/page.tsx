@@ -938,10 +938,10 @@ export default function TeamMembersPage() {
             <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 p-4 md:p-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur">
+                  {/* <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur">
                     <LuUsers className="h-4 w-4" aria-hidden />
                     Team Access Management
-                  </div>
+                  </div> */}
                   <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                       Team Members

@@ -1665,8 +1665,13 @@ export default function ServicesPage() {
 
       {/* Booking impact modal */}
       {showBookingImpact && (
-        <div className="fixed inset-0 z-999 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-5xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            aria-hidden="true"
+            onClick={() => setShowBookingImpact(false)}
+          />
+          <div className="relative z-10 flex max-h-[min(90vh,880px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl px-4 py-5">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-indigo-600">Booking impact</p>
@@ -1683,15 +1688,15 @@ export default function ServicesPage() {
               <button
                 type="button"
                 onClick={() => setShowBookingImpact(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="max-h-[min(90vh,880px)] overflow-y-auto rounded-xl">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] border-collapse">
+                <table className="w-full border-collapse rounded-2xl overflow-hidden">
                   <thead className="bg-slate-50">
                     <tr>
                       <th className="border-b border-slate-200 px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1713,8 +1718,8 @@ export default function ServicesPage() {
                       const assigned = service.meta_data?.service_providers ?? [];
                       const isBookable = service.status === "active" && assigned.length > 0;
                       return (
-                        <tr key={service.id} className="odd:bg-white even:bg-slate-50/50">
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-top">
+                        <tr key={service.id} className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0">
+                          <td className="text-sm px-4 md:px-6 py-5 align-middle border-b border-slate-100" data-label="Service">
                             <p className="text-sm font-semibold text-slate-900">
                               {service.name}
                             </p>
@@ -1722,7 +1727,7 @@ export default function ServicesPage() {
                               {service.duration} min • {formatCurrency(service.price, currencySign)}
                             </p>
                           </td>
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-top">
+                          <td className="text-sm px-4 md:px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
                             <span
                               className={classNames(
                                 "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
@@ -1732,9 +1737,9 @@ export default function ServicesPage() {
                               {serviceStatusLabel(service.status)}
                             </span>
                           </td>
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-top">
+                          <td className="text-sm px-4 md:px-6 py-5 align-middle border-b border-slate-100" data-label="Assigned consultants">
                             {assigned.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex items-center max-[1301px]:justify-end gap-3">
                                 {assigned.map((doctor) => (
                                   <span
                                     key={doctor.id}
@@ -1750,7 +1755,7 @@ export default function ServicesPage() {
                               </span>
                             )}
                           </td>
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-top">
+                          <td className="text-sm px-4 md:px-6 py-5 align-middle border-b border-slate-100" data-label="Booking result">
                             <span
                               className={classNames(
                                 "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
@@ -1780,7 +1785,8 @@ export default function ServicesPage() {
                 </table>
               </div>
             </div>
-
+            
+            <ScreenGate minWidth={768}>
             <div className="mt-5 grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1807,6 +1813,8 @@ export default function ServicesPage() {
                 </p>
               </div>
             </div>
+            </ScreenGate>
+            
           </div>
         </div>
       )}

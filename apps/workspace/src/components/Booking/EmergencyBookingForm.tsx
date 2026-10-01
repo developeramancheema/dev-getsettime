@@ -583,6 +583,7 @@ export default function EmergencyBookingForm() {
 
         <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
+            {/* Patient Details */}
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <div className="flex items-center gap-3">
@@ -682,7 +683,8 @@ export default function EmergencyBookingForm() {
                 )}
               </div>
             </section>
-
+            
+            {/* Booking Details */}
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-6 py-5">
                 <div className="flex items-center gap-3">
@@ -794,6 +796,32 @@ export default function EmergencyBookingForm() {
                 </div>
               </div>
             </section>
+
+            <div ref={footerRef} className="rounded-2xl border border-slate-200 bg-white shadow-sm px-6 py-5">
+              <div className="flex flex-col gap-3 sm:flex-row items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Ready to create this emergency booking?</p>
+                  <p className="text-xs text-slate-500">Required fields are validated before submission.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={loading}
+                    className="inline-flex h-11 min-w-[7rem] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="inline-flex h-11 min-w-[12rem] items-center justify-center rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg transition disabled:opacity-60"
+                  >
+                    {loading ? "Saving…" : "Add Emergency Booking"}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -899,32 +927,6 @@ export default function EmergencyBookingForm() {
                 <NoticeItem text="Allow reassignment if the selected provider is busy or unavailable." />
               </div>
             </section>
-          </div>
-        </div>
-      </div>
-
-      <div ref={footerRef} className="relative mt-6">
-        <div className="flex flex-col gap-3 sm:flex-row items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-900">Ready to create this emergency booking?</p>
-            <p className="text-xs text-slate-500">Required fields are validated before submission.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={loading}
-              className="inline-flex h-11 min-w-[7rem] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex h-11 min-w-[12rem] items-center justify-center rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg transition disabled:opacity-60"
-            >
-              {loading ? "Saving…" : "Add Emergency Booking"}
-            </button>
           </div>
         </div>
       </div>

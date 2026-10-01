@@ -947,7 +947,9 @@ export default function SettingsPage() {
             <div className="bg-indigo-600 px-6 py-6 text-white md:px-8 rounded-2xl">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
-                  <SettingsIcon name="building" className="mt-0.5 h-5 w-5 shrink-0" />
+                  <span className="flex items-center justify-center w-18 h-18 shrink-0 rounded-2xl bg-indigo-700">
+                    <SettingsIcon name="building" className="h-10 w-10 shrink-0" />
+                  </span>
                   <div>
                     <h1 className="text-xl font-bold md:text-2xl">Workspace Settings</h1>
                     <p className="mt-1 max-w-2xl text-sm text-indigo-100 md:text-base">

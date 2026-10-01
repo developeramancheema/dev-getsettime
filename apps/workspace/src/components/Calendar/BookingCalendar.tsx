@@ -919,17 +919,6 @@ export default function BookingCalendar() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Booking Calendar</h1>
             <p className="text-sm text-slate-500">View and manage all appointments</p>
           </div>
-
-          <ScreenGate minWidth={1024}>
-          <button
-            type="button"
-            onClick={open_create_booking}
-            className="inline-flex items-center gap-2 self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 md:self-auto"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            New Booking
-          </button>
-          </ScreenGate>
         </header>
 
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">

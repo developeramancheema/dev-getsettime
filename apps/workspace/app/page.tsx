@@ -279,16 +279,6 @@ const Dashboard: React.FC = () => {
         subtitle="Here's what's happening with your workspace today."
         actions={
           <>
-            <ScreenGate minWidth={1024}>
-            <button
-              type="button"
-              onClick={open_create_booking}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-            >
-              <DashboardIcon name="plus" size={17} className="text-indigo-600" />
-              <span className="hidden lg:block">Create Booking</span>
-            </button>
-            </ScreenGate>
             <CopyPublicLinkButton />
             <QrCodePublicLinkButton />
             {show_upgrade_cta && (
