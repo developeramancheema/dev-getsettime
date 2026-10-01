@@ -102,6 +102,8 @@ export interface CreateWorkspaceParams {
   userEmail: string;
   supabaseAdmin: SupabaseClient;
   registrationGeo?: RegistrationGeoInput;
+  /** When set, skips an auth.admin.getUserById round trip. */
+  userMetadata?: Record<string, unknown>;
 }
 
 export interface WorkspaceResult {
@@ -254,11 +256,14 @@ function parseMetadataWorkspaceId(raw: unknown): number {
 export async function getOrCreateWorkspace(
   params: CreateWorkspaceParams
 ): Promise<{ data: WorkspaceResult | null; error: string | null }> {
-  const { userId, userName, userEmail, supabaseAdmin, registrationGeo } = params;
+  const { userId, userName, userEmail, supabaseAdmin, registrationGeo, userMetadata } = params;
 
   try {
-    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
-    const meta = (userData?.user?.user_metadata ?? {}) as Record<string, unknown>;
+    let meta = userMetadata;
+    if (!meta) {
+      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+      meta = (userData?.user?.user_metadata ?? {}) as Record<string, unknown>;
+    }
 
     const acceptedInvite = userEmail
       ? await resolveAcceptedInviteForEmail(supabaseAdmin, userEmail)
@@ -632,11 +637,13 @@ export async function updateUserWorkspaceMetadata(
   workspaceId: number,
   additionalMetadata: Record<string, any>,
   supabaseAdmin: SupabaseClient,
-  isNewWorkspace = false
-): Promise<{ error: string | null }> {
+  isNewWorkspace = false,
+  existingMetadata?: Record<string, unknown>
+): Promise<{ error: string | null; metadata?: Record<string, unknown> }> {
   try {
-    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
-    const existingMeta = userData?.user?.user_metadata ?? {};
+    const existingMeta =
+      existingMetadata ??
+      ((await supabaseAdmin.auth.admin.getUserById(userId)).data?.user?.user_metadata ?? {});
 
     const existingRole =
       typeof existingMeta.role === 'string' && existingMeta.role.trim() !== ''
@@ -650,16 +657,18 @@ export async function updateUserWorkspaceMetadata(
       ? 'workspace_admin'
       : (existingRole ?? additionalRole ?? 'workspace_admin');
 
+    const mergedMetadata: Record<string, unknown> = {
+      ...existingMeta,
+      ...additionalMetadata,
+      workspace_id: workspaceId,
+      role,
+      ...(isNewWorkspace
+        ? { is_workspace_owner: true, additional_roles: [ROLE_SERVICE_PROVIDER] }
+        : {}),
+    };
+
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      user_metadata: {
-        ...existingMeta,
-        ...additionalMetadata,
-        workspace_id: workspaceId,
-        role,
-        ...(isNewWorkspace
-          ? { is_workspace_owner: true, additional_roles: [ROLE_SERVICE_PROVIDER] }
-          : {}),
-      },
+      user_metadata: mergedMetadata,
     });
 
     if (updateError) {
@@ -667,7 +676,7 @@ export async function updateUserWorkspaceMetadata(
       return { error: 'Failed to update user metadata' };
     }
 
-    return { error: null };
+    return { error: null, metadata: mergedMetadata };
   } catch (err) {
     console.error('updateUserWorkspaceMetadata error:', err);
     return {

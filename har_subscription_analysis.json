@@ -1,0 +1,174 @@
+{
+  "summary": {
+    "totalMatchingEntries": 6,
+    "endpointCounts": {
+      "/api/subscription": 6
+    },
+    "duplicateGroupCount": 1,
+    "totalWastedWaitMs": 9065.285,
+    "proximityThresholdMs": 5000
+  },
+  "entries": [
+    {
+      "requestUrl": "http://localhost:3001/api/subscription",
+      "method": "GET",
+      "statusCode": 200,
+      "startedDateTime": "2026-10-01T07:52:31.799Z",
+      "timings": {
+        "blocked": 1.297,
+        "dns": null,
+        "connect": null,
+        "ssl": null,
+        "send": 0.141,
+        "wait": 2045.066,
+        "receive": 0.41
+      },
+      "totalTimeMs": 2046.914,
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "responseContentSize": 1122
+    },
+    {
+      "requestUrl": "http://localhost:3001/api/subscription",
+      "method": "GET",
+      "statusCode": 200,
+      "startedDateTime": "2026-10-01T07:52:31.965Z",
+      "timings": {
+        "blocked": 3506.184,
+        "dns": null,
+        "connect": null,
+        "ssl": null,
+        "send": 0.083,
+        "wait": 1787.246,
+        "receive": 0.321
+      },
+      "totalTimeMs": 5293.834,
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "responseContentSize": 1122
+    },
+    {
+      "requestUrl": "http://localhost:3001/api/subscription",
+      "method": "GET",
+      "statusCode": 200,
+      "startedDateTime": "2026-10-01T07:52:31.982Z",
+      "timings": {
+        "blocked": 5277.31,
+        "dns": null,
+        "connect": null,
+        "ssl": null,
+        "send": 0.088,
+        "wait": 1814.393,
+        "receive": 0.297
+      },
+      "totalTimeMs": 7092.088,
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "responseContentSize": 1122
+    },
+    {
+      "requestUrl": "http://localhost:3001/api/subscription",
+      "method": "GET",
+      "statusCode": 200,
+      "startedDateTime": "2026-10-01T07:52:31.983Z",
+      "timings": {
+        "blocked": 7091.714,
+        "dns": null,
+        "connect": null,
+        "ssl": null,
+        "send": 0.081,
+        "wait": 1807.38,
+        "receive": 0.35
+      },
+      "totalTimeMs": 8899.525,
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "responseContentSize": 1122
+    },
+    {
+      "requestUrl": "http://localhost:3001/api/subscription",
+      "method": "GET",
+      "statusCode": 200,
+      "startedDateTime": "2026-10-01T07:52:31.984Z",
+      "timings": {
+        "blocked": 8898.54,
+        "dns": null,
+        "connect": null,
+        "ssl": null,
+        "send": 0.087,
+        "wait": 1829.223,
+        "receive": 0.395
+      },
+      "totalTimeMs": 10728.245,
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "responseContentSize": 1122
+    },
+    {
+      "requestUrl": "http://localhost:3001/api/subscription",
+      "method": "GET",
+      "statusCode": 200,
+      "startedDateTime": "2026-10-01T07:52:31.987Z",
+      "timings": {
+        "blocked": 10726.634,
+        "dns": null,
+        "connect": null,
+        "ssl": null,
+        "send": 0.121,
+        "wait": 1827.043,
+        "receive": 0.309
+      },
+      "totalTimeMs": 12554.107,
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "responseContentSize": 1122
+    }
+  ],
+  "duplicateGroups": [
+    {
+      "pageref": "page_7",
+      "pageTitle": "http://localhost:3001/",
+      "endpoint": "/api/subscription",
+      "duplicateCount": 6,
+      "wastedWaitMs": 9065.285,
+      "calls": [
+        {
+          "startedDateTime": "2026-10-01T07:52:31.799Z",
+          "statusCode": 200,
+          "waitMs": 2045.066,
+          "totalTimeMs": 2046.914
+        },
+        {
+          "startedDateTime": "2026-10-01T07:52:31.965Z",
+          "statusCode": 200,
+          "waitMs": 1787.246,
+          "totalTimeMs": 5293.834
+        },
+        {
+          "startedDateTime": "2026-10-01T07:52:31.982Z",
+          "statusCode": 200,
+          "waitMs": 1814.393,
+          "totalTimeMs": 7092.088
+        },
+        {
+          "startedDateTime": "2026-10-01T07:52:31.983Z",
+          "statusCode": 200,
+          "waitMs": 1807.38,
+          "totalTimeMs": 8899.525
+        },
+        {
+          "startedDateTime": "2026-10-01T07:52:31.984Z",
+          "statusCode": 200,
+          "waitMs": 1829.223,
+          "totalTimeMs": 10728.245
+        },
+        {
+          "startedDateTime": "2026-10-01T07:52:31.987Z",
+          "statusCode": 200,
+          "waitMs": 1827.043,
+          "totalTimeMs": 12554.107
+        }
+      ]
+    }
+  ]
+}

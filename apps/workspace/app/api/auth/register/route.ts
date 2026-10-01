@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { findAuthUserByEmail } from '@/lib/auth-user-lookup';
 import { sendConfirmationEmail } from '@/lib/email-service';
 
 function normalize_auth_email(raw: unknown): string {
@@ -105,8 +106,7 @@ export async function POST(req: Request) {
     const displayName = name.trim();
     const meta = signup_user_metadata(displayName);
 
-    const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000, page: 1 });
-    const existingUser = listData?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+    const existingUser = await findAuthUserByEmail(supabaseAdmin, normalizedEmail);
 
     if (existingUser?.email_confirmed_at) {
       return NextResponse.json(
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
     }
 
     if (existingUser && !existingUser.email_confirmed_at) {
-      const existingMeta = (existingUser.user_metadata as Record<string, unknown> | undefined) ?? {};
+      const existingMeta = existingUser.user_metadata ?? {};
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
         password,
         user_metadata: { ...existingMeta, ...meta },
