@@ -67,7 +67,7 @@ export async function getActiveWorkspaceSubscription(
 ): Promise<workspace_plan_snapshot | null> {
   const { data: subRow, error: subError } = await supabase
     .from('workspace_subscriptions')
-    .select('*')
+    .select('*, plans(*)')
     .eq('workspace_id', workspaceId)
     .eq('status', 'active')
     .maybeSingle();
@@ -75,19 +75,33 @@ export async function getActiveWorkspaceSubscription(
   if (subError) throw new Error(subError.message);
   if (!subRow) return null;
 
-  const subscription = rowToSubscription(subRow as Record<string, unknown>);
-  const { data: planRow, error: planError } = await supabase
+  const row = subRow as Record<string, unknown>;
+  const subscription = rowToSubscription(row);
+  const nestedPlan = row.plans;
+  const planRow =
+    nestedPlan && typeof nestedPlan === 'object' && !Array.isArray(nestedPlan)
+      ? (nestedPlan as Record<string, unknown>)
+      : null;
+
+  if (planRow) {
+    return {
+      subscription,
+      plan: rowToPlan(planRow),
+    };
+  }
+
+  const { data: planRowFallback, error: planError } = await supabase
     .from('plans')
     .select('*')
     .eq('id', subscription.plan_id)
     .maybeSingle();
 
   if (planError) throw new Error(planError.message);
-  if (!planRow) return null;
+  if (!planRowFallback) return null;
 
   return {
     subscription,
-    plan: rowToPlan(planRow as Record<string, unknown>),
+    plan: rowToPlan(planRowFallback as Record<string, unknown>),
   };
 }
 

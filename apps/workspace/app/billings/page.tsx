@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import type { plans, plans_with_content, workspace_usage } from "@app/db/subscription";
+import type { plans_with_content } from "@app/db/subscription";
 import { formatBookingLimitLabel, isUnlimitedBookingLimit, resolvePlanFeatures } from "@app/db/subscription";
+import { useSubscription } from "@/src/hooks/useSubscription";
 
 interface Invoice {
   id: string;
@@ -27,38 +28,25 @@ interface AvailablePlan {
 }
 
 export default function Billing({ dark = false }: { dark?: boolean }) {
-  const [currentPlan, setCurrentPlan] = useState<plans | null>(null);
-  const [usage, setUsage] = useState<workspace_usage | null>(null);
+  const { data: subscriptionData, loading: subscriptionLoading } = useSubscription();
+  const currentPlan = subscriptionData?.plan ?? null;
+  const usage = subscriptionData?.usage ?? null;
   const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isChangingPlan, setIsChangingPlan] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const isLoading = subscriptionLoading || catalogLoading;
+
   useEffect(() => {
-    void fetchBillingData();
+    void fetchPlanCatalog();
   }, []);
 
-  const fetchBillingData = async () => {
+  const fetchPlanCatalog = async () => {
     try {
-      const { supabase } = await import('@/lib/supabaseClient');
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const authHeaders: HeadersInit = token
-        ? { Authorization: `Bearer ${token}` }
-        : {};
-
-      const [planRes, catalogRes] = await Promise.all([
-        fetch('/api/billing/plan', { headers: authHeaders }),
-        fetch('/api/billing/plans'),
-      ]);
-
-      if (planRes.ok) {
-        const data = await planRes.json();
-        if (data.plan) setCurrentPlan(data.plan as plans);
-        if (data.usage) setUsage(data.usage as workspace_usage);
-      }
-
+      setCatalogLoading(true);
+      const catalogRes = await fetch('/api/billing/plans');
       if (catalogRes.ok) {
         const catalog = await catalogRes.json();
         const rows = (catalog.plans || []) as plans_with_content[];
@@ -77,9 +65,9 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
         );
       }
     } catch (error) {
-      console.error('Error fetching billing data:', error);
+      console.error('Error fetching plan catalog:', error);
     } finally {
-      setIsLoading(false);
+      setCatalogLoading(false);
     }
   };
 

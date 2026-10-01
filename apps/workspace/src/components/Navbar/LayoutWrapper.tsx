@@ -5,6 +5,7 @@ import {
   CreateBookingModalProvider,
 } from "../../providers/CreateBookingModalProvider";
 import { WorkspaceSettingsProvider } from "../../providers/WorkspaceSettingsProvider";
+import { SubscriptionProvider } from "../../providers/SubscriptionProvider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -129,6 +130,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <WorkspaceSettingsProvider>
+    <SubscriptionProvider>
     <CreateBookingModalProvider>
       <div className="flex h-screen relative w-full overflow-hidden">
         
@@ -151,6 +153,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     </CreateBookingModalProvider>
+    </SubscriptionProvider>
     </WorkspaceSettingsProvider>
   );
 }

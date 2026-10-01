@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { isUnlimitedBookingLimit } from './booking_limit';
 import { getWorkspacePlanSnapshot } from './plans';
 import { countWorkspaceServiceProviders } from './service_provider_count';
-import type { workspace_usage } from './types';
+import type { workspace_plan_snapshot, workspace_usage } from './types';
 
 const BOOKING_USAGE_EXCLUDED_STATUSES = ['cancelled', 'deleted'] as const;
 const BOOKING_WARNING_PERCENT = 80;
@@ -42,19 +42,18 @@ export async function countWorkspaceLocations(
   return 0;
 }
 
-export async function getWorkspaceUsage(
-  supabaseAdmin: SupabaseClient,
-  workspaceId: number
-): Promise<workspace_usage> {
-  const snapshot = await getWorkspacePlanSnapshot(supabaseAdmin, workspaceId);
+export function buildWorkspaceUsage(
+  snapshot: workspace_plan_snapshot,
+  counts: {
+    bookings_this_month: number;
+    service_provider_count: number;
+    location_count?: number;
+  }
+): workspace_usage {
   const booking_limit = snapshot.plan.booking_limit;
   const unlimited_bookings = isUnlimitedBookingLimit(booking_limit);
-
-  const [bookings_this_month, service_provider_count, location_count] = await Promise.all([
-    countMonthlyBookings(supabaseAdmin, workspaceId),
-    countWorkspaceServiceProviders(supabaseAdmin, workspaceId),
-    countWorkspaceLocations(supabaseAdmin, workspaceId),
-  ]);
+  const { bookings_this_month, service_provider_count } = counts;
+  const location_count = counts.location_count ?? 0;
 
   const booking_percent_used = unlimited_bookings
     ? 0
@@ -73,4 +72,26 @@ export async function getWorkspaceUsage(
       !unlimited_bookings && booking_percent_used >= BOOKING_WARNING_PERCENT,
     booking_limit_reached: !unlimited_bookings && bookings_this_month >= booking_limit,
   };
+}
+
+export async function getWorkspaceUsage(
+  supabaseAdmin: SupabaseClient,
+  workspaceId: number,
+  snapshotOverride?: workspace_plan_snapshot
+): Promise<workspace_usage> {
+  const [snapshot, bookings_this_month, service_provider_count, location_count] =
+    await Promise.all([
+      snapshotOverride
+        ? Promise.resolve(snapshotOverride)
+        : getWorkspacePlanSnapshot(supabaseAdmin, workspaceId),
+      countMonthlyBookings(supabaseAdmin, workspaceId),
+      countWorkspaceServiceProviders(supabaseAdmin, workspaceId),
+      countWorkspaceLocations(supabaseAdmin, workspaceId),
+    ]);
+
+  return buildWorkspaceUsage(snapshot, {
+    bookings_this_month,
+    service_provider_count,
+    location_count,
+  });
 }

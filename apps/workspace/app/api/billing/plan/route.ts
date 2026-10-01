@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@app/db';
-import { getWorkspacePlanSnapshot, getWorkspaceUsage } from '@app/db/subscription';
+import {
+  buildWorkspaceUsage,
+  countMonthlyBookings,
+  countWorkspaceServiceProviders,
+  getWorkspacePlanSnapshot,
+} from '@app/db/subscription';
 
 async function getUserFromRequest(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -43,8 +48,16 @@ export async function GET(req: NextRequest) {
     }
 
     const supabaseAdmin = createSupabaseServerClient();
-    const snapshot = await getWorkspacePlanSnapshot(supabaseAdmin, workspaceId);
-    const usage = await getWorkspaceUsage(supabaseAdmin, workspaceId);
+    const [snapshot, bookings_this_month, service_provider_count] = await Promise.all([
+      getWorkspacePlanSnapshot(supabaseAdmin, workspaceId),
+      countMonthlyBookings(supabaseAdmin, workspaceId),
+      countWorkspaceServiceProviders(supabaseAdmin, workspaceId),
+    ]);
+    const usage = buildWorkspaceUsage(snapshot, {
+      bookings_this_month,
+      service_provider_count,
+      location_count: 0,
+    });
 
     return NextResponse.json({
       plan: snapshot.plan,
