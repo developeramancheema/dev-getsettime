@@ -347,7 +347,7 @@ const Dashboard: React.FC = () => {
           <ScreenGate minWidth={1024}>
             <PlanUsageCard
               loading={subscription_loading}
-              used={subscription_data?.usage.bookings_this_month ?? 0}
+              used={subscription_data?.usage.bookings_used ?? 0}
               limit={subscription_data?.usage.booking_limit ?? 250}
               plan={subscription_data?.plan ?? null}
               usage={subscription_data?.usage ?? null}
@@ -371,7 +371,7 @@ const Dashboard: React.FC = () => {
             />
             <PlanUsageCard
               loading={subscription_loading}
-              used={subscription_data?.usage.bookings_this_month ?? 0}
+              used={subscription_data?.usage.bookings_used ?? 0}
               limit={subscription_data?.usage.booking_limit ?? 250}
               plan={subscription_data?.plan ?? null}
               usage={subscription_data?.usage ?? null}
@@ -399,7 +399,7 @@ const Dashboard: React.FC = () => {
       <DashboardUpgradeModal
         open={show_upgrade_modal}
         onClose={() => set_show_upgrade_modal(false)}
-        usedBookings={subscription_data?.usage.bookings_this_month ?? 0}
+        usedBookings={subscription_data?.usage.bookings_used ?? 0}
         bookingLimit={subscription_data?.usage.booking_limit ?? 250}
       />
 

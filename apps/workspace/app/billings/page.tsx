@@ -3,7 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import type { plans_with_content } from "@app/db/subscription";
-import { formatBookingLimitLabel, isUnlimitedBookingLimit, resolvePlanFeatures } from "@app/db/subscription";
+import {
+  formatBookingLimitFeature,
+  formatBookingLimitLabel,
+  formatBookingUsageLabel,
+  isUnlimitedBookingLimit,
+  resolvePlanFeatures,
+} from "@app/db/subscription";
 import { useSubscription } from "@/src/hooks/useSubscription";
 
 interface Invoice {
@@ -366,7 +372,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                   {currentPlan ? (
                     <>
                       <p className="text-sm text-slate-500">
-                        {currentPlan.name} • {formatBookingLimitLabel(currentPlan.booking_limit)} bookings/month • up to{" "}
+                        {currentPlan.name} • {formatBookingLimitFeature(currentPlan.booking_limit, currentPlan.booking_limit_period)} • up to{" "}
                         {currentPlan.service_provider_limit} providers
                       </p>
                       <p className="text-sm font-semibold text-slate-800 mt-1">
@@ -375,10 +381,10 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                       {usage && (
                         <>
                           <p className="text-xs text-slate-500 mt-1">
-                            Usage: {usage.bookings_this_month}
+                            {formatBookingUsageLabel(usage.booking_limit_period)}: {usage.bookings_used}
                             {isUnlimitedBookingLimit(usage.booking_limit)
-                              ? " bookings this month (unlimited plan)"
-                              : ` / ${usage.booking_limit} bookings this month`}
+                              ? " (unlimited plan)"
+                              : ` / ${usage.booking_limit}`}
                           </p>
                           <p className="text-xs text-slate-500 mt-1">
                             Usage: {usage.service_provider_count} / {usage.service_provider_limit} service providers
@@ -462,7 +468,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                           <span className="text-sm text-slate-500">/month</span>
                         </div>
                         <p className="text-sm text-slate-500 mt-2">
-                          {formatBookingLimitLabel(planOption.booking_limit)} bookings/month • {planOption.service_provider_limit}{" "}
+                          {formatBookingLimitFeature(planOption.booking_limit, planOption.booking_limit_period ?? "monthly")} • {planOption.service_provider_limit}{" "}
                           providers
                         </p>
                       </div>

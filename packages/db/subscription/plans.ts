@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { normalizeBookingLimitPeriod } from './booking_limit';
 import type { plans, workspace_plan_snapshot, workspace_subscriptions } from './types';
 
 const FREE_PLAN_SLUG = 'free';
@@ -10,6 +11,7 @@ export function rowToPlan(row: Record<string, unknown>): plans {
     slug: String(row.slug),
     price: Number(row.price),
     booking_limit: Number(row.booking_limit),
+    booking_limit_period: normalizeBookingLimitPeriod(row.booking_limit_period),
     workspace_limit: Number(row.workspace_limit),
     admin_limit: Number(row.admin_limit),
     service_provider_limit: Number(row.service_provider_limit),

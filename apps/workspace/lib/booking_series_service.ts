@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { assertBookingAllowed, getBookingLimitRemaining, PlanLimitError } from '@app/db/subscription';
 import type { event_type_recurrence } from '@/src/types/event_types';
 import {
   OFFERED_SCHEDULE_MISMATCH_MESSAGE,
@@ -211,6 +212,20 @@ export async function create_booking_series_with_occurrences(
   if (!resolved.ok) return resolved;
   const { occurrences, schedule } = resolved;
 
+  const workspaceId = Number(input.workspace_id);
+  if (!Number.isFinite(workspaceId) || workspaceId <= 0) {
+    return { ok: false, message: 'Invalid workspace for booking series.' };
+  }
+
+  try {
+    await assertBookingAllowed(supabase, workspaceId, occurrences.length);
+  } catch (err) {
+    if (err instanceof PlanLimitError) {
+      return { ok: false, message: err.message };
+    }
+    throw err;
+  }
+
   const { data: series, error: series_error } = await supabase
     .from('booking_series')
     .insert({
@@ -416,19 +431,31 @@ export async function update_series_future_occurrences(params: {
 
 export async function extend_active_series_windows(
   supabase: SupabaseClient
-): Promise<{ extended: number; errors: string[] }> {
+): Promise<{ extended: number; errors: string[]; skipped_plan_limit: number }> {
   const { data: series_rows, error } = await supabase
     .from('booking_series')
     .select('*')
     .eq('status', 'active');
 
   if (error) {
-    return { extended: 0, errors: [error.message] };
+    return { extended: 0, errors: [error.message], skipped_plan_limit: 0 };
   }
 
   let extended = 0;
+  let skipped_plan_limit = 0;
   const errors: string[] = [];
   const now_iso = new Date().toISOString();
+  const workspaceRemaining = new Map<number, number | 'unlimited'>();
+
+  const loadRemaining = async (workspaceId: number): Promise<number | 'unlimited'> => {
+    if (workspaceRemaining.has(workspaceId)) {
+      return workspaceRemaining.get(workspaceId)!;
+    }
+    const info = await getBookingLimitRemaining(supabase, workspaceId);
+    const value: number | 'unlimited' = info.unlimited ? 'unlimited' : info.remaining;
+    workspaceRemaining.set(workspaceId, value);
+    return value;
+  };
 
   for (const series of series_rows ?? []) {
     const recurrence = parse_event_type_recurrence(series.recurrence);
@@ -467,8 +494,22 @@ export async function extend_active_series_windows(
 
     if (next.length === 0 || !last_row) continue;
 
+    const workspaceId = Number(series.workspace_id);
+    if (!Number.isFinite(workspaceId) || workspaceId <= 0) continue;
+
+    let remaining = await loadRemaining(workspaceId);
+    if (remaining !== 'unlimited' && remaining <= 0) {
+      skipped_plan_limit += 1;
+      continue;
+    }
+
     const template = last_row as Record<string, unknown>;
-    for (const occurrence of next.slice(0, 12)) {
+    const maxInsert =
+      remaining === 'unlimited' ? 12 : Math.min(12, remaining);
+
+    for (const occurrence of next.slice(0, maxInsert)) {
+      if (remaining !== 'unlimited' && remaining <= 0) break;
+
       const inserted = await insert_booking_if_capacity(
         supabase,
         {
@@ -494,10 +535,17 @@ export async function extend_active_series_windows(
         },
         capacity
       );
-      if (inserted.ok) extended += 1;
-      else errors.push(inserted.message);
+      if (inserted.ok) {
+        extended += 1;
+        if (remaining !== 'unlimited') {
+          remaining -= 1;
+          workspaceRemaining.set(workspaceId, remaining);
+        }
+      } else {
+        errors.push(inserted.message);
+      }
     }
   }
 
-  return { extended, errors };
+  return { extended, errors, skipped_plan_limit };
 }
