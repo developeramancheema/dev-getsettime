@@ -1103,7 +1103,7 @@ export default function ContactsCreative() {
 
       {show_modal && (
         <div
-          className="fixed inset-0 z-[100001] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100001] flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]"
           role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -1360,7 +1360,7 @@ export default function ContactsCreative() {
 
       {view_contact && (
         <div
-          className="fixed inset-0 z-1000001 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-1000001 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]"
           role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) {

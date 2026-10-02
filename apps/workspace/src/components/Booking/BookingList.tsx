@@ -710,21 +710,21 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
 
           {showForm && (
             <div
-              className={`fixed inset-0 z-40 flex items-center justify-center p-4 transition-opacity duration-200 ${
+              className={`fixed inset-0 z-100001 h-full flex items-center justify-center px-4 overflow-y-auto ${
                 rescheduleInProgress ? "invisible pointer-events-none" : ""
               } ${
                 showForm ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
               }`}
             >
               <div
-                className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+                className={`absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] ${
                   showForm ? "opacity-100" : "opacity-0"
                 }`}
                 aria-hidden="true"
                 onClick={handleFormCancel}
               />
               <section
-                className={`relative w-full max-w-3xl transform overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-2xl transition-all duration-300 ${
+                className={`relative w-full max-w-3xl transform overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-300 ${
                   showForm ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-2 opacity-0"
                 }`}
               >

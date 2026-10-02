@@ -798,7 +798,7 @@ export default function EmergencyBookingForm() {
             </section>
 
             <div ref={footerRef} className="rounded-2xl border border-slate-200 bg-white shadow-sm px-6 py-5">
-              <div className="flex flex-col gap-3 sm:flex-row items-center justify-between">
+              <div className="flex gap-3 flex-row flex-wrap items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-900">Ready to create this emergency booking?</p>
                   <p className="text-xs text-slate-500">Required fields are validated before submission.</p>

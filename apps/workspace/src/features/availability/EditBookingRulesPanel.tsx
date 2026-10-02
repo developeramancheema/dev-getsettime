@@ -307,7 +307,7 @@ export function EditBookingRulesPanel({
     <>
       <aside
         className={classNames(
-          "fixed top-16 right-0 bottom-0 z-30 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[28rem]",
+          "fixed inset-0 z-100001 h-full flex",
           "transform transition-transform duration-300 ease-in-out will-change-transform",
           panelAnimatedOpen
             ? "translate-x-0"
@@ -315,8 +315,14 @@ export function EditBookingRulesPanel({
         )}
         aria-hidden={!panelVisible}
       >
+        <button
+            type="button"
+            aria-label="Close settings"
+            onClick={handleClose}
+            className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
+          />
         {panelVisible ? (
-          <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
+          <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
             <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
               <h2 className="text-lg font-bold text-slate-900">
                 {panel_title(target)}

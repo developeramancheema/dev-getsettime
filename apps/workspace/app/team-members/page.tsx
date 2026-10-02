@@ -933,7 +933,7 @@ export default function TeamMembersPage() {
         </div>
       )}
 
-      <div className="mx-auto">
+        <div className="mx-auto">
           <section className="relative space-y-4">
             <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 p-4 md:p-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">

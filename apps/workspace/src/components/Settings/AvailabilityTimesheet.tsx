@@ -1549,7 +1549,7 @@ const AvailabilityTimesheet = forwardRef<
 
       <aside
         className={classNames(
-          "fixed top-16 right-0 bottom-0 z-30 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[28rem]",
+          "fixed inset-0 z-100001 h-full flex",
           "transform transition-transform duration-300 ease-in-out will-change-transform",
           panelAnimatedOpen
             ? "translate-x-0"
@@ -1557,153 +1557,115 @@ const AvailabilityTimesheet = forwardRef<
         )}
         aria-hidden={!editPanelVisible}
       >
+        <button
+            type="button"
+            aria-label="Close settings"
+            onClick={() => closeDayPanel(true)}
+            className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
+          />
         {editPanelVisible && editingDay && editingSchedule ? (
           <>
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h2 className="text-lg font-bold text-slate-900">
-                Edit {DAY_NAMES[editingDay]} Availability
-              </h2>
-              <button
-                type="button"
-                onClick={() => closeDayPanel(true)}
-                className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
-                aria-label="Close panel"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <div className='relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0'>
+              <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Edit {DAY_NAMES[editingDay]} Availability
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => closeDayPanel(true)}
+                  className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                  aria-label="Close panel"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain pb-[60px] lg:pb-0">
-              <div className="flex-1 overflow-y-auto px-5 py-5">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-5">
-                    <span className="text-sm font-medium text-slate-700">Available</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleToggleDayEnabled(editingDay, editingSchedule.enabled)
-                      }
-                      className={classNames(
-                        "relative h-6 w-11 rounded-full transition",
-                        editingSchedule.enabled ? "bg-indigo-600" : "bg-slate-300"
-                      )}
-                      aria-pressed={editingSchedule.enabled}
-                      aria-label="Toggle available"
-                    >
-                      <span
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain pb-[60px] lg:pb-0">
+                <div className="flex-1 overflow-y-auto px-5 py-5">
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-5">
+                      <span className="text-sm font-medium text-slate-700">Available</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleToggleDayEnabled(editingDay, editingSchedule.enabled)
+                        }
                         className={classNames(
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
-                          editingSchedule.enabled ? "left-[22px]" : "left-0.5"
+                          "relative h-6 w-11 rounded-full transition",
+                          editingSchedule.enabled ? "bg-indigo-600" : "bg-slate-300"
                         )}
-                      />
-                    </button>
-                  </div>
-
-                  <div
-                    className={classNames(
-                      "border-b border-slate-200 pb-5",
-                      !editingSchedule.enabled && "opacity-50"
-                    )}
-                  >
-                    <p className="mb-3 text-sm font-semibold text-slate-800">Working Hours</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="block">
-                        <span className="mb-1.5 block text-xs font-medium text-slate-500">
-                          Start Time
-                        </span>
-                        <div className="relative">
-                          <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <select
-                            value={editingSchedule.startTime}
-                            onChange={(e) =>
-                              updateDaySchedule(editingDay, { startTime: e.target.value })
-                            }
-                            disabled={!editingSchedule.enabled}
-                            className={panelFieldClass}
-                          >
-                            {timeOptions.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                          <svg
-                            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                      </label>
-                      <label className="block">
-                        <span className="mb-1.5 block text-xs font-medium text-slate-500">
-                          End Time
-                        </span>
-                        <div className="relative">
-                          <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <select
-                            value={editingSchedule.endTime}
-                            onChange={(e) =>
-                              updateDaySchedule(editingDay, { endTime: e.target.value })
-                            }
-                            disabled={!editingSchedule.enabled}
-                            className={panelFieldClass}
-                          >
-                            {getFilteredTimeOptions(
-                              editingSchedule.startTime,
-                              undefined,
-                              true
-                            ).map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                          <svg
-                            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                      </label>
+                        aria-pressed={editingSchedule.enabled}
+                        aria-label="Toggle available"
+                      >
+                        <span
+                          className={classNames(
+                            "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
+                            editingSchedule.enabled ? "left-[22px]" : "left-0.5"
+                          )}
+                        />
+                      </button>
                     </div>
-                  </div>
 
-                  <div className={classNames(!editingSchedule.enabled && "opacity-50")}>
-                    <p className="mb-3 text-sm font-semibold text-slate-800">Breaks</p>
-                    <div className="space-y-3">
-                      {editingSchedule.breaks.map((breakTime) => (
-                        <div
-                          key={breakTime.id}
-                          className="flex items-end gap-2"
-                        >
-                          <div className="relative min-w-0 flex-1">
+                    <div
+                      className={classNames(
+                        "border-b border-slate-200 pb-5",
+                        !editingSchedule.enabled && "opacity-50"
+                      )}
+                    >
+                      <p className="mb-3 text-sm font-semibold text-slate-800">Working Hours</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className="mb-1.5 block text-xs font-medium text-slate-500">
+                            Start Time
+                          </span>
+                          <div className="relative">
+                            <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                             <select
-                              value={breakTime.start}
+                              value={editingSchedule.startTime}
                               onChange={(e) =>
-                                updateBreak(editingDay, breakTime.id, "start", e.target.value)
+                                updateDaySchedule(editingDay, { startTime: e.target.value })
                               }
                               disabled={!editingSchedule.enabled}
-                              className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-50"
+                              className={panelFieldClass}
+                            >
+                              {timeOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            <svg
+                              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
+                        </label>
+                        <label className="block">
+                          <span className="mb-1.5 block text-xs font-medium text-slate-500">
+                            End Time
+                          </span>
+                          <div className="relative">
+                            <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <select
+                              value={editingSchedule.endTime}
+                              onChange={(e) =>
+                                updateDaySchedule(editingDay, { endTime: e.target.value })
+                              }
+                              disabled={!editingSchedule.enabled}
+                              className={panelFieldClass}
                             >
                               {getFilteredTimeOptions(
                                 editingSchedule.startTime,
-                                editingSchedule.endTime,
+                                undefined,
                                 true
                               ).map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -1711,149 +1673,195 @@ const AvailabilityTimesheet = forwardRef<
                                 </option>
                               ))}
                             </select>
-                          </div>
-                          <span className="mb-2.5 shrink-0 text-slate-400">–</span>
-                          <div className="relative min-w-0 flex-1">
-                            <select
-                              value={breakTime.end}
-                              onChange={(e) =>
-                                updateBreak(editingDay, breakTime.id, "end", e.target.value)
-                              }
-                              disabled={!editingSchedule.enabled}
-                              className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-50"
+                            <svg
+                              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              {getFilteredTimeOptions(
-                                breakTime.start,
-                                editingSchedule.endTime,
-                                true
-                              ).map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeBreak(editingDay, breakTime.id)}
-                            disabled={!editingSchedule.enabled}
-                            className="mb-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                            aria-label="Remove break"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handlePanelQuickAddBreak}
-                      disabled={!editingSchedule.enabled}
-                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Break
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handlePanelCopyToOtherDays(editingDay)}
-                    disabled={
-                      !editingSchedule.enabled ||
-                      savingDay !== null ||
-                      isSaving
-                    }
-                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-left transition hover:bg-indigo-100/70 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <span>
-                      <span className="block text-sm font-semibold text-indigo-900">
-                        Copy to other days
-                      </span>
-                      <span className="mt-0.5 block text-xs text-indigo-700/80">
-                        Apply these hours and breaks to other days of the week.
-                      </span>
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-indigo-500" />
-                  </button>
-
-                  {preCopySnapshot ? (
-                    <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                      <p className="text-xs text-slate-600">
-                        Hours and breaks were copied to all other days. Save to
-                        keep these changes, or cancel to undo the copy.
-                      </p>
-                      <div className="flex flex-col gap-2 sm:flex-row">
-                        <button
-                          type="button"
-                          onClick={handleCancelPendingCopy}
-                          disabled={isSaving || savingDay !== null}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void handleSavePendingCopyAllDays()}
-                          disabled={isSaving || savingDay !== null}
-                          className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isSaving ? "Saving..." : "Save changes for all days"}
-                        </button>
+                        </label>
                       </div>
                     </div>
-                  ) : null}
 
-                  {daySaveFeedback[editingDay] ? (
-                    <div
-                      className={classNames(
-                        "flex items-start justify-between gap-3 rounded-lg border px-3 py-2 text-sm font-medium",
-                        daySaveFeedback[editingDay]?.type === "success"
-                          ? "border-green-200 bg-green-50 text-green-700"
-                          : "border-red-200 bg-red-50 text-red-700"
-                      )}
-                      role="status"
-                    >
-                      <span>{daySaveFeedback[editingDay]?.text}</span>
+                    <div className={classNames(!editingSchedule.enabled && "opacity-50")}>
+                      <p className="mb-3 text-sm font-semibold text-slate-800">Breaks</p>
+                      <div className="space-y-3">
+                        {editingSchedule.breaks.map((breakTime) => (
+                          <div
+                            key={breakTime.id}
+                            className="flex items-end gap-2"
+                          >
+                            <div className="relative min-w-0 flex-1">
+                              <select
+                                value={breakTime.start}
+                                onChange={(e) =>
+                                  updateBreak(editingDay, breakTime.id, "start", e.target.value)
+                                }
+                                disabled={!editingSchedule.enabled}
+                                className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-50"
+                              >
+                                {getFilteredTimeOptions(
+                                  editingSchedule.startTime,
+                                  editingSchedule.endTime,
+                                  true
+                                ).map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <span className="mb-2.5 shrink-0 text-slate-400">–</span>
+                            <div className="relative min-w-0 flex-1">
+                              <select
+                                value={breakTime.end}
+                                onChange={(e) =>
+                                  updateBreak(editingDay, breakTime.id, "end", e.target.value)
+                                }
+                                disabled={!editingSchedule.enabled}
+                                className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-50"
+                              >
+                                {getFilteredTimeOptions(
+                                  breakTime.start,
+                                  editingSchedule.endTime,
+                                  true
+                                ).map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeBreak(editingDay, breakTime.id)}
+                              disabled={!editingSchedule.enabled}
+                              className="mb-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                              aria-label="Remove break"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                       <button
                         type="button"
-                        onClick={() => pushDaySaveFeedback(editingDay, null)}
-                        className={classNames(
-                          "shrink-0 rounded-md p-0.5 transition hover:bg-black/5",
-                          daySaveFeedback[editingDay]?.type === "success"
-                            ? "text-green-700"
-                            : "text-red-700"
-                        )}
-                        aria-label="Dismiss message"
+                        onClick={handlePanelQuickAddBreak}
+                        disabled={!editingSchedule.enabled}
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <X className="h-4 w-4" />
+                        <Plus className="h-4 w-4" />
+                        Add Break
                       </button>
                     </div>
-                  ) : null}
-                </div>
-              </div>
 
-              <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => closeDayPanel(true)}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handlePanelSave()}
-                    disabled={
-                      savingDay === editingDay ||
-                      isSaving ||
-                      (!editingDayDirty && !preCopySnapshot)
-                    }
-                    className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {savingDay === editingDay ? "Saving..." : "Save"}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePanelCopyToOtherDays(editingDay)}
+                      disabled={
+                        !editingSchedule.enabled ||
+                        savingDay !== null ||
+                        isSaving
+                      }
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-left transition hover:bg-indigo-100/70 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span>
+                        <span className="block text-sm font-semibold text-indigo-900">
+                          Copy to other days
+                        </span>
+                        <span className="mt-0.5 block text-xs text-indigo-700/80">
+                          Apply these hours and breaks to other days of the week.
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-indigo-500" />
+                    </button>
+
+                    {preCopySnapshot ? (
+                      <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                        <p className="text-xs text-slate-600">
+                          Hours and breaks were copied to all other days. Save to
+                          keep these changes, or cancel to undo the copy.
+                        </p>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <button
+                            type="button"
+                            onClick={handleCancelPendingCopy}
+                            disabled={isSaving || savingDay !== null}
+                            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleSavePendingCopyAllDays()}
+                            disabled={isSaving || savingDay !== null}
+                            className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isSaving ? "Saving..." : "Save changes for all days"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {daySaveFeedback[editingDay] ? (
+                      <div
+                        className={classNames(
+                          "flex items-start justify-between gap-3 rounded-lg border px-3 py-2 text-sm font-medium",
+                          daySaveFeedback[editingDay]?.type === "success"
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-red-200 bg-red-50 text-red-700"
+                        )}
+                        role="status"
+                      >
+                        <span>{daySaveFeedback[editingDay]?.text}</span>
+                        <button
+                          type="button"
+                          onClick={() => pushDaySaveFeedback(editingDay, null)}
+                          className={classNames(
+                            "shrink-0 rounded-md p-0.5 transition hover:bg-black/5",
+                            daySaveFeedback[editingDay]?.type === "success"
+                              ? "text-green-700"
+                              : "text-red-700"
+                          )}
+                          aria-label="Dismiss message"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => closeDayPanel(true)}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handlePanelSave()}
+                      disabled={
+                        savingDay === editingDay ||
+                        isSaving ||
+                        (!editingDayDirty && !preCopySnapshot)
+                      }
+                      className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {savingDay === editingDay ? "Saving..." : "Save"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

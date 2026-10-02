@@ -73,7 +73,7 @@ export function RequestIntegrationModal({ open, onClose, onSubmitted }: RequestI
       role="presentation"
     >
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
         aria-hidden="true"
         onClick={handleClose}
       />

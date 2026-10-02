@@ -961,13 +961,7 @@ export default function DepartmentsPage() {
 
   return (
     <>
-      <div
-        className={classNames(
-          "transition-[margin] duration-300 ease-in-out",
-          (layoutPanelOpen || panelAnimatedOpen) &&
-            "hidden lg:block lg:mr-[28rem]"
-        )}
-      >
+      <div className={classNames( "transition-[margin] duration-300 ease-in-out" )}>
         <div className="mx-auto space-y-5">
           <div className="flex gap-4 flex-row flex-wrap items-start sm:justify-between">
             <div>
@@ -1738,133 +1732,259 @@ export default function DepartmentsPage() {
 
       <aside
         className={classNames(
-          "fixed top-16 right-0 bottom-0 z-30 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[28rem]",
-          "transform transition-transform duration-300 ease-in-out will-change-transform",
+          "fixed inset-0 z-100001 h-full flex",
+          "transform transition-transform duration-300 ease-in-out will-change-transform mb-0",
           panelAnimatedOpen
             ? "translate-x-0"
             : "pointer-events-none translate-x-full"
         )}
         aria-hidden={!editPanelVisible}
       >
+        <button
+            type="button"
+            aria-label="Close exception panel"
+            onClick={closeEditDepartmentPanel}
+            className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
+          />
         {editPanelVisible && (
           <>
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h2 className="text-lg font-bold text-slate-900">
-                Edit Department
-              </h2>
-              <button
-                type="button"
-                onClick={closeEditDepartmentPanel}
-                className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
-                aria-label="Close panel"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
+              <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Edit Department
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeEditDepartmentPanel}
+                  className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                  aria-label="Close panel"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
-              <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
-                <div className="flex-1 overflow-y-auto px-5 py-5">
-                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                    <PanelSection number={1} title="Basic Details">
-                      <label className="block">
-                        <span className="mb-2 block text-sm font-medium text-slate-700">
-                          Department name<span className="text-red-500">*</span>
-                        </span>
-                        <input
-                          value={editDepartmentName}
-                          onChange={(e) => setEditDepartmentName(e.target.value)}
-                          placeholder="e.g. Cardiology"
-                          className={panelFieldClass}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="mb-2 block text-sm font-medium text-slate-700">
-                          Short description
-                        </span>
-                        <div className="relative">
-                          <textarea
-                            value={editDepartmentDescription}
-                            onChange={(e) =>
-                              setEditDepartmentDescription(
-                                e.target.value.slice(0, DESCRIPTION_MAX_LENGTH)
-                              )
-                            }
-                            placeholder="Brief summary of this department"
-                            rows={3}
-                            maxLength={DESCRIPTION_MAX_LENGTH}
-                            className={classNames(
-                              panelFieldClass,
-                              "resize-none pb-7"
-                            )}
-                          />
-                          <span className="pointer-events-none absolute bottom-2.5 right-3 text-xs text-slate-400">
-                            {editDepartmentDescription.length}/
-                            {DESCRIPTION_MAX_LENGTH}
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
+                <div className="flex h-full min-h-0 flex-col pb-[60px] lg:pb-0">
+                  <div className="flex-1 overflow-y-auto px-5 py-5">
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      <PanelSection number={1} title="Basic Details">
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-slate-700">
+                            Department name<span className="text-red-500">*</span>
                           </span>
-                        </div>
-                      </label>
-                    </PanelSection>
-
-                    {showOrganizationSection && (
-                      <PanelSection number={2} title="Organization">
-                        {showFullDoctorFlow &&
-                          editDepartmentStatus !== "active" && (
-                          <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-700">
-                            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                            <p>
-                              This department is not public. New consultant
-                              assignments are disabled until you set it to
-                              Public.
-                            </p>
+                          <input
+                            value={editDepartmentName}
+                            onChange={(e) => setEditDepartmentName(e.target.value)}
+                            placeholder="e.g. Cardiology"
+                            className={panelFieldClass}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-slate-700">
+                            Short description
+                          </span>
+                          <div className="relative">
+                            <textarea
+                              value={editDepartmentDescription}
+                              onChange={(e) =>
+                                setEditDepartmentDescription(
+                                  e.target.value.slice(0, DESCRIPTION_MAX_LENGTH)
+                                )
+                              }
+                              placeholder="Brief summary of this department"
+                              rows={3}
+                              maxLength={DESCRIPTION_MAX_LENGTH}
+                              className={classNames(
+                                panelFieldClass,
+                                "resize-none pb-7"
+                              )}
+                            />
+                            <span className="pointer-events-none absolute bottom-2.5 right-3 text-xs text-slate-400">
+                              {editDepartmentDescription.length}/
+                              {DESCRIPTION_MAX_LENGTH}
+                            </span>
                           </div>
-                        )}
-                        {showFullDoctorFlow && (
+                        </label>
+                      </PanelSection>
+
+                      {showOrganizationSection && (
+                        <PanelSection number={2} title="Organization">
+                          {showFullDoctorFlow &&
+                            editDepartmentStatus !== "active" && (
+                            <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-700">
+                              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                              <p>
+                                This department is not public. New consultant
+                                assignments are disabled until you set it to
+                                Public.
+                              </p>
+                            </div>
+                          )}
+                          {showFullDoctorFlow && (
+                            <div>
+                              <p className="mb-2 text-sm font-medium text-slate-700">
+                                Department consultants
+                              </p>
+                              <p className="mb-2 text-xs text-slate-500">
+                              Consultants who belong to this department.
+                              </p>
+                              {doctors.length === 0 ? (
+                                <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
+                                  No consultants available yet.
+                                </p>
+                              ) : (
+                                <div className="relative">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setShowEditDoctorsMenu((prev) => !prev)
+                                    }
+                                    disabled={editDepartmentStatus !== "active"}
+                                    className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                                      {selectedEditDoctors.length === 0 ? (
+                                        <span className="text-slate-500">
+                                          Select consultants
+                                        </span>
+                                      ) : (
+                                        selectedEditDoctors.map((doctor) => (
+                                          <span
+                                            key={doctor.id}
+                                            className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
+                                            onClick={(e) => e.stopPropagation()}
+                                            onMouseDown={(e) =>
+                                              e.stopPropagation()
+                                            }
+                                          >
+                                            <span className="min-w-0 truncate">
+                                              {doctor.name}
+                                            </span>
+                                            <span
+                                              role="button"
+                                              tabIndex={0}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleEditDoctor(doctor.id);
+                                              }}
+                                              onKeyDown={(e) => {
+                                                if (
+                                                  e.key === "Enter" ||
+                                                  e.key === " "
+                                                ) {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  toggleEditDoctor(doctor.id);
+                                                }
+                                              }}
+                                              className="rounded-full p-0.5 hover:bg-indigo-100"
+                                              aria-label={`Remove ${doctor.name}`}
+                                            >
+                                              <X className="h-3 w-3" />
+                                            </span>
+                                          </span>
+                                        ))
+                                      )}
+                                    </div>
+                                    <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                                  </button>
+                                  {showEditDoctorsMenu && (
+                                    <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+                                      {doctors.map((doctor) => {
+                                        const checked =
+                                          editAssignedDoctorIds.includes(
+                                            doctor.id
+                                          );
+                                        return (
+                                          <button
+                                            key={doctor.id}
+                                            type="button"
+                                            onClick={() =>
+                                              toggleEditDoctor(doctor.id)
+                                            }
+                                            disabled={
+                                              editDepartmentStatus !== "active" &&
+                                              !checked
+                                            }
+                                            className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                          >
+                                            <span
+                                              className={classNames(
+                                                "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
+                                                checked
+                                                  ? "border-indigo-600 bg-indigo-600 text-white"
+                                                  : "border-slate-300"
+                                              )}
+                                            >
+                                              {checked && (
+                                                <Check className="h-2.5 w-2.5" />
+                                              )}
+                                            </span>
+                                            <ProviderAvatar
+                                              name={doctor.name}
+                                              initials={provider_initials(
+                                                doctor.name
+                                              )}
+                                              avatarUrl={doctor.avatarUrl}
+                                              size="sm"
+                                            />
+                                            <span className="min-w-0 truncate text-slate-800">
+                                              {doctor.name}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           <div>
                             <p className="mb-2 text-sm font-medium text-slate-700">
-                              Department consultants
+                              Services offered
+                              <span className="text-red-500">*</span>
                             </p>
                             <p className="mb-2 text-xs text-slate-500">
-                            Consultants who belong to this department.
+                              Services available in this department.
                             </p>
-                            {doctors.length === 0 ? (
+                            {workspaceServices.length === 0 ? (
                               <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                                No consultants available yet.
+                                No services yet. Create services from the Services
+                                screen.
                               </p>
                             ) : (
                               <div className="relative">
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    setShowEditDoctorsMenu((prev) => !prev)
+                                    setShowEditServicesMenu((prev) => !prev)
                                   }
-                                  disabled={editDepartmentStatus !== "active"}
-                                  className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                                  className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-white"
                                 >
                                   <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-                                    {selectedEditDoctors.length === 0 ? (
+                                    {selectedEditServices.length === 0 ? (
                                       <span className="text-slate-500">
-                                        Select consultants
+                                        Select services
                                       </span>
                                     ) : (
-                                      selectedEditDoctors.map((doctor) => (
+                                      selectedEditServices.map((service) => (
                                         <span
-                                          key={doctor.id}
+                                          key={service.id}
                                           className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
                                           onClick={(e) => e.stopPropagation()}
-                                          onMouseDown={(e) =>
-                                            e.stopPropagation()
-                                          }
+                                          onMouseDown={(e) => e.stopPropagation()}
                                         >
                                           <span className="min-w-0 truncate">
-                                            {doctor.name}
+                                            {service.name}
                                           </span>
                                           <span
                                             role="button"
                                             tabIndex={0}
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              toggleEditDoctor(doctor.id);
+                                              toggleEditService(service.id);
                                             }}
                                             onKeyDown={(e) => {
                                               if (
@@ -1873,11 +1993,11 @@ export default function DepartmentsPage() {
                                               ) {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                toggleEditDoctor(doctor.id);
+                                                toggleEditService(service.id);
                                               }
                                             }}
-                                            className="rounded-full p-0.5 hover:bg-indigo-100"
-                                            aria-label={`Remove ${doctor.name}`}
+                                            className="rounded-full p-0.5 hover:bg-violet-100"
+                                            aria-label={`Remove ${service.name}`}
                                           >
                                             <X className="h-3 w-3" />
                                           </span>
@@ -1887,25 +2007,21 @@ export default function DepartmentsPage() {
                                   </div>
                                   <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
                                 </button>
-                                {showEditDoctorsMenu && (
+                                {showEditServicesMenu && (
                                   <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
-                                    {doctors.map((doctor) => {
+                                    {workspaceServices.map((service) => {
                                       const checked =
-                                        editAssignedDoctorIds.includes(
-                                          doctor.id
+                                        editAssignedServiceIds.includes(
+                                          service.id
                                         );
                                       return (
                                         <button
-                                          key={doctor.id}
+                                          key={service.id}
                                           type="button"
                                           onClick={() =>
-                                            toggleEditDoctor(doctor.id)
+                                            toggleEditService(service.id)
                                           }
-                                          disabled={
-                                            editDepartmentStatus !== "active" &&
-                                            !checked
-                                          }
-                                          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50"
                                         >
                                           <span
                                             className={classNames(
@@ -1919,16 +2035,8 @@ export default function DepartmentsPage() {
                                               <Check className="h-2.5 w-2.5" />
                                             )}
                                           </span>
-                                          <ProviderAvatar
-                                            name={doctor.name}
-                                            initials={provider_initials(
-                                              doctor.name
-                                            )}
-                                            avatarUrl={doctor.avatarUrl}
-                                            size="sm"
-                                          />
                                           <span className="min-w-0 truncate text-slate-800">
-                                            {doctor.name}
+                                            {serviceOptionLabel(service)}
                                           </span>
                                         </button>
                                       );
@@ -1938,183 +2046,77 @@ export default function DepartmentsPage() {
                               </div>
                             )}
                           </div>
-                        )}
 
-                        <div>
-                          <p className="mb-2 text-sm font-medium text-slate-700">
-                            Services offered
-                            <span className="text-red-500">*</span>
-                          </p>
-                          <p className="mb-2 text-xs text-slate-500">
-                            Services available in this department.
-                          </p>
-                          {workspaceServices.length === 0 ? (
-                            <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                              No services yet. Create services from the Services
-                              screen.
+                          <div className="flex items-start gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-indigo-600">
+                            <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+                            <p>
+                              Services are not automatically assigned to all
+                              department consultants. Consultants are assigned to specific
+                              services from the Services screen.
                             </p>
-                          ) : (
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setShowEditServicesMenu((prev) => !prev)
-                                }
-                                className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-white"
-                              >
-                                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-                                  {selectedEditServices.length === 0 ? (
-                                    <span className="text-slate-500">
-                                      Select services
-                                    </span>
-                                  ) : (
-                                    selectedEditServices.map((service) => (
-                                      <span
-                                        key={service.id}
-                                        className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600"
-                                        onClick={(e) => e.stopPropagation()}
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                      >
-                                        <span className="min-w-0 truncate">
-                                          {service.name}
-                                        </span>
-                                        <span
-                                          role="button"
-                                          tabIndex={0}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleEditService(service.id);
-                                          }}
-                                          onKeyDown={(e) => {
-                                            if (
-                                              e.key === "Enter" ||
-                                              e.key === " "
-                                            ) {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              toggleEditService(service.id);
-                                            }
-                                          }}
-                                          className="rounded-full p-0.5 hover:bg-violet-100"
-                                          aria-label={`Remove ${service.name}`}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </span>
-                                      </span>
-                                    ))
-                                  )}
-                                </div>
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-                              </button>
-                              {showEditServicesMenu && (
-                                <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
-                                  {workspaceServices.map((service) => {
-                                    const checked =
-                                      editAssignedServiceIds.includes(
-                                        service.id
-                                      );
-                                    return (
-                                      <button
-                                        key={service.id}
-                                        type="button"
-                                        onClick={() =>
-                                          toggleEditService(service.id)
-                                        }
-                                        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-50"
-                                      >
-                                        <span
-                                          className={classNames(
-                                            "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
-                                            checked
-                                              ? "border-indigo-600 bg-indigo-600 text-white"
-                                              : "border-slate-300"
-                                          )}
-                                        >
-                                          {checked && (
-                                            <Check className="h-2.5 w-2.5" />
-                                          )}
-                                        </span>
-                                        <span className="min-w-0 truncate text-slate-800">
-                                          {serviceOptionLabel(service)}
-                                        </span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                          </div>
+                        </PanelSection>
+                      )}
 
-                        <div className="flex items-start gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-indigo-600">
-                          <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
-                          <p>
-                            Services are not automatically assigned to all
-                            department consultants. Consultants are assigned to specific
-                            services from the Services screen.
-                          </p>
+                      <PanelSection
+                        number={showOrganizationSection ? 3 : 2}
+                        title="Visibility"
+                        isLast
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm text-slate-700">
+                            Visibility
+                          </span>
+                          <div className="relative min-w-[9.5rem]">
+                            <EditVisibilityIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                            <select
+                              value={editDepartmentStatus}
+                              onChange={(e) =>
+                                setEditDepartmentStatus(
+                                  e.target.value as VisibilityStatus
+                                )
+                              }
+                              aria-label="Visibility"
+                              className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
+                            >
+                              {VISIBILITY_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                          </div>
                         </div>
+                        <p className="text-xs text-slate-500">
+                          Only Public departments appear on the booking form.
+                        </p>
+                        <DepartmentColorPicker
+                          value={editDepartmentColor}
+                          onChange={setEditDepartmentColor}
+                        />
                       </PanelSection>
-                    )}
-
-                    <PanelSection
-                      number={showOrganizationSection ? 3 : 2}
-                      title="Visibility"
-                      isLast
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm text-slate-700">
-                          Visibility
-                        </span>
-                        <div className="relative min-w-[9.5rem]">
-                          <EditVisibilityIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                          <select
-                            value={editDepartmentStatus}
-                            onChange={(e) =>
-                              setEditDepartmentStatus(
-                                e.target.value as VisibilityStatus
-                              )
-                            }
-                            aria-label="Visibility"
-                            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
-                          >
-                            {VISIBILITY_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-500">
-                        Only Public departments appear on the booking form.
-                      </p>
-                      <DepartmentColorPicker
-                        value={editDepartmentColor}
-                        onChange={setEditDepartmentColor}
-                      />
-                    </PanelSection>
+                    </div>
                   </div>
-                </div>
 
-                <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <button
-                      type="button"
-                      onClick={closeEditDepartmentPanel}
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleSaveEditedDepartment()}
-                      disabled={busyAction || !editDepartmentName.trim()}
-                      className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {busyAction ? "Saving…" : "Save Department"}
-                    </button>
+                  <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <button
+                        type="button"
+                        onClick={closeEditDepartmentPanel}
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleSaveEditedDepartment()}
+                        disabled={busyAction || !editDepartmentName.trim()}
+                        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {busyAction ? "Saving…" : "Save Department"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

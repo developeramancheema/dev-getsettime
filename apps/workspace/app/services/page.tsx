@@ -903,8 +903,7 @@ export default function ServicesPage() {
 
   return (
     <>
-    <div className={classNames( "transition-[margin] duration-300 ease-in-out", (showAddDepartmentPanel || panelAnimatedOpen) &&
-          "hidden lg:block lg:mr-[28rem]" )}>
+    <div className={classNames( "transition-[margin] duration-300 ease-in-out")}>
       <div className="mx-auto space-y-5">
         {/* Top header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -1638,14 +1637,20 @@ export default function ServicesPage() {
 
       <aside
         className={classNames(
-          "fixed top-16 right-0 bottom-0 z-999 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[28rem]",
-          "transform transition-transform duration-300 ease-in-out will-change-transform",
+          "fixed inset-0 z-100001 h-full flex",
+          "transform transition-transform duration-300 ease-in-out will-change-transform mb-0",
           panelAnimatedOpen
             ? "translate-x-0"
             : "pointer-events-none translate-x-full"
         )}
         aria-hidden={!panelVisible}
       >
+        <button
+            type="button"
+            aria-label="Close exception panel"
+            onClick={closeServicePanel}
+            className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
+          />
         {panelVisible && (
           <ServiceFormPanel
             key={showEditServiceModal ? `edit-${editServiceId}` : "add"}
@@ -1667,7 +1672,7 @@ export default function ServicesPage() {
       {showBookingImpact && (
         <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
             aria-hidden="true"
             onClick={() => setShowBookingImpact(false)}
           />

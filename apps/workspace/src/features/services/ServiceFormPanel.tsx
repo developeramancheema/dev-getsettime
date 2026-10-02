@@ -384,467 +384,469 @@ export function ServiceFormPanel({
 
   return (
     <>
-      <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
-        <h2 className="text-lg font-bold text-slate-900">
-          {is_edit ? "Edit Service" : "Add Service"}
-        </h2>
-        <button
-          type="button"
-          onClick={on_cancel}
-          className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
-          aria-label="Close panel"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+      <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h2 className="text-lg font-bold text-slate-900">
+            {is_edit ? "Edit Service" : "Add Service"}
+          </h2>
+          <button
+            type="button"
+            onClick={on_cancel}
+            className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+            aria-label="Close panel"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-      <div className="flex flex-1 flex-col overflow-y-scroll pb-16 lg:pb-0 overscroll-contain">
-        <div className="flex flex-col">
-          <div className="flex-1 overflow-y-auto px-5 py-5">
-            {error_message ? (
-              <div
-                role="alert"
-                className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
-              >
-                {error_message}
-              </div>
-            ) : null}
+        <div className="flex flex-1 flex-col overflow-y-scroll pb-16 lg:pb-0 overscroll-contain">
+          <div className="flex flex-col">
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+              {error_message ? (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+                >
+                  {error_message}
+                </div>
+              ) : null}
 
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <PanelSection number={1} title="Basic Details">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block min-w-0">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">
-                      Service name<span className="text-red-500">*</span>
-                    </span>
-                    <input
-                      value={name}
-                      onChange={(e) => set_name(e.target.value)}
-                      placeholder={is_edit ? "Service name" : "e.g. Cardiac Screening"}
-                      className={PANEL_FIELD_CLASS}
-                    />
-                  </label>
-                  <label className="block min-w-0">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">
-                      Department<span className="text-red-500">*</span>
-                    </span>
-                    {department_is_read_only ? (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
-                        {selected_department?.name ?? "—"}
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <PanelSection number={1} title="Basic Details">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label className="block min-w-0">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Service name<span className="text-red-500">*</span>
+                      </span>
+                      <input
+                        value={name}
+                        onChange={(e) => set_name(e.target.value)}
+                        placeholder={is_edit ? "Service name" : "e.g. Cardiac Screening"}
+                        className={PANEL_FIELD_CLASS}
+                      />
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Department<span className="text-red-500">*</span>
+                      </span>
+                      {department_is_read_only ? (
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                          {selected_department?.name ?? "—"}
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <select
+                            value={department_id ?? ""}
+                            onChange={(e) => {
+                              const next =
+                                e.target.value === ""
+                                  ? null
+                                  : parseInt(e.target.value, 10);
+                              set_department_id(
+                                next != null && Number.isFinite(next) ? next : null
+                              );
+                              set_assigned_doctor_ids([]);
+                              set_assigned_menu_open(false);
+                            }}
+                            className={PANEL_SELECT_CLASS}
+                          >
+                            <option value="" disabled>
+                              Select department
+                            </option>
+                            {departments.map((department) => (
+                              <option key={department.id} value={department.id}>
+                                {department.name}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                            aria-hidden
+                          />
+                        </div>
+                      )}
+                    </label>
+                  </div>
+
+                  {is_edit ? null : suggestions.length > 0 ? (
+                    <div>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Quick Suggestions
+                      </span>
+                      <p className="mb-2 mt-1 text-xs text-slate-500">
+                        Click a suggestion to fill the service name. Already added
+                        services are marked.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestions.map((item) => {
+                          const already_added = existing_names_in_department.has(
+                            item.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => {
+                                if (already_added) return;
+                                set_name(item);
+                              }}
+                              disabled={saving || already_added}
+                              className={classNames(
+                                "rounded-full px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+                                already_added
+                                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                                  : name === item
+                                    ? "border border-indigo-300 bg-indigo-50 text-indigo-700"
+                                    : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                              )}
+                            >
+                              {already_added ? "✓" : "+"} {item}
+                            </button>
+                          );
+                        })}
                       </div>
-                    ) : (
+                    </div>
+                  ) : (
+                    <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-500">
+                      {selected_department
+                        ? "No service suggestions available for this department yet."
+                        : "Select a department to see matching service suggestions."}
+                    </p>
+                  )}
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Short description
+                    </span>
+                    <div className="relative">
+                      <textarea
+                        value={description}
+                        onChange={(e) =>
+                          set_description(
+                            e.target.value.slice(0, SERVICE_DESCRIPTION_MAX_LENGTH)
+                          )
+                        }
+                        placeholder="Brief summary of this service"
+                        rows={3}
+                        maxLength={SERVICE_DESCRIPTION_MAX_LENGTH}
+                        className={classNames(PANEL_FIELD_CLASS, "resize-none pb-7")}
+                      />
+                      <span className="pointer-events-none absolute bottom-2.5 right-3 text-xs text-slate-400">
+                        {description.length}/{SERVICE_DESCRIPTION_MAX_LENGTH}
+                      </span>
+                    </div>
+                  </label>
+                </PanelSection>
+
+                <PanelSection number={2} title="Scheduling">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label className="block min-w-0">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Duration<span className="text-red-500">*</span>
+                      </span>
                       <div className="relative">
                         <select
-                          value={department_id ?? ""}
-                          onChange={(e) => {
-                            const next =
-                              e.target.value === ""
-                                ? null
-                                : parseInt(e.target.value, 10);
-                            set_department_id(
-                              next != null && Number.isFinite(next) ? next : null
-                            );
-                            set_assigned_doctor_ids([]);
-                            set_assigned_menu_open(false);
-                          }}
+                          value={duration}
+                          onChange={(e) =>
+                            set_duration(parseInt(e.target.value, 10))
+                          }
                           className={PANEL_SELECT_CLASS}
                         >
-                          <option value="" disabled>
-                            Select department
-                          </option>
-                          {departments.map((department) => (
-                            <option key={department.id} value={department.id}>
-                              {department.name}
+                          {SERVICE_DURATION_OPTIONS.map((minutes) => (
+                            <option key={minutes} value={minutes}>
+                              {minutes} mins
                             </option>
                           ))}
+                          {!SERVICE_DURATION_OPTIONS.includes(duration) && (
+                            <option value={duration}>{duration} mins</option>
+                          )}
                         </select>
                         <ChevronDown
                           className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
                           aria-hidden
                         />
                       </div>
-                    )}
-                  </label>
-                </div>
-
-                {is_edit ? null : suggestions.length > 0 ? (
-                  <div>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Quick Suggestions
-                    </span>
-                    <p className="mb-2 mt-1 text-xs text-slate-500">
-                      Click a suggestion to fill the service name. Already added
-                      services are marked.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {suggestions.map((item) => {
-                        const already_added = existing_names_in_department.has(
-                          item.toLowerCase()
-                        );
-                        return (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => {
-                              if (already_added) return;
-                              set_name(item);
-                            }}
-                            disabled={saving || already_added}
-                            className={classNames(
-                              "rounded-full px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
-                              already_added
-                                ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                                : name === item
-                                  ? "border border-indigo-300 bg-indigo-50 text-indigo-700"
-                                  : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                            )}
-                          >
-                            {already_added ? "✓" : "+"} {item}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-500">
-                    {selected_department
-                      ? "No service suggestions available for this department yet."
-                      : "Select a department to see matching service suggestions."}
-                  </p>
-                )}
-
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-slate-700">
-                    Short description
-                  </span>
-                  <div className="relative">
-                    <textarea
-                      value={description}
-                      onChange={(e) =>
-                        set_description(
-                          e.target.value.slice(0, SERVICE_DESCRIPTION_MAX_LENGTH)
-                        )
-                      }
-                      placeholder="Brief summary of this service"
-                      rows={3}
-                      maxLength={SERVICE_DESCRIPTION_MAX_LENGTH}
-                      className={classNames(PANEL_FIELD_CLASS, "resize-none pb-7")}
-                    />
-                    <span className="pointer-events-none absolute bottom-2.5 right-3 text-xs text-slate-400">
-                      {description.length}/{SERVICE_DESCRIPTION_MAX_LENGTH}
-                    </span>
-                  </div>
-                </label>
-              </PanelSection>
-
-              <PanelSection number={2} title="Scheduling">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block min-w-0">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">
-                      Duration<span className="text-red-500">*</span>
-                    </span>
-                    <div className="relative">
-                      <select
-                        value={duration}
-                        onChange={(e) =>
-                          set_duration(parseInt(e.target.value, 10))
-                        }
-                        className={PANEL_SELECT_CLASS}
-                      >
-                        {SERVICE_DURATION_OPTIONS.map((minutes) => (
-                          <option key={minutes} value={minutes}>
-                            {minutes} mins
-                          </option>
-                        ))}
-                        {!SERVICE_DURATION_OPTIONS.includes(duration) && (
-                          <option value={duration}>{duration} mins</option>
-                        )}
-                      </select>
-                      <ChevronDown
-                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-                        aria-hidden
-                      />
-                    </div>
-                  </label>
-                  <label className="block min-w-0">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">
-                      Price ({currency})
-                    </span>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
-                        {currency_sign}
-                      </span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={price}
-                        onChange={(e) => set_price(e.target.value)}
-                        placeholder="0.00"
-                        className={classNames(PANEL_FIELD_CLASS, "pl-8")}
-                      />
-                    </div>
-                  </label>
-                </div>
-              </PanelSection>
-
-              <PanelSection number={3} title="Consultant Assignment">
-                <div>
-                  <p className="mb-2 text-sm text-slate-500">
-                    Department consultants (eligible pool from selected department)
-                  </p>
-                  {doctor_pool.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                      {doctors_loading
-                        ? "Loading consultants…"
-                        : "No consultants assigned to this department yet."}
-                    </p>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {doctor_pool.map((doctor) => (
-                        <div
-                          key={doctor.id}
-                          className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
-                        >
-                          <ProviderAvatar
-                            name={doctor.name}
-                            initials={doctor.avatar}
-                            avatarUrl={doctor.avatarUrl}
-                            size="sm"
-                          />
-                          <span className="text-sm font-medium text-indigo-900">
-                            {doctor.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <p className="mb-2 text-sm font-medium text-slate-700">
-                    Assign service to
-                  </p>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        set_assign_mode("all");
-                        set_assigned_doctor_ids(
-                          doctor_pool.map((doctor) => doctor.id)
-                        );
-                        set_assigned_menu_open(false);
-                      }}
-                      className={classNames(
-                        "flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition",
-                        assign_mode === "all"
-                          ? "border-indigo-500 bg-indigo-50 text-indigo-800"
-                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
-                      )}
-                    >
-                      <span
-                        className={classNames(
-                          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-                          assign_mode === "all"
-                            ? "border-indigo-600 bg-indigo-600 text-white"
-                            : "border-slate-300"
-                        )}
-                      >
-                        {assign_mode === "all" && <Check className="h-2.5 w-2.5" />}
-                      </span>
-                      All department consultants
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        set_assign_mode("specific");
-                        set_assigned_menu_open(false);
-                      }}
-                      className={classNames(
-                        "flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition",
-                        assign_mode === "specific"
-                          ? "border-indigo-500 bg-indigo-50 text-indigo-800"
-                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
-                      )}
-                    >
-                      <span
-                        className={classNames(
-                          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-                          assign_mode === "specific"
-                            ? "border-indigo-600 bg-indigo-600 text-white"
-                            : "border-slate-300"
-                        )}
-                      >
-                        {assign_mode === "specific" && (
-                          <Check className="h-2.5 w-2.5" />
-                        )}
-                      </span>
-                      Select specific consultants
-                    </button>
-                  </div>
-                  {assign_mode === "all" && (
-                    <p className="mt-2 text-xs text-slate-500">
-                      {doctor_pool.length === 0
-                        ? "No department consultants available to assign."
-                        : `All ${doctor_pool.length} department consultant${doctor_pool.length === 1 ? "" : "s"} will be assigned to this service.`}
-                    </p>
-                  )}
-                </div>
-
-                {assign_mode === "specific" && (
-                  <div className="relative">
-                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                      Assigned consultants<span className="text-red-500">*</span>
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => set_assigned_menu_open((prev) => !prev)}
-                      disabled={doctor_pool.length === 0}
-                      className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                        {assigned_doctor_ids.length === 0 ? (
-                          <span className="text-slate-400">
-                            Select consultants
-                          </span>
-                        ) : (
-                          assigned_doctor_ids.map((id) => {
-                            const doctor = doctor_pool.find(
-                              (item) => item.id === id
-                            );
-                            if (!doctor) return null;
-                            return (
-                              <span
-                                key={id}
-                                className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-800"
-                              >
-                                {doctor.name}
+                    <label className="block min-w-0">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Price ({currency})
+                      </span>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+                          {currency_sign}
+                        </span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={price}
+                          onChange={(e) => set_price(e.target.value)}
+                          placeholder="0.00"
+                          className={classNames(PANEL_FIELD_CLASS, "pl-8")}
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </PanelSection>
+
+                <PanelSection number={3} title="Consultant Assignment">
+                  <div>
+                    <p className="mb-2 text-sm text-slate-500">
+                      Department consultants (eligible pool from selected department)
+                    </p>
+                    {doctor_pool.length === 0 ? (
+                      <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
+                        {doctors_loading
+                          ? "Loading consultants…"
+                          : "No consultants assigned to this department yet."}
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {doctor_pool.map((doctor) => (
+                          <div
+                            key={doctor.id}
+                            className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
+                          >
+                            <ProviderAvatar
+                              name={doctor.name}
+                              initials={doctor.avatar}
+                              avatarUrl={doctor.avatarUrl}
+                              size="sm"
+                            />
+                            <span className="text-sm font-medium text-indigo-900">
+                              {doctor.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-slate-700">
+                      Assign service to
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          set_assign_mode("all");
+                          set_assigned_doctor_ids(
+                            doctor_pool.map((doctor) => doctor.id)
+                          );
+                          set_assigned_menu_open(false);
+                        }}
+                        className={classNames(
+                          "flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition",
+                          assign_mode === "all"
+                            ? "border-indigo-500 bg-indigo-50 text-indigo-800"
+                            : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
+                        )}
+                      >
+                        <span
+                          className={classNames(
+                            "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                            assign_mode === "all"
+                              ? "border-indigo-600 bg-indigo-600 text-white"
+                              : "border-slate-300"
+                          )}
+                        >
+                          {assign_mode === "all" && <Check className="h-2.5 w-2.5" />}
+                        </span>
+                        All department consultants
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          set_assign_mode("specific");
+                          set_assigned_menu_open(false);
+                        }}
+                        className={classNames(
+                          "flex items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition",
+                          assign_mode === "specific"
+                            ? "border-indigo-500 bg-indigo-50 text-indigo-800"
+                            : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
+                        )}
+                      >
+                        <span
+                          className={classNames(
+                            "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                            assign_mode === "specific"
+                              ? "border-indigo-600 bg-indigo-600 text-white"
+                              : "border-slate-300"
+                          )}
+                        >
+                          {assign_mode === "specific" && (
+                            <Check className="h-2.5 w-2.5" />
+                          )}
+                        </span>
+                        Select specific consultants
+                      </button>
+                    </div>
+                    {assign_mode === "all" && (
+                      <p className="mt-2 text-xs text-slate-500">
+                        {doctor_pool.length === 0
+                          ? "No department consultants available to assign."
+                          : `All ${doctor_pool.length} department consultant${doctor_pool.length === 1 ? "" : "s"} will be assigned to this service.`}
+                      </p>
+                    )}
+                  </div>
+
+                  {assign_mode === "specific" && (
+                    <div className="relative">
+                      <label className="mb-2 block text-sm font-medium text-slate-700">
+                        Assigned consultants<span className="text-red-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => set_assigned_menu_open((prev) => !prev)}
+                        disabled={doctor_pool.length === 0}
+                        className="flex min-h-[42px] w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+                          {assigned_doctor_ids.length === 0 ? (
+                            <span className="text-slate-400">
+                              Select consultants
+                            </span>
+                          ) : (
+                            assigned_doctor_ids.map((id) => {
+                              const doctor = doctor_pool.find(
+                                (item) => item.id === id
+                              );
+                              if (!doctor) return null;
+                              return (
                                 <span
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    set_assigned_doctor_ids((prev) =>
-                                      prev.filter((x) => x !== id)
-                                    );
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
+                                  key={id}
+                                  className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-800"
+                                >
+                                  {doctor.name}
+                                  <span
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={(e) => {
                                       e.stopPropagation();
                                       set_assigned_doctor_ids((prev) =>
                                         prev.filter((x) => x !== id)
                                       );
-                                    }
-                                  }}
-                                  className="rounded text-indigo-500 hover:text-indigo-800"
-                                >
-                                  <X className="h-3 w-3" />
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        set_assigned_doctor_ids((prev) =>
+                                          prev.filter((x) => x !== id)
+                                        );
+                                      }
+                                    }}
+                                    className="rounded text-indigo-500 hover:text-indigo-800"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </span>
                                 </span>
-                              </span>
-                            );
-                          })
-                        )}
-                      </div>
-                      <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-                    </button>
-                    {assigned_menu_open && (
-                      <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
-                        {doctor_pool.map((doctor) => {
-                          const checked = assigned_doctor_ids.includes(doctor.id);
-                          return (
-                            <button
-                              key={doctor.id}
-                              type="button"
-                              onClick={() => {
-                                set_assigned_doctor_ids((prev) =>
-                                  prev.includes(doctor.id)
-                                    ? prev.filter((id) => id !== doctor.id)
-                                    : [...prev, doctor.id]
-                                );
-                              }}
-                              className={classNames(
-                                "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm",
-                                checked
-                                  ? "bg-indigo-50 text-indigo-800"
-                                  : "text-slate-700 hover:bg-slate-50"
-                              )}
-                            >
-                              <span
+                              );
+                            })
+                          )}
+                        </div>
+                        <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                      </button>
+                      {assigned_menu_open && (
+                        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+                          {doctor_pool.map((doctor) => {
+                            const checked = assigned_doctor_ids.includes(doctor.id);
+                            return (
+                              <button
+                                key={doctor.id}
+                                type="button"
+                                onClick={() => {
+                                  set_assigned_doctor_ids((prev) =>
+                                    prev.includes(doctor.id)
+                                      ? prev.filter((id) => id !== doctor.id)
+                                      : [...prev, doctor.id]
+                                  );
+                                }}
                                 className={classNames(
-                                  "flex h-4 w-4 items-center justify-center rounded border",
+                                  "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm",
                                   checked
-                                    ? "border-indigo-600 bg-indigo-600 text-white"
-                                    : "border-slate-300"
+                                    ? "bg-indigo-50 text-indigo-800"
+                                    : "text-slate-700 hover:bg-slate-50"
                                 )}
                               >
-                                {checked && <Check className="h-2.5 w-2.5" />}
-                              </span>
-                              {doctor.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                                <span
+                                  className={classNames(
+                                    "flex h-4 w-4 items-center justify-center rounded border",
+                                    checked
+                                      ? "border-indigo-600 bg-indigo-600 text-white"
+                                      : "border-slate-300"
+                                  )}
+                                >
+                                  {checked && <Check className="h-2.5 w-2.5" />}
+                                </span>
+                                {doctor.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                <div className="flex items-start gap-2 rounded-xl bg-indigo-50 px-3 py-2.5 text-sm text-indigo-800">
-                  <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
-                  <p>
-                    Consultants are selected once in Department settings. Only
-                    department consultants can be assigned here.
+                  <div className="flex items-start gap-2 rounded-xl bg-indigo-50 px-3 py-2.5 text-sm text-indigo-800">
+                    <Info className="mt-0.5 h-4.5 w-4.5 shrink-0" />
+                    <p>
+                      Consultants are selected once in Department settings. Only
+                      department consultants can be assigned here.
+                    </p>
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    Only selected consultants will appear on the booking page for
+                    this service.
                   </p>
-                </div>
-                <p className="text-sm text-slate-500">
-                  Only selected consultants will appear on the booking page for
-                  this service.
-                </p>
-              </PanelSection>
+                </PanelSection>
 
-              <PanelSection number={4} title="Booking Options" isLast>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-slate-700">Visibility</span>
-                  <div className="relative min-w-[9.5rem]">
-                    <VisibilityIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    <select
-                      value={status}
-                      onChange={(e) =>
-                        set_status(e.target.value as service_visibility_status)
-                      }
-                      aria-label="Visibility"
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
-                    >
-                      {SERVICE_VISIBILITY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <PanelSection number={4} title="Booking Options" isLast>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-700">Visibility</span>
+                    <div className="relative min-w-[9.5rem]">
+                      <VisibilityIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          set_status(e.target.value as service_visibility_status)
+                        }
+                        aria-label="Visibility"
+                        className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-800 outline-none transition focus:border-indigo-400"
+                      >
+                        {SERVICE_VISIBILITY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    </div>
                   </div>
-                </div>
-              </PanelSection>
+                </PanelSection>
+              </div>
             </div>
-          </div>
 
-          <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={on_cancel}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handle_save}
-                disabled={save_disabled}
-                className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {saving ? "Saving…" : is_edit ? "Update Service" : "Save Service"}
-              </button>
+            <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={on_cancel}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handle_save}
+                  disabled={save_disabled}
+                  className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : is_edit ? "Update Service" : "Save Service"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

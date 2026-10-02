@@ -1667,7 +1667,7 @@ export default function EventTypes() {
           </div>
         </section>
 
-      <button
+      {/* <button
         type="button"
         aria-label="Close panel"
         onClick={handlePanelClose}
@@ -1679,75 +1679,82 @@ export default function EventTypes() {
         )}
         tabIndex={panel_animated_open ? 0 : -1}
         aria-hidden={!panel_animated_open}
-      />
+      /> */}
 
       <aside
         className={cn(
-          "fixed top-16 right-0 bottom-0 z-50 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
-          "w-full max-md:w-full lg:!w-[60vw]",
-          "transform transition-transform duration-300 ease-in-out will-change-transform",
+          "fixed inset-0 z-100001 h-full flex",
+          "transform transition-transform duration-300 ease-in-out will-change-transform mb-0",
           panel_animated_open
             ? "translate-x-0"
             : "pointer-events-none translate-x-full"
         )}
         aria-hidden={!panel_visible}
       >
+        <button
+            type="button"
+            aria-label="Close event type panel"
+            onClick={handlePanelClose}
+            className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
+          />
         {panel_visible && (
           <>
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
-                <h2 className="text-lg font-bold text-slate-900">
-                  {editingId ? "Edit Event Type" : "Add Event Type"}
-                </h2>
-                <button
-                  type="button"
-                  onClick={handlePanelClose}
-                  className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
-                  aria-label="Close panel"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+              <div className="relative ml-auto flex w-full max-w-5xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
+                <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    {editingId ? "Edit Event Type" : "Add Event Type"}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={handlePanelClose}
+                    className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                    aria-label="Close panel"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
-              <div className="flex min-h-0 h-full flex-1 flex-col pb-[60px] lg:pb-0">
-                {editingId !== null ? (
-                  <EventTypeEditForm
-                    key={editingId}
-                    eventTypeId={editingId}
-                    embedded
-                    variant="panel"
-                    onClose={handleEditPanelClose}
-                    onSaved={(message) => {
-                      set_event_type_saved_message(message);
-                      window.setTimeout(() => set_event_type_saved_message(""), 4000);
-                      closePanelAnimated(() => {
-                        void fetchEventTypes();
-                      });
-                    }}
-                  />
-                ) : (
-                  <EventTypeFormLayout
-                    value={form}
-                    onChange={handleFormChange}
-                    editingId={null}
-                    formError={formError}
-                    submitting={submitting}
-                    onSubmit={handleSubmit}
-                    onCancel={handleCancel}
-                    show_service_provider_field={can_assign_event_type_owner}
-                    service_provider_options={event_type_service_provider_options}
-                    service_providers_loading={service_providers_loading}
-                    self_assign_option={event_type_self_assign_option}
-                    variant="panel"
-                    slug_error={slug_error}
-                    on_slug_blur={() => void handle_slug_blur()}
-                    on_slug_edited={() => {
-                      slug_touched_ref.current = true;
-                    }}
-                    on_validate_slug={handle_validate_slug}
-                    timezone_label={review_timezone_label}
-                    booking_url={review_booking_url}
-                  />
-                )}
+                <div className="flex min-h-0 h-full flex-1 flex-col pb-[60px] lg:pb-0">
+                  {editingId !== null ? (
+                    <EventTypeEditForm
+                      key={editingId}
+                      eventTypeId={editingId}
+                      embedded
+                      variant="panel"
+                      onClose={handleEditPanelClose}
+                      onSaved={(message) => {
+                        set_event_type_saved_message(message);
+                        window.setTimeout(() => set_event_type_saved_message(""), 4000);
+                        closePanelAnimated(() => {
+                          void fetchEventTypes();
+                        });
+                      }}
+                    />
+                  ) : (
+                    <EventTypeFormLayout
+                      value={form}
+                      onChange={handleFormChange}
+                      editingId={null}
+                      formError={formError}
+                      submitting={submitting}
+                      onSubmit={handleSubmit}
+                      onCancel={handleCancel}
+                      show_service_provider_field={can_assign_event_type_owner}
+                      service_provider_options={event_type_service_provider_options}
+                      service_providers_loading={service_providers_loading}
+                      self_assign_option={event_type_self_assign_option}
+                      variant="panel"
+                      slug_error={slug_error}
+                      on_slug_blur={() => void handle_slug_blur()}
+                      on_slug_edited={() => {
+                        slug_touched_ref.current = true;
+                      }}
+                      on_validate_slug={handle_validate_slug}
+                      timezone_label={review_timezone_label}
+                      booking_url={review_booking_url}
+                    />
+                  )}
+                </div>
               </div>
             </>
           )}

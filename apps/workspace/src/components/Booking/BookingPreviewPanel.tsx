@@ -222,7 +222,7 @@ export function BookingPreviewPanel({
 
   return (
     <aside
-      className={`fixed top-16 right-0 bottom-0 z-30 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[32rem] transform transition-transform duration-300 ease-in-out will-change-transform ${
+      className={`fixed top-16 right-0 bottom-0 z-10001 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[32rem] transform transition-transform duration-300 ease-in-out will-change-transform ${
         panel_animated_open
           ? 'translate-x-0'
           : 'pointer-events-none translate-x-full'
