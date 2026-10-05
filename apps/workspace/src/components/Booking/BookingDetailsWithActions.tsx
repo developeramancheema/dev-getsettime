@@ -28,11 +28,17 @@ import {
   is_whatsapp_admin_enabled,
   is_whatsapp_user_enabled,
 } from '@/lib/workspace-notification-flags';
+import { map_event_types_for_booking_flow } from '@/src/features/booking-flow';
 import type { EventType } from '@/src/types/bookingForm';
 import {
   LuCircleCheck as CircleCheck,
   LuLoader as LoaderIcon,
 } from 'react-icons/lu';
+import {
+  apply_booking_form_error_from_api,
+  BookingFormSubmitError,
+  throw_if_booking_api_error,
+} from '@/src/utils/bookingFormDuplicateInvitee';
 
 type ReminderSendFeedback =
   | null
@@ -93,13 +99,10 @@ export function BookingDetailsWithActions({
     typeof general?.accent_color === 'string' ? String(general.accent_color) : null;
 
   const { data: eventTypesEntities, loading: loadingEventTypes } = useEventTypes();
-  const eventTypesBookingForm = useMemo<EventType[]>(() => {
-    return (eventTypesEntities || []).map((e) => ({
-      id: e.id,
-      title: e.title,
-      duration_minutes: e.duration_minutes ?? 30,
-    }));
-  }, [eventTypesEntities]);
+  const eventTypesBookingForm = useMemo<EventType[]>(
+    () => map_event_types_for_booking_flow(eventTypesEntities ?? []),
+    [eventTypesEntities]
+  );
 
   const [booking, setBooking] = useState(initialBooking);
   React.useEffect(() => setBooking(initialBooking), [initialBooking]);
@@ -110,6 +113,10 @@ export function BookingDetailsWithActions({
   >(null);
   const [saving_patch, set_saving_patch] = useState(false);
   const [saving_follow, set_saving_follow] = useState(false);
+  const [dt_save_error, set_dt_save_error] = useState<string | null>(null);
+  const [dt_save_duplicate_preview, set_dt_save_duplicate_preview] = useState<
+    string | null
+  >(null);
 
   const [alert_message, set_alert_message] = useState<string | null>(null);
   const [delete_confirm_open, set_delete_confirm_open] = useState(false);
@@ -133,6 +140,13 @@ export function BookingDetailsWithActions({
     };
   }, []);
 
+  React.useEffect(() => {
+    if (dt_mode) {
+      set_dt_save_error(null);
+      set_dt_save_duplicate_preview(null);
+    }
+  }, [dt_mode]);
+
   const patch_booking_json = useCallback(
     async (body: Record<string, unknown>) => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -146,7 +160,7 @@ export function BookingDetailsWithActions({
         body: JSON.stringify({ id: booking.id, ...body }),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || 'Update failed');
+      throw_if_booking_api_error(res, json, 'Update failed');
       if (json?.data) onBookingUpdated(json.data as Booking);
       return json?.data as Booking | undefined;
     },
@@ -275,6 +289,8 @@ export function BookingDetailsWithActions({
     }) => {
       const mode_now = dt_mode;
       if (!mode_now) return;
+      set_dt_save_error(null);
+      set_dt_save_duplicate_preview(null);
       try {
         if (mode_now === 'follow_up') {
           set_saving_follow(true);
@@ -336,7 +352,15 @@ export function BookingDetailsWithActions({
             body: JSON.stringify(body),
           });
           const json = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(json?.error || 'Failed to schedule follow-up');
+          if (!res.ok) {
+            const formErr = apply_booking_form_error_from_api(
+              json,
+              'Failed to schedule follow-up'
+            );
+            set_dt_save_error(formErr.message);
+            set_dt_save_duplicate_preview(formErr.duplicatePreviewPath ?? null);
+            return;
+          }
           set_dt_mode(null);
           set_alert_message('Follow-up booking created.');
         } else {
@@ -347,7 +371,13 @@ export function BookingDetailsWithActions({
           set_alert_message('Booking rescheduled.');
         }
       } catch (e: unknown) {
-        set_alert_message(e instanceof Error ? e.message : 'Save failed.');
+        if (e instanceof BookingFormSubmitError) {
+          set_dt_save_error(e.message);
+          set_dt_save_duplicate_preview(e.duplicatePreviewPath ?? null);
+        } else {
+          set_dt_save_error(e instanceof Error ? e.message : 'Save failed.');
+          set_dt_save_duplicate_preview(null);
+        }
       } finally {
         set_saving_patch(false);
         set_saving_follow(false);
@@ -645,11 +675,17 @@ export function BookingDetailsWithActions({
           workspacePrimaryColor={primary}
           workspaceAccentColor={accent}
           clientTimezone={timezone}
-          onClose={() => set_dt_mode(null)}
+          onClose={() => {
+            set_dt_mode(null);
+            set_dt_save_error(null);
+            set_dt_save_duplicate_preview(null);
+          }}
           onConfirm={handle_datetime_confirm}
           saving={
             dt_mode === 'follow_up' ? saving_follow : saving_patch
           }
+          saveError={dt_save_error}
+          saveDuplicatePreviewPath={dt_save_duplicate_preview}
         />
       )}
 

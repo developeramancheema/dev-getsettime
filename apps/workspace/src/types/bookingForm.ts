@@ -79,6 +79,10 @@ export interface Booking {
   status: string;
   service_provider_id?: string | null;
   event_type_id?: string | number | null;
+  invitee_email?: string | null;
+  invitee_phone?: string | null;
+  contact_id?: string | number | null;
+  public_code?: string | null;
   event_type_format?: event_type_format | string | null;
   capacity_per_slot?: number | null;
   recurrence_audience?: string | null;

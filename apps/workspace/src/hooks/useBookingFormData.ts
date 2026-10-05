@@ -54,22 +54,32 @@ interface UseBookingFormDataParams {
   selectedProvider: ServiceProvider | null;
   /** Scopes departments and providers to the ones assigned to this event type. */
   selectedType: EventType | null;
+  /**
+   * When set (e.g. reschedule modal), drives booking/exception fetch range without
+   * scoping department/provider lists to the event type's current assignments.
+   */
+  schedulingEventType?: EventType | null;
   /** Keeps the event-type list stable after the user picks a type (event-type-first flows). */
   lockEventTypeCatalog?: boolean;
   days: Date[];
   intakeForm: IntakeFormSettings | undefined;
   onAvailabilityChange?: () => void;
+  /** Locks fetch scope to this provider (e.g. reschedule / admin edit modal). */
+  fixedServiceProviderId?: string | null;
 }
 
 export function useBookingFormData({
   selectedDepartment,
   selectedProvider,
   selectedType,
+  schedulingEventType = null,
   lockEventTypeCatalog = false,
   days,
   intakeForm,
   onAvailabilityChange,
+  fixedServiceProviderId = null,
 }: UseBookingFormDataParams) {
+  const eventTypeForFetch = schedulingEventType ?? selectedType;
   const {
     settings: workspaceSettings,
     general,
@@ -168,6 +178,8 @@ export function useBookingFormData({
   );
 
   const effectiveProviderId = useMemo(() => {
+    const fixed = fixedServiceProviderId?.trim();
+    if (fixed) return fixed;
     if (!selectedDepartment) return null;
     if (!showProviderPicker) return workspaceOwnerUserId;
     if (selectedProvider?.id) return selectedProvider.id;
@@ -176,6 +188,7 @@ export function useBookingFormData({
     }
     return null;
   }, [
+    fixedServiceProviderId,
     selectedDepartment,
     showProviderPicker,
     workspaceOwnerUserId,
@@ -184,7 +197,14 @@ export function useBookingFormData({
   ]);
 
   const needsExplicitProvider =
-    departments.length > 0 && selectedDepartment !== null && showProviderPicker;
+    !fixedServiceProviderId?.trim() &&
+    departments.length > 0 &&
+    selectedDepartment !== null &&
+    showProviderPicker;
+
+  const resolvedAvailabilityProviderRef = useRef<string | null | undefined>(
+    undefined
+  );
 
   const bookableEventTypes = useMemo(() => {
     if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
@@ -303,21 +323,31 @@ export function useBookingFormData({
 
   useEffect(() => {
     if (!effectiveProviderId && needsExplicitProvider) {
-      setAvailabilitySettings(null);
-      setExistingBookings([]);
-      setDateExceptions([]);
-      onAvailabilityChange?.();
+      if (resolvedAvailabilityProviderRef.current !== effectiveProviderId) {
+        resolvedAvailabilityProviderRef.current = effectiveProviderId;
+        setAvailabilitySettings(null);
+        setExistingBookings([]);
+        setDateExceptions([]);
+        onAvailabilityChange?.();
+      }
       setLoadingAvailability(false);
       return;
     }
-    if (loadingDepartments && departments.length === 0) return;
+    if (loadingDepartments && departments.length === 0 && !fixedServiceProviderId?.trim()) {
+      return;
+    }
     if (workspaceSettingsLoading) return;
 
+    const provider_changed =
+      resolvedAvailabilityProviderRef.current !== effectiveProviderId;
+    resolvedAvailabilityProviderRef.current = effectiveProviderId;
+
+    if (provider_changed) {
+      onAvailabilityChange?.();
+      setDateExceptions([]);
+    }
+
     setLoadingAvailability(true);
-    setAvailabilitySettings(null);
-    setExistingBookings([]);
-    setDateExceptions([]);
-    onAvailabilityChange?.();
     try {
       const availability = workspaceSettings?.availability ?? workspaceAvailability ?? {};
       setAvailabilitySettings(
@@ -336,6 +366,7 @@ export function useBookingFormData({
     departments.length,
     loadingDepartments,
     needsExplicitProvider,
+    fixedServiceProviderId,
     onAvailabilityChange,
     workspaceSettings,
     workspaceAvailability,
@@ -376,6 +407,25 @@ export function useBookingFormData({
     fetchProviderSettings();
   }, [effectiveProviderId]);
 
+  const bookingFetchRangeKey = useMemo(() => {
+    const providerTimezone = general?.timezone?.trim() || 'UTC';
+    const duration = eventTypeForFetch
+      ? event_type_session_duration_minutes(
+          eventTypeForFetch,
+          eventTypeForFetch.duration_minutes ?? 30
+        )
+      : 30;
+    const { rangeStart, rangeEnd } = resolve_booking_data_fetch_range({
+      days,
+      event_type: eventTypeForFetch,
+      provider_timezone: providerTimezone,
+      duration_minutes: duration,
+    });
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return `${fmt(rangeStart)}|${fmt(rangeEnd)}|${providerTimezone}|${duration}`;
+  }, [days, eventTypeForFetch, general?.timezone]);
+
   useEffect(() => {
     const hasReqs = departments.length === 0 || !needsExplicitProvider || effectiveProviderId;
     if (!hasReqs) {
@@ -383,17 +433,21 @@ export function useBookingFormData({
       return;
     }
     const providerTimezone = general?.timezone?.trim() || 'UTC';
-    const duration = selectedType
-      ? event_type_session_duration_minutes(selectedType, selectedType.duration_minutes ?? 30)
+    const duration = eventTypeForFetch
+      ? event_type_session_duration_minutes(
+          eventTypeForFetch,
+          eventTypeForFetch.duration_minutes ?? 30
+        )
       : 30;
     const { rangeStart, rangeEnd } = resolve_booking_data_fetch_range({
       days,
-      event_type: selectedType,
+      event_type: eventTypeForFetch,
       provider_timezone: providerTimezone,
       duration_minutes: duration,
     });
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    let cancelled = false;
     const fetchBookings = async () => {
       setLoadingBookings(true);
       try {
@@ -408,6 +462,7 @@ export function useBookingFormData({
         const res = await fetch(url, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
+        if (cancelled) return;
         if (res.ok) {
           const result = await res.json();
           const active = (result.data || [])
@@ -430,7 +485,19 @@ export function useBookingFormData({
               if (!row.recurrence_audience && nested?.recurrence) {
                 row.recurrence_audience = parse_event_type_recurrence(nested.recurrence).audience;
               }
-              return row as Booking;
+              return {
+                ...row,
+                invitee_email:
+                  typeof b.invitee_email === 'string' ? b.invitee_email : null,
+                invitee_phone:
+                  typeof b.invitee_phone === 'string' ? b.invitee_phone : null,
+                contact_id:
+                  typeof b.contact_id === 'number' || typeof b.contact_id === 'string'
+                    ? b.contact_id
+                    : null,
+                public_code:
+                  typeof b.public_code === 'string' ? b.public_code : null,
+              } as Booking;
             });
           const deduped_calendar_busy = calendar_busy_without_booking_overlap(
             active,
@@ -448,11 +515,25 @@ export function useBookingFormData({
       } catch (e) {
         console.error('Error fetching bookings:', e);
       } finally {
-        setLoadingBookings(false);
+        if (!cancelled) setLoadingBookings(false);
       }
     };
-    fetchBookings();
-  }, [effectiveProviderId, days, departments.length, needsExplicitProvider, selectedType, general?.timezone]);
+    const timer = window.setTimeout(() => {
+      void fetchBookings();
+    }, 120);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    bookingFetchRangeKey,
+    effectiveProviderId,
+    departments.length,
+    needsExplicitProvider,
+    days,
+    eventTypeForFetch,
+    general?.timezone,
+  ]);
 
   useEffect(() => {
     const hasReqs = departments.length === 0 || !needsExplicitProvider || effectiveProviderId;
@@ -461,18 +542,22 @@ export function useBookingFormData({
       return;
     }
     const providerTimezone = general?.timezone?.trim() || 'UTC';
-    const duration = selectedType
-      ? event_type_session_duration_minutes(selectedType, selectedType.duration_minutes ?? 30)
+    const duration = eventTypeForFetch
+      ? event_type_session_duration_minutes(
+          eventTypeForFetch,
+          eventTypeForFetch.duration_minutes ?? 30
+        )
       : 30;
     const { rangeStart, rangeEnd } = resolve_booking_data_fetch_range({
       days,
-      event_type: selectedType,
+      event_type: eventTypeForFetch,
       provider_timezone: providerTimezone,
       duration_minutes: duration,
     });
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+    let cancelled = false;
     const fetchExceptions = async () => {
       try {
         const { supabase } = await import('@/lib/supabaseClient');
@@ -492,6 +577,7 @@ export function useBookingFormData({
         const res = await fetch(`/api/date-exceptions?${params.toString()}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
+        if (cancelled) return;
         if (res.ok) {
           const result = await res.json();
           setDateExceptions(
@@ -502,8 +588,22 @@ export function useBookingFormData({
         console.error('Error fetching date exceptions:', e);
       }
     };
-    void fetchExceptions();
-  }, [effectiveProviderId, days, departments.length, needsExplicitProvider, selectedType, general?.timezone]);
+    const timer = window.setTimeout(() => {
+      void fetchExceptions();
+    }, 120);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [
+    bookingFetchRangeKey,
+    effectiveProviderId,
+    departments.length,
+    needsExplicitProvider,
+    days,
+    eventTypeForFetch,
+    general?.timezone,
+  ]);
 
   useEffect(() => {
     if (!isServicesEnabled(intakeForm)) {

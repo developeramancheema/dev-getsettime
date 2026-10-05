@@ -446,7 +446,19 @@ export function useEmbedBookingFormData({
               if (!row.recurrence_audience && nested?.recurrence) {
                 row.recurrence_audience = parse_event_type_recurrence(nested.recurrence).audience;
               }
-              return row as Booking;
+              return {
+                ...row,
+                invitee_email:
+                  typeof b.invitee_email === 'string' ? b.invitee_email : null,
+                invitee_phone:
+                  typeof b.invitee_phone === 'string' ? b.invitee_phone : null,
+                contact_id:
+                  typeof b.contact_id === 'number' || typeof b.contact_id === 'string'
+                    ? b.contact_id
+                    : null,
+                public_code:
+                  typeof b.public_code === 'string' ? b.public_code : null,
+              } as Booking;
             });
           const deduped_calendar_busy = calendar_busy_without_booking_overlap(
             active,
