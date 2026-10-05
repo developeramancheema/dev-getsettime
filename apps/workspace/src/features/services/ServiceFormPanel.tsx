@@ -11,9 +11,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { currencySymbol } from "@/src/constants/currency";
 import {
   PanelSection,
-  ProviderAvatar,
   classNames,
 } from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import {
   SERVICE_DESCRIPTION_MAX_LENGTH,
   SERVICE_DURATION_OPTIONS,
@@ -606,10 +606,9 @@ export function ServiceFormPanel({
                           key={doctor.id}
                           className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
                         >
-                          <ProviderAvatar
+                          <WorkspaceUserAvatar
                             name={doctor.name}
-                            initials={doctor.avatar}
-                            avatarUrl={doctor.avatarUrl}
+                            userId={doctor.id}
                             size="sm"
                           />
                           <span className="text-sm font-medium text-indigo-900">

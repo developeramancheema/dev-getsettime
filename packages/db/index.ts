@@ -53,6 +53,9 @@ export * from './types';
 // Shared auth / workspace role metadata (user_metadata.role)
 export * from './auth-roles';
 
+// Shared user avatar metadata helpers
+export * from './user-avatar';
+
 // Subscription / plan entitlements
 export * from './subscription';
 

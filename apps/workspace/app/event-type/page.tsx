@@ -81,10 +81,7 @@ import {
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { format_timezone_display_label } from "@/lib/date-timezone";
 import { parse_event_type_format } from "@/src/features/event-types/event_type_format";
-import {
-  ProviderAvatar,
-  provider_initials,
-} from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import type { event_type_format } from "@/src/types/event_types";
 import type { event_type_format_filter_value } from "@/src/features/event-types/EventTypeFilters";
 import ScreenGate from "@/src/components/ScreenGate";
@@ -1213,14 +1210,6 @@ export default function EventTypes() {
     });
   };
 
-  const get_provider_avatar_url = (ownerId: string | null | undefined) => {
-    if (!ownerId) return null;
-    return (
-      serviceProviders.find((provider) => provider.id === ownerId)?.avatar_url?.trim() ||
-      null
-    );
-  };
-
   const panel_open = showForm || editingId !== null;
   const panel_visible = panel_open || panel_animated_open;
 
@@ -1526,7 +1515,6 @@ export default function EventTypes() {
                           const short_description =
                             parse_short_description_from_settings(item.settings);
                           const provider_label = get_provider_label(item.owner_id);
-                          const provider_avatar = get_provider_avatar_url(item.owner_id);
                           const capacity =
                             typeof item.capacity_per_slot === "number" &&
                             Number.isFinite(item.capacity_per_slot)
@@ -1589,12 +1577,9 @@ export default function EventTypes() {
                               </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
                                 <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
-                                  <ProviderAvatar
+                                  <WorkspaceUserAvatar
                                     name={provider_label === "—" ? "Provider" : provider_label}
-                                    initials={provider_initials(
-                                      provider_label === "—" ? "?" : provider_label
-                                    )}
-                                    avatarUrl={provider_avatar}
+                                    userId={item.owner_id}
                                     size="sm"
                                   />
                                   <span className="truncate">{provider_label}</span>

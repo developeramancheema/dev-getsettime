@@ -11,10 +11,10 @@ import {
 } from "@/src/hooks/useBookingLookups";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { WorkspaceBrandLogo } from "@/src/components/molecules/WorkspaceBrandLogo";
+import { resolveAvatarUrlFromMetadata } from "@app/db/user-avatar";
+import { writeCachedProfileImage } from "@/src/utils/profile_image_cache";
 
 export default function ProfileCreative({ }) {
-  const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
-  const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
   const { user, loading } = useAuth();
   const {
     workspaceName: workspace_brand_name,
@@ -109,10 +109,7 @@ export default function ProfileCreative({ }) {
       phone: (metadata.phone as string) || "",
     });
 
-    const avatarUrl =
-      (metadata.avatar_url as string) ||
-      (metadata.picture as string) ||
-      null;
+    const avatarUrl = resolveAvatarUrlFromMetadata(metadata);
     setProfileImage(avatarUrl);
     setSelectedImageFile(null);
     setSelectedImagePreview(null);
@@ -396,12 +393,18 @@ export default function ProfileCreative({ }) {
 
       // Upload selected image only when user clicks Save Changes.
       if (selectedImageFile) {
+        const token = await getAuthToken();
+        if (!token) {
+          throw new Error("Not authenticated");
+        }
+
         const formData = new FormData();
         formData.append("file", selectedImageFile);
         formData.append("userId", user.id);
 
         const uploadRes = await fetch("/api/profile/avatar", {
           method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
 
@@ -453,14 +456,7 @@ export default function ProfileCreative({ }) {
         fileInputRef.current.value = "";
       }
 
-      if (typeof window !== "undefined") {
-        if (avatarUrl) {
-          window.localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, avatarUrl);
-        } else {
-          window.localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
-        }
-        window.dispatchEvent(new Event(PROFILE_IMAGE_EVENT));
-      }
+      writeCachedProfileImage(avatarUrl);
 
       setFeedback({ type: "success", message: "Profile updated successfully." });
       formDirtyRef.current = false;

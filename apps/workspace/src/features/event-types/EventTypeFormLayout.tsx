@@ -48,10 +48,7 @@ import {
   EVENT_TYPE_MAX_BOOKING_WINDOW_OPTIONS,
   EVENT_TYPE_MIN_BOOKING_NOTICE_OPTIONS,
 } from "@/src/features/event-types/event_type_booking_options";
-import {
-  ProviderAvatar,
-  provider_initials,
-} from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import {
   EventTypeAddServicePanel,
   type event_type_created_service,
@@ -2088,10 +2085,9 @@ export function EventTypeFormLayout({
                       : "border-slate-200 bg-white hover:bg-slate-50"
                 }`}
               >
-                <ProviderAvatar
+                <WorkspaceUserAvatar
                   name={provider.name}
-                  initials={provider_initials(provider.name)}
-                  avatarUrl={provider.avatar_url}
+                  userId={provider.id}
                   size="md"
                 />
                 <span className="min-w-0 flex-1">

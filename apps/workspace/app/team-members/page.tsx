@@ -48,6 +48,8 @@ import {
 import { splitDepartmentSelectionByName } from "@/lib/invite_department_assignment";
 import { userActsAsServiceProviderFromMetadata } from "@/lib/service_provider_role";
 import ScreenGate from "@/src/components/ScreenGate";
+import { useWorkspaceUsers } from "@/src/providers/WorkspaceUsersProvider";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 
 interface Department {
   id: number;
@@ -236,7 +238,12 @@ export default function TeamMembersPage() {
     "Upgrade your plan to add more service providers."
   );
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const {
+    members: workspaceMembers,
+    loading: workspaceMembersLoading,
+    refresh: refreshWorkspaceMembers,
+  } = useWorkspaceUsers();
+  const teamMembers = workspaceMembers as TeamMember[];
   const [departments, setDepartments] = useState<Department[]>([]);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -262,7 +269,7 @@ export default function TeamMembersPage() {
   const [providerSelectedDepartmentNames, setProviderSelectedDepartmentNames] = useState<string[]>([]);
   const [providerInviteUrl, setProviderInviteUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const initialLoading = workspaceMembersLoading;
   const [error, setError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -327,39 +334,12 @@ export default function TeamMembersPage() {
   }, [teamMembers, departments, search, statusFilter]);
 
   useEffect(() => {
-    fetchTeamMembers();
     fetchDepartments();
   }, []);
 
   useEffect(() => {
     setOpenActionsId(null);
   }, [search, statusFilter, teamMembers]);
-
-  const fetchTeamMembers = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/api/team-members', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTeamMembers(data.teamMembers || []);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to fetch team members');
-      }
-    } catch (error) {
-      console.error('Error fetching team members:', error);
-      setError('An error occurred while fetching team members');
-    } finally {
-      setInitialLoading(false);
-    }
-  };
 
   const fetchDepartments = async () => {
     try {
@@ -586,7 +566,7 @@ export default function TeamMembersPage() {
         const data = await response.json();
         setSuccess("Provider invite sent successfully!");
         setProviderInviteUrl(data.inviteUrl);
-        await fetchTeamMembers();
+        await refreshWorkspaceMembers();
       } else {
         const errorData = (await response.json()) as {
           error?: string;
@@ -777,7 +757,7 @@ export default function TeamMembersPage() {
 
       if (response.ok) {
         setModalSuccess('Team member updated successfully');
-        await fetchTeamMembers();
+        await refreshWorkspaceMembers();
         setTimeout(() => {
           if (fromRoleModal) handleRoleModalCancel();
           else handleMemberFormCancel();
@@ -840,7 +820,7 @@ export default function TeamMembersPage() {
             ? 'Team member deactivated successfully'
             : 'Team member activated successfully'
         );
-        await fetchTeamMembers();
+        await refreshWorkspaceMembers();
         setConfirmModal(null);
       } else {
         const errorData = await response.json();
@@ -1110,9 +1090,14 @@ export default function TeamMembersPage() {
                         <div className="p-4 md:p-6">
                           <div className="flex gap-5 flex-row xl:items-start xl:justify-between">
                             <div className="flex flex-1 gap-3">
-                              <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-indigo-500 text-sm sm:text-lg font-semibold text-white shadow-sm">
-                                {member.name.charAt(0).toUpperCase()}
-                              </div>
+                              <WorkspaceUserAvatar
+                                userId={member.id}
+                                name={member.name}
+                                email={member.email}
+                                size="lg"
+                                shape="rounded"
+                                className="h-8 w-8 sm:h-11 sm:w-11 bg-indigo-500 text-white shadow-sm"
+                              />
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <h3 className="text-lg font-semibold text-slate-900">

@@ -21,9 +21,8 @@ import {
   classNames,
   DepartmentColorPicker,
   PanelSection,
-  ProviderAvatar,
-  provider_initials,
 } from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import { useServiceProviders, useUserDepartments } from "@/src/hooks/useBookingLookups";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
@@ -59,7 +58,6 @@ type workspace_service = {
 type doctor_option = {
   id: string;
   name: string;
-  avatarUrl: string | null;
 };
 
 export type created_department = {
@@ -80,10 +78,6 @@ function serviceProviderDisplayName(p: ServiceProvider): string {
     p.email ||
     "Unknown"
   );
-}
-
-function resolveProviderAvatarUrl(p: ServiceProvider): string | null {
-  return p.avatar_url?.trim() || null;
 }
 
 export function AddDepartmentPanel({
@@ -269,7 +263,6 @@ export function AddDepartmentPanel({
     return serviceProviders.map((sp) => ({
       id: sp.id,
       name: serviceProviderDisplayName(sp),
-      avatarUrl: resolveProviderAvatarUrl(sp),
     }));
   }, [serviceProviders]);
 
@@ -884,12 +877,9 @@ export function AddDepartmentPanel({
                                               <Check className="h-2.5 w-2.5" />
                                             )}
                                           </span>
-                                          <ProviderAvatar
+                                          <WorkspaceUserAvatar
                                             name={doctor.name}
-                                            initials={provider_initials(
-                                              doctor.name
-                                            )}
-                                            avatarUrl={doctor.avatarUrl}
+                                            userId={doctor.id}
                                             size="sm"
                                           />
                                           <span className="min-w-0 truncate text-slate-800">

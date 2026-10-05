@@ -13,6 +13,8 @@ import DashboardIcon from "@/src/components/Dashboard/DashboardIcon";
 import { WorkspaceBrandLogo } from "../molecules/WorkspaceBrandLogo";
 import GlobalSearch from "./GlobalSearch";
 import ScreenGate from "../ScreenGate";
+import { UserAvatar } from "@app/ui";
+import { useCurrentUserAvatar } from "@/src/hooks/useCurrentUserAvatar";
 interface TopbarProps {
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
@@ -37,11 +39,9 @@ function getRelativeTime(dateIso: string) {
 }
 
 export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
-  const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
-  const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { avatarUrl, displayName, email } = useCurrentUserAvatar();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
@@ -96,32 +96,6 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
-    const metadataAvatar =
-      (metadata.avatar_url as string) ||
-      (metadata.picture as string) ||
-      null;
-
-    const updateAvatar = () => {
-      const savedAvatar = window.localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
-      const normalizedSavedAvatar =
-        savedAvatar && !savedAvatar.startsWith("data:") ? savedAvatar : null;
-      setProfileImage(normalizedSavedAvatar || metadataAvatar);
-    };
-
-    updateAvatar();
-    window.addEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
-    window.addEventListener("storage", updateAvatar);
-
-    return () => {
-      window.removeEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
-      window.removeEventListener("storage", updateAvatar);
-    };
-  }, [user]);
 
   useEffect(() => {
     if (!isNotificationOpen) return;
@@ -271,13 +245,13 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
 
           <div className="relative">
             <button id="profile-button" onClick={(e) => { e.stopPropagation(); setIsProfileMenuOpen(!isProfileMenuOpen); setIsNotificationOpen(false);}} className="flex items-center space-x-2 cursor-pointer focus:outline-none" aria-expanded={isProfileMenuOpen} aria-haspopup="true">
-              <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white overflow-hidden">
-                {profileImage ? (
-                  <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-sm font-medium">{user?.email ? user.email.charAt(0).toUpperCase() : "U"}</span>
-                )}
-              </div>
+              <UserAvatar
+                avatarUrl={avatarUrl}
+                name={displayName}
+                email={email ?? undefined}
+                size="md"
+                className="h-8 w-8 bg-indigo-500 text-white"
+              />
             </button>
 
             {isProfileMenuOpen && (

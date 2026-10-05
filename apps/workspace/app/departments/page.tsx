@@ -51,9 +51,8 @@ import {
   classNames,
   DepartmentColorPicker,
   PanelSection,
-  ProviderAvatar,
-  provider_initials,
 } from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import { useServiceProviders, useUserDepartments } from "@/src/hooks/useBookingLookups";
 import { useAuth } from "@/src/providers/AuthProvider";
 import type { ServiceProvider } from "@/src/types/booking-entities";
@@ -128,7 +127,6 @@ type DoctorRow = {
   role: string;
   inactive: boolean;
   assignedDepartmentIds: number[];
-  avatarUrl: string | null;
 };
 
 const DELETE_CONFIRM_MESSAGE =
@@ -144,12 +142,6 @@ function serviceProviderDisplayName(p: ServiceProvider): string {
     p.email ||
     "Unknown"
   );
-}
-
-function resolveProviderAvatarUrl(p: ServiceProvider): string | null {
-  const fromField = p.avatar_url?.trim();
-  if (fromField) return fromField;
-  return null;
 }
 
 export default function DepartmentsPage() {
@@ -303,17 +295,8 @@ export default function DepartmentsPage() {
       role: "Consultant",
       inactive: sp.deactivated === true,
       assignedDepartmentIds: providerAssignments.get(sp.id) ?? [],
-      avatarUrl: resolveProviderAvatarUrl(sp),
     }));
   }, [serviceProviders, providerAssignments]);
-
-  const providerAvatarById = useMemo(() => {
-    const map = new Map<string, string | null>();
-    for (const doctor of doctors) {
-      map.set(doctor.id, doctor.avatarUrl);
-    }
-    return map;
-  }, [doctors]);
 
   const totalAssignments = useMemo(
     () =>
@@ -1207,10 +1190,9 @@ export default function DepartmentsPage() {
                                                   zIndex: assigned.length - index,
                                                 }}
                                               >
-                                                <ProviderAvatar
+                                                <WorkspaceUserAvatar
                                                   name={doctor.name}
-                                                  initials={provider_initials(doctor.name)}
-                                                  avatarUrl={providerAvatarById.get(doctor.id)}
+                                                  userId={doctor.id}
                                                   size="sm"
                                                 />
                                               </div>
@@ -1272,10 +1254,9 @@ export default function DepartmentsPage() {
                                                 zIndex: assigned.length - index,
                                               }}
                                             >
-                                              <ProviderAvatar
+                                              <WorkspaceUserAvatar
                                                 name={doctor.name}
-                                                initials={provider_initials(doctor.name)}
-                                                avatarUrl={providerAvatarById.get(doctor.id)}
+                                                userId={doctor.id}
                                                 size="sm"
                                               />
                                             </div>
@@ -1531,10 +1512,9 @@ export default function DepartmentsPage() {
                                             )}
                                             style={{ zIndex: assigned.length - index }}
                                           >
-                                            <ProviderAvatar
+                                            <WorkspaceUserAvatar
                                               name={doctor.name}
-                                              initials={provider_initials(doctor.name)}
-                                              avatarUrl={providerAvatarById.get(doctor.id)}
+                                              userId={doctor.id}
                                               size="sm"
                                             />
                                           </div>
@@ -1919,12 +1899,9 @@ export default function DepartmentsPage() {
                                               <Check className="h-2.5 w-2.5" />
                                             )}
                                           </span>
-                                          <ProviderAvatar
+                                          <WorkspaceUserAvatar
                                             name={doctor.name}
-                                            initials={provider_initials(
-                                              doctor.name
-                                            )}
-                                            avatarUrl={doctor.avatarUrl}
+                                            userId={doctor.id}
                                             size="sm"
                                           />
                                           <span className="min-w-0 truncate text-slate-800">

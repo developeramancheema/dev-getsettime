@@ -57,6 +57,7 @@ import { useServiceDepartmentDoctors } from "@/src/features/services/useServiceD
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import ScreenGate from "@/src/components/ScreenGate";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 
 type DepartmentStatus = "active" | "inactive";
 type ServiceStatus = service_status;
@@ -98,57 +99,11 @@ interface Department {
 type Service = service_record;
 type DoctorRow = service_doctor_row;
 
-function ProviderAvatar({
-  name,
-  initials,
-  avatarUrl,
-  size = "md",
-}: {
-  name: string;
-  initials: string;
-  avatarUrl?: string | null;
-  size?: "sm" | "md";
-}) {
-  const sizeClass = size === "sm" ? "h-7 w-7 text-[10px]" : "h-9 w-9 text-sm";
-  if (avatarUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={avatarUrl}
-        alt={name}
-        className={classNames(sizeClass, "shrink-0 rounded-full object-cover")}
-      />
-    );
-  }
-  return (
-    <span
-      className={classNames(
-        sizeClass,
-        "flex shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700"
-      )}
-    >
-      {initials}
-    </span>
-  );
-}
-
 const SERVICES_PAGE_SIZE = 10;
 const VISIBLE_DEPARTMENT_TABS = 5;
 
 function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
-}
-
-function providerInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  const first = parts[0].replace(/^Dr\.?$/i, "");
-  if (parts.length === 1) return (first || parts[0]).slice(0, 2).toUpperCase();
-  const primary = first || parts[1] || "";
-  const secondary = parts[parts.length - 1] || "";
-  const a = primary.charAt(0);
-  const b = secondary.charAt(0);
-  return (a + b).toUpperCase() || parts[0].slice(0, 2).toUpperCase();
 }
 
 function formatCurrency(
@@ -454,27 +409,6 @@ export default function ServicesPage() {
     () => doctorsForDepartmentId(selectedDepartmentId),
     [doctorsForDepartmentId, selectedDepartmentId]
   );
-
-  const providerAvatarById = useMemo(() => {
-    const map = new Map<string, string | null>();
-    for (const sp of serviceProviders) {
-      map.set(sp.id, sp.avatar_url?.trim() || null);
-    }
-    if (currentUserId && user?.user_metadata) {
-      const meta = user.user_metadata as {
-        avatar_url?: string;
-        picture?: string;
-      };
-      const avatarUrl =
-        (typeof meta.avatar_url === "string" && meta.avatar_url.trim()) ||
-        (typeof meta.picture === "string" && meta.picture.trim()) ||
-        null;
-      if (!map.has(currentUserId)) {
-        map.set(currentUserId, avatarUrl);
-      }
-    }
-    return map;
-  }, [serviceProviders, currentUserId, user]);
 
   const visibleDoctorsCount = useMemo(() => {
     if (selectedDepartment) return departmentDoctors.length;
@@ -1266,12 +1200,9 @@ export default function ServicesPage() {
                                           )}
                                           style={{ zIndex: assigned.length - index }}
                                         >
-                                          <ProviderAvatar
+                                          <WorkspaceUserAvatar
                                             name={doctor.name}
-                                            initials={providerInitials(doctor.name)}
-                                            avatarUrl={providerAvatarById.get(
-                                              doctor.id
-                                            )}
+                                            userId={doctor.id}
                                             size="sm"
                                           />
                                         </div>
@@ -1468,10 +1399,9 @@ export default function ServicesPage() {
                                             )}
                                             style={{ zIndex: visibleAvatars.length - index }}
                                           >
-                                            <ProviderAvatar
+                                            <WorkspaceUserAvatar
                                               name={doctor.name}
-                                              initials={providerInitials(doctor.name)}
-                                              avatarUrl={providerAvatarById.get(doctor.id)}
+                                              userId={doctor.id}
                                               size="sm"
                                             />
                                           </div>
@@ -1515,10 +1445,9 @@ export default function ServicesPage() {
                                           )}
                                           style={{ zIndex: visibleAvatars.length - index }}
                                         >
-                                          <ProviderAvatar
+                                          <WorkspaceUserAvatar
                                             name={doctor.name}
-                                            initials={providerInitials(doctor.name)}
-                                            avatarUrl={providerAvatarById.get(doctor.id)}
+                                            userId={doctor.id}
                                             size="sm"
                                           />
                                         </div>

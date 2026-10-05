@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../../providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { useSubscription } from "@/src/hooks/useSubscription";
 import { formatRoleLabel, ROLE_STAFF } from "@/src/constants/roles";
+import { UserAvatar } from "@app/ui";
+import { useCurrentUserAvatar } from "@/src/hooks/useCurrentUserAvatar";
 
 interface MenuItem {
   href: string;
@@ -63,9 +65,7 @@ function MenuRow({ item }: { item: MenuItem }) {
 
 export default function MobileSidebar() {
   const { user } = useAuth();
-  const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
-  const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { avatarUrl, displayName: currentUserDisplayName, email } = useCurrentUserAvatar();
   const { workspaceName, general, availability, loading: loadingSettings } = useWorkspaceSettings();
   const { data: subscription } = useSubscription();
 
@@ -100,32 +100,6 @@ export default function MobileSidebar() {
   }, [accountName, general, availability, subscription, loadingSettings]);
 
   const readinessLabel = readinessPercent >= 80 ? "Ready" : "Setup";
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
-    const metadataAvatar =
-      (metadata.avatar_url as string) ||
-      (metadata.picture as string) ||
-      null;
-
-    const updateAvatar = () => {
-      const savedAvatar = window.localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
-      const normalizedSavedAvatar =
-        savedAvatar && !savedAvatar.startsWith("data:") ? savedAvatar : null;
-      setProfileImage(normalizedSavedAvatar || metadataAvatar);
-    };
-
-    updateAvatar();
-    window.addEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
-    window.addEventListener("storage", updateAvatar);
-
-    return () => {
-      window.removeEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
-      window.removeEventListener("storage", updateAvatar);
-    };
-  }, [user]);
 
   const appointmentItems: MenuItem[] = [
     {
@@ -262,13 +236,13 @@ export default function MobileSidebar() {
 
         <div className="rounded-2xl border border-gray-200 bg-white p-2.5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
-              {profileImage ? (
-                  <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-sm font-medium">{user?.email ? user.email.charAt(0).toUpperCase() : "U"}</span>
-                )}
-            </div>
+            <UserAvatar
+              avatarUrl={avatarUrl}
+              name={currentUserDisplayName}
+              email={email ?? undefined}
+              size="lg"
+              className="bg-indigo-600 text-white"
+            />
             <div className="min-w-0 flex-1">
               <Link href="/settings" className="flex items-center gap-1">
                 <span className="truncate text-sm font-medium text-neutral-900">{workspaceLabel}</span>

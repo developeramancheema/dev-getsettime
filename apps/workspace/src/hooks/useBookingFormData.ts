@@ -1,4 +1,7 @@
+'use client';
+
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useWorkspaceUsers } from '@/src/providers/WorkspaceUsersProvider';
 import type {
   AvailabilitySettings,
   Booking,
@@ -75,9 +78,32 @@ export function useBookingFormData({
     workspaceLogo: cachedWorkspaceLogo,
     loading: workspaceSettingsLoading,
   } = useWorkspaceSettings();
+  const { members: workspaceUsers } = useWorkspaceUsers();
+  const workspaceMembers = useMemo<TeamMemberRow[]>(
+    () =>
+      workspaceUsers.map((m) => ({
+        id: m.id,
+        email: m.email,
+        name: m.name,
+        education: m.education,
+        experience: m.experience,
+        specialty: m.specialty,
+        role: m.role,
+        additional_roles: m.additional_roles,
+        departments: m.departments,
+        deactivated: m.deactivated,
+        is_workspace_owner: m.is_workspace_owner,
+      })),
+    [workspaceUsers]
+  );
+  const workspaceOwnerUserId = useMemo(
+    () =>
+      workspaceUsers.find((m) => m.is_workspace_owner && !m.deactivated)?.id ??
+      null,
+    [workspaceUsers]
+  );
   const [allDepartments, setDepartments] = useState<Department[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
-  const [workspaceMembers, setWorkspaceMembers] = useState<TeamMemberRow[]>([]);
 
   const departments = useMemo(
     () =>
@@ -87,7 +113,6 @@ export function useBookingFormData({
       ),
     [allDepartments, workspaceMembers, selectedType]
   );
-  const [workspaceOwnerUserId, setWorkspaceOwnerUserId] = useState<string | null>(null);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [loadingEventTypes, setLoadingEventTypes] = useState(true);
   const [availabilitySettings, setAvailabilitySettings] = useState<AvailabilitySettings | null>(null);
@@ -193,25 +218,13 @@ export function useBookingFormData({
         } = await supabase.auth.getSession();
         if (!session?.access_token) return;
 
-        const [departmentsResponse, teamMembersResponse] = await Promise.all([
-          fetch('/api/departments', { headers: { Authorization: `Bearer ${session.access_token}` } }),
-          fetch('/api/team-members', { headers: { Authorization: `Bearer ${session.access_token}` } }),
-        ]);
+        const departmentsResponse = await fetch('/api/departments', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
 
         if (departmentsResponse.ok) {
           const departmentsResult = await departmentsResponse.json();
           setDepartments(departmentsResult.departments || []);
-        }
-
-        if (teamMembersResponse.ok) {
-          const teamMembersResult = await teamMembersResponse.json();
-          const members = (teamMembersResult.teamMembers || []) as TeamMemberRow[];
-          setWorkspaceMembers(members);
-          const owner = members.find((m) => m.is_workspace_owner && !m.deactivated);
-          setWorkspaceOwnerUserId(owner?.id ?? null);
-        } else {
-          setWorkspaceMembers([]);
-          setWorkspaceOwnerUserId(null);
         }
       } catch (e) {
         console.error('Error fetching departments:', e);

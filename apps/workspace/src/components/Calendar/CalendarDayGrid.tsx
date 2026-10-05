@@ -6,6 +6,7 @@ import {
   createdByDisplayLabel,
   toDateKey,
 } from "@/src/components/Calendar/calendar_utils";
+import { UserAvatar } from "@app/ui";
 import {
   CALENDAR_TIMED_VISIBLE_COUNT,
   formatMinuteOfDayLabel,
@@ -177,18 +178,11 @@ export function CalendarDayGrid({
                     className="border-l border-slate-200 px-3 py-3"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
-                      {column.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={column.avatarUrl}
-                          alt={column.label}
-                          className="h-9 w-9 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
-                          {column.initial}
-                        </div>
-                      )}
+                      <UserAvatar
+                        avatarUrl={column.avatarUrl}
+                        name={column.label}
+                        size="md"
+                      />
                       <div className="min-w-0 flex-1 text-left">
                         <p className="truncate text-xs font-semibold text-slate-900">
                           {column.label}

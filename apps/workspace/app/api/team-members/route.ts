@@ -16,6 +16,7 @@ import {
   ROLE_WORKSPACE_ADMIN,
   SERVICE_PROVIDER_ASSIGNABLE_ADDITIONAL_ROLES,
 } from '@/src/constants/roles';
+import { resolveAvatarUrlFromMetadata } from '@app/db/user-avatar';
 
 /**
  * Authorized to manage team members if user is a workspace owner (regardless
@@ -237,12 +238,7 @@ export async function GET(req: NextRequest) {
           additional_roles,
           departments: deptIds,
           phone,
-          avatar_url:
-            typeof meta?.avatar_url === 'string' && meta.avatar_url.trim() !== ''
-              ? meta.avatar_url.trim()
-              : typeof meta?.picture === 'string' && meta.picture.trim() !== ''
-                ? meta.picture.trim()
-                : null,
+          avatar_url: resolveAvatarUrlFromMetadata(meta),
           created_at: u.created_at,
           email_confirmed_at: u.email_confirmed_at,
           deactivated: u.user_metadata?.deactivated || false,

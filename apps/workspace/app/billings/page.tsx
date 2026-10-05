@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import type { plans_with_content } from "@app/db/subscription";
+import type { booking_limit_period, plans_with_content } from "@app/db/subscription";
 import {
   formatBookingLimitFeature,
   formatBookingLimitLabel,
@@ -27,6 +27,7 @@ interface AvailablePlan {
   name: string;
   price: number;
   booking_limit: number;
+  booking_limit_period: booking_limit_period;
   service_provider_limit: number;
   admin_limit: number;
   features: string[];
@@ -63,6 +64,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
             name: row.name,
             price: row.price,
             booking_limit: row.booking_limit,
+            booking_limit_period: row.booking_limit_period,
             service_provider_limit: row.service_provider_limit,
             admin_limit: row.admin_limit,
             features: resolvePlanFeatures(row),
@@ -468,7 +470,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                           <span className="text-sm text-slate-500">/month</span>
                         </div>
                         <p className="text-sm text-slate-500 mt-2">
-                          {formatBookingLimitFeature(planOption.booking_limit, planOption.booking_limit_period ?? "monthly")} • {planOption.service_provider_limit}{" "}
+                          {formatBookingLimitFeature(planOption.booking_limit, planOption.booking_limit_period)} • {planOption.service_provider_limit}{" "}
                           providers
                         </p>
                       </div>
