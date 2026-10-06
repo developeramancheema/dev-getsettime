@@ -78,6 +78,25 @@ export async function assertServiceProviderAllowed(
   }
 }
 
+export async function assertWorkspaceAdminAllowed(
+  supabaseAdmin: SupabaseClient,
+  workspaceId: number,
+  additionalAdmins = 1
+): Promise<void> {
+  const snapshot = await getWorkspacePlanSnapshot(supabaseAdmin, workspaceId);
+  const { countWorkspaceAdminSeatsUsed } = await import('./admin_count');
+  const current = await countWorkspaceAdminSeatsUsed(supabaseAdmin, workspaceId);
+
+  if (current + additionalAdmins > snapshot.plan.admin_limit) {
+    throw new PlanLimitError(
+      `Workspace admin limit reached (${current} of ${snapshot.plan.admin_limit}). Upgrade your plan to add more admins.`,
+      'PLAN_LIMIT',
+      snapshot.plan.slug,
+      true
+    );
+  }
+}
+
 export async function assertPlanFeatureAllowed(
   supabase: SupabaseClient,
   workspaceId: number,

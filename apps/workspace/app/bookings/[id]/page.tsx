@@ -19,7 +19,7 @@ import {
 } from '@/src/hooks/useBookingLookups';
 import { normalizeIntakeForm } from '@/src/utils/intakeForm';
 import { BookingDetailsWithActions } from '@/src/components/Booking/BookingDetailsWithActions';
-import { AlertModal } from '@/src/components/ui/AlertModal';
+import { toast } from '@/src/components/ui/toast';
 import { ConfirmModal } from '@/src/components/ui/ConfirmModal';
 import type { Booking } from '@/src/types/booking';
 
@@ -58,7 +58,6 @@ export default function BookingDetailsPage() {
   const [inline_save_pending, set_inline_save_pending] = useState(false);
   const [delete_confirm_open, set_delete_confirm_open] = useState(false);
   const [deleting, set_deleting] = useState(false);
-  const [alert_message, set_alert_message] = useState<string | null>(null);
 
   const { open: open_create_booking } = useCreateBookingModal();
   const { settings } = useWorkspaceSettings();
@@ -183,7 +182,7 @@ export default function BookingDetailsPage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
       set_delete_confirm_open(false);
-      set_alert_message('Not authenticated');
+      toast.error('Not authenticated');
       return;
     }
 
@@ -199,17 +198,18 @@ export default function BookingDetailsPage() {
 
       if (response.ok) {
         set_delete_confirm_open(false);
+        toast.success('Booking deleted successfully.');
         router.push('/bookings');
         return;
       }
 
       const error_data = await response.json().catch(() => null);
       set_delete_confirm_open(false);
-      set_alert_message(error_data?.error || 'Failed to delete booking');
+      toast.error(error_data?.error || 'Failed to delete booking');
     } catch (error) {
       console.error('Error deleting booking:', error);
       set_delete_confirm_open(false);
-      set_alert_message('An error occurred while deleting the booking');
+      toast.error('An error occurred while deleting the booking');
     } finally {
       set_deleting(false);
     }
@@ -375,12 +375,6 @@ export default function BookingDetailsPage() {
         />
       )}
 
-      {alert_message && (
-        <AlertModal
-          message={alert_message}
-          onClose={() => set_alert_message(null)}
-        />
-      )}
     </div>
   );
 }

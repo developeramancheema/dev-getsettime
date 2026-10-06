@@ -28,7 +28,7 @@ import { FaUserDoctor } from "react-icons/fa6";
 import type { IconType } from "react-icons";
 import { Pagination, usePagination } from "@app/ui";
 import { supabase } from "@/lib/supabaseClient";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 import {
   DepartmentPaginationSkeleton,
@@ -196,7 +196,6 @@ export default function DepartmentsPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [busyAction, setBusyAction] = useState(false);
 
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   const doctorAssignmentInFlightRef = useRef<Set<string>>(new Set());
@@ -507,7 +506,7 @@ export default function DepartmentsPage() {
     ) => {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return null;
       }
       const url = query ? `/api/departments?${query}` : "/api/departments";
@@ -521,7 +520,7 @@ export default function DepartmentsPage() {
       });
       if (!response.ok) {
         const err = await response.json().catch(() => null);
-        setAlertMessage(err?.error || `Request failed (${response.status})`);
+        toast.error(err?.error || `Request failed (${response.status})`);
         return null;
       }
       return response.json().catch(() => ({}));
@@ -537,7 +536,7 @@ export default function DepartmentsPage() {
       try {
         const token = await getAuthToken();
         if (!token) {
-          setAlertMessage("Not authenticated");
+          toast.error("Not authenticated");
           return false;
         }
         const res = await fetch("/api/user-departments", {
@@ -553,7 +552,7 @@ export default function DepartmentsPage() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${res.status})`);
+          toast.error(err?.error || `Request failed (${res.status})`);
           return false;
         }
         return true;
@@ -572,7 +571,7 @@ export default function DepartmentsPage() {
       try {
         const token = await getAuthToken();
         if (!token) {
-          setAlertMessage("Not authenticated");
+          toast.error("Not authenticated");
           return false;
         }
         const res = await fetch(
@@ -584,7 +583,7 @@ export default function DepartmentsPage() {
         );
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${res.status})`);
+          toast.error(err?.error || `Request failed (${res.status})`);
           return false;
         }
         return true;
@@ -638,7 +637,7 @@ export default function DepartmentsPage() {
 
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return false;
       }
 
@@ -656,7 +655,7 @@ export default function DepartmentsPage() {
         });
         if (!response.ok) {
           const err = await response.json().catch(() => null);
-          setAlertMessage(
+          toast.error(
             err?.error || `Failed to assign service (${response.status})`
           );
           return false;
@@ -677,7 +676,7 @@ export default function DepartmentsPage() {
         });
         if (!response.ok) {
           const err = await response.json().catch(() => null);
-          setAlertMessage(
+          toast.error(
             err?.error || `Failed to unassign service (${response.status})`
           );
           return false;
@@ -758,7 +757,10 @@ export default function DepartmentsPage() {
   const handleSaveEditedDepartment = async () => {
     if (editingDepartmentId == null) return;
     const trimmedName = editDepartmentName.trim();
-    if (!trimmedName) return;
+    if (!trimmedName) {
+      toast.error("Department name is required.");
+      return;
+    }
 
     const duplicate = departments.find(
       (d) =>
@@ -766,7 +768,7 @@ export default function DepartmentsPage() {
         d.name.toLowerCase() === trimmedName.toLowerCase()
     );
     if (duplicate) {
-      setAlertMessage("Another department with this name already exists.");
+      toast.error("Another department with this name already exists.");
       return;
     }
 
@@ -807,6 +809,7 @@ export default function DepartmentsPage() {
           d.id === editingDepartmentId ? { ...d, ...data.department } : d
         )
       );
+      toast.success("Department updated successfully.");
       closeEditDepartmentPanel();
     } finally {
       setBusyAction(false);
@@ -828,6 +831,11 @@ export default function DepartmentsPage() {
       if (editingDepartmentId === department.id) {
         setEditDepartmentStatus(toVisibilityStatus(nextStatus));
       }
+      toast.success(
+        nextStatus === "active"
+          ? "Department activated successfully."
+          : "Department deactivated successfully."
+      );
     }
   };
 
@@ -838,9 +846,11 @@ export default function DepartmentsPage() {
 
     if (departments.length <= 1) {
       setDeleteConfirmId(null);
-      setAlertMessage("You must keep at least one department.");
+      toast.error("You must keep at least one department.");
       return;
     }
+
+    const deletedDepartment = departments.find((d) => d.id === deleteConfirmId);
 
     setBusyAction(true);
     const data = await callApi(
@@ -853,6 +863,11 @@ export default function DepartmentsPage() {
     if (data) {
       const removedId = deleteConfirmId;
       setDeleteConfirmId(null);
+      toast.success(
+        deletedDepartment
+          ? `"${deletedDepartment.name}" deleted successfully.`
+          : "Department deleted successfully."
+      );
       if (editingDepartmentId === removedId) closeEditDepartmentPanel();
       await fetchDepartments({
         selectId:
@@ -2120,9 +2135,6 @@ export default function DepartmentsPage() {
         />
       )}
 
-      {alertMessage && (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      )}
     </>
   );
 }

@@ -16,8 +16,8 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 import { LuClock as Clock, LuCopy as Copy, LuCalendarPlus as CalendarPlus, LuUsers as Users, LuChevronDown as ChevronDown } from "react-icons/lu";
+import { toast } from "@/src/components/ui/toast";
 import AvailabilityTimesheet, {
-  type availability_timesheet_save_feedback,
   type availability_timesheet_handle,
 } from '@/src/components/Settings/AvailabilityTimesheet';
 import { DateExceptionsTable } from '@/src/components/Settings/DateExceptionsTable';
@@ -26,7 +26,6 @@ import { BookingRulesList } from '@/src/features/availability/BookingRulesList';
 import { EditBookingRulesPanel } from '@/src/features/availability/EditBookingRulesPanel';
 import { resolve_booking_rules } from '@/src/features/availability/booking_rules';
 import { slugify_event_type_title } from '@/src/features/event-types/event_type_slug';
-import AlertMessage from '@/src/components/Auth/AlertMessage';
 import { AvailabilityGeneralSkeleton } from '@/src/components/ui/AvailabilityGeneralSkeleton';
 import { TimezoneSelector } from '@/src/components/ui/TimezoneSelector';
 import { ConfirmModal } from '@/src/components/ui/ConfirmModal';
@@ -129,15 +128,12 @@ export default function Availability() {
   const [timesheet, setTimesheet] = useState<Record<DayName, DaySchedule> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [bookings, setBookings] = useState<Array<{ start_at: string; end_at: string | null; status: string | null }>>([]);
   const [serviceProviders, setServiceProviders] = useState<ServiceProvider[]>([]);
   const [selectedProviderId, setSelectedProviderId] = useState<string>('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
   /** Cached full availability from settings - used to re-derive when selectedProviderId changes without re-fetching */
-  const [timesheetSaveFeedback, setTimesheetSaveFeedback] =
-    useState<availability_timesheet_save_feedback>(null);
   const [timesheetEditPanelOpen, setTimesheetEditPanelOpen] = useState(false);
   const [timesheetBusy, setTimesheetBusy] = useState(false);
   const timesheetRef = useRef<availability_timesheet_handle | null>(null);
@@ -415,7 +411,6 @@ export default function Availability() {
   // Save availability handler
   const handleSaveAvailability = async () => {
     setIsSaving(true);
-    setSaveMessage(null);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -469,11 +464,7 @@ export default function Availability() {
             },
           });
         }
-        setSaveMessage({
-          type: 'success',
-          text: 'Availability saved successfully for your profile!',
-        });
-        setTimeout(() => setSaveMessage(null), 3000);
+        toast.success('Availability saved successfully for your profile!');
         setIsSaving(false);
         return;
       }
@@ -533,22 +524,14 @@ export default function Availability() {
         ? `for provider ${serviceProviders.find(p => p.id === selectedProviderId)?.name || 'selected provider'}`
         : 'as general availability (applies to all providers)';
 
-      setSaveMessage({ type: 'success', text: `Availability saved successfully ${saveTarget}!` });
-      setTimeout(() => {
-        setSaveMessage(null);
-      }, 3000);
+      toast.success(`Availability saved successfully ${saveTarget}!`);
 
       console.log("Availability saved:", saveTarget);
     } catch (error) {
       console.error("Error saving availability:", error);
-      setSaveMessage({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Failed to save availability. Please try again.'
-      });
-
-      setTimeout(() => {
-        setSaveMessage(null);
-      }, 5000);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to save availability. Please try again.'
+      );
     } finally {
       setIsSaving(false);
     }
@@ -907,12 +890,17 @@ export default function Availability() {
 
   const confirmDeleteException = async () => {
     if (!exceptionPendingDelete) return;
+    const deletedName = exceptionPendingDelete.name;
     setExceptionDeleting(true);
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
+      if (!session?.access_token) {
+        toast.error("Not authenticated");
+        setExceptionPendingDelete(null);
+        return;
+      }
       const res = await fetch(`/api/date-exceptions/${exceptionPendingDelete.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -922,9 +910,18 @@ export default function Availability() {
           prev.filter((e) => e.id !== exceptionPendingDelete.id)
         );
         setExceptionPendingDelete(null);
+        toast.success(`"${deletedName}" deleted successfully.`);
+        return;
       }
+      const data = await res.json().catch(() => ({}));
+      toast.error(
+        typeof data.error === "string" ? data.error : "Failed to delete date exception."
+      );
+      setExceptionPendingDelete(null);
     } catch (error) {
       console.error("Error deleting date exception:", error);
+      toast.error("Failed to delete date exception.");
+      setExceptionPendingDelete(null);
     } finally {
       setExceptionDeleting(false);
     }
@@ -1275,12 +1272,6 @@ export default function Availability() {
         {renderTabNav()}
 
         <div className={activeTab === "general" ? "relative mt-4" : "hidden"}>
-          {timesheetSaveFeedback !== null && (
-            <AlertMessage
-              type={timesheetSaveFeedback.type === "success" ? "success" : "error"}
-              message={timesheetSaveFeedback.text}
-            />
-          )}
           {settingsLoading ? (
             <AvailabilityGeneralSkeleton />
           ) : (
@@ -1304,7 +1295,6 @@ export default function Availability() {
               workspaceSettings={settings}
               initialTimesheet={generalInitialTimesheet}
               onSave={handleGeneralTimesheetSaved}
-              onSaveFeedback={setTimesheetSaveFeedback}
               onEditPanelOpenChange={setTimesheetEditPanelOpen}
               onBusyChange={setTimesheetBusy}
               sourceTimezone={sourceTimezone}
@@ -1666,11 +1656,6 @@ export default function Availability() {
               )}
 
               {/* Save Message */}
-              {saveMessage && (
-                <div className={`p-3 rounded-lg text-sm font-medium ${ saveMessage.type === 'success'  ? 'bg-green-50 text-green-700 border  border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                  {saveMessage.text}
-                </div>
-              )}
 
               {/* Footer Buttons */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">

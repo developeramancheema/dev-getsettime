@@ -128,6 +128,8 @@ export type workspace_usage = {
   booking_percent_used: number;
   service_provider_count: number;
   service_provider_limit: number;
+  admin_count: number;
+  admin_limit: number;
   location_count: number;
   booking_warning_threshold: boolean;
   booking_limit_reached: boolean;

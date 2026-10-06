@@ -21,6 +21,7 @@ import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { sync_settings_response } from "@/src/lib/workspace_shell_sync";
 import type { WorkspaceSettings } from "@/src/types/workspace";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
+import { toast } from "@/src/components/ui/toast";
 import { RequestIntegrationModal } from "@/src/components/ui/RequestIntegrationModal";
 import { UpgradePlanModal } from "@/src/components/Subscription/UpgradePlanModal";
 import { useSubscription } from "@/src/hooks/useSubscription";
@@ -459,7 +460,6 @@ export function IntegrationsNotificationsView() {
   });
   const [integrationsLoading, setIntegrationsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [disconnectConfirm, setDisconnectConfirm] = useState<"google_calendar" | "zoom" | null>(null);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
 
@@ -512,13 +512,13 @@ export function IntegrationsNotificationsView() {
     const errorMessage = searchParams.get("message");
 
     if (success) {
-      setMessage({ type: "success", text: getSuccessMessage(success) });
+      toast.success(getSuccessMessage(success));
       fetchIntegrations();
     } else if (error) {
       const msg = errorMessage
         ? `${getErrorMessage(error)}: ${decodeURIComponent(errorMessage)}`
         : getErrorMessage(error);
-      setMessage({ type: "error", text: msg });
+      toast.error(msg);
     }
   }, [searchParams]);
 
@@ -652,7 +652,6 @@ export function IntegrationsNotificationsView() {
 
   const handleConnect = async (type: "google" | "zoom") => {
     setActionLoading(type);
-    setMessage(null);
     try {
       const { supabase } = await import("@/lib/supabaseClient");
       const {
@@ -668,20 +667,19 @@ export function IntegrationsNotificationsView() {
         if (data.authUrl) {
           window.location.href = data.authUrl;
         } else if (data.success) {
-          setMessage({ type: "success", text: `${type} connected successfully!` });
+          toast.success(`${type} connected successfully!`);
           await fetchIntegrations();
         } else {
-          setMessage({ type: "error", text: "Failed to get authorization URL" });
+          toast.error("Failed to get authorization URL");
         }
       } else {
         const error = await response.json();
-        setMessage({ type: "error", text: error.error || "Failed to connect" });
+        toast.error(error.error || "Failed to connect");
       }
     } catch (error: unknown) {
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : "Failed to connect",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "Failed to connect"
+      );
     } finally {
       setActionLoading(null);
     }
@@ -696,7 +694,6 @@ export function IntegrationsNotificationsView() {
 
     const type = disconnectConfirm;
     setActionLoading(type);
-    setMessage(null);
     setDisconnectConfirm(null);
 
     try {
@@ -716,17 +713,16 @@ export function IntegrationsNotificationsView() {
       });
 
       if (response.ok) {
-        setMessage({ type: "success", text: `${type} disconnected successfully` });
+        toast.success(`${type} disconnected successfully`);
         await fetchIntegrations();
       } else {
         const error = await response.json();
-        setMessage({ type: "error", text: error.error || "Failed to disconnect" });
+        toast.error(error.error || "Failed to disconnect");
       }
     } catch (err: unknown) {
-      setMessage({
-        type: "error",
-        text: err instanceof Error ? err.message : "Failed to disconnect",
-      });
+      toast.error(
+        err instanceof Error ? err.message : "Failed to disconnect"
+      );
     } finally {
       setActionLoading(null);
     }
@@ -859,18 +855,6 @@ export function IntegrationsNotificationsView() {
             />
           </div>
         </ScreenGate>
-
-        {message && (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm font-semibold shadow-sm ${
-              message.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                : "border-red-200 bg-red-50 text-red-800"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 lg:items-start">
           {/* left Column */}
@@ -1164,10 +1148,9 @@ export function IntegrationsNotificationsView() {
         open={requestModalOpen}
         onClose={() => setRequestModalOpen(false)}
         onSubmitted={() =>
-          setMessage({
-            type: "success",
-            text: "Your request was sent. The GetSetTime team will review it shortly.",
-          })
+          toast.success(
+            "Your request was sent. The GetSetTime team will review it shortly."
+          )
         }
       />
 

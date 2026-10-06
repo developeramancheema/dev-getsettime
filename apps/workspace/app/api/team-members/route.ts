@@ -363,8 +363,19 @@ export async function POST(req: NextRequest) {
     if (assignedRole === 'service_provider') {
       try {
         const { assertServiceProviderAllowed } = await import('@app/db/subscription');
-        const { planLimitErrorResponse } = await import('@/lib/plan-limit-response');
         await assertServiceProviderAllowed(adminClient, Number(workspaceId), 1);
+      } catch (planErr) {
+        const { planLimitErrorResponse } = await import('@/lib/plan-limit-response');
+        const planResp = planLimitErrorResponse(planErr);
+        if (planResp) return planResp;
+        throw planErr;
+      }
+    }
+
+    if (assignedRole === ROLE_WORKSPACE_ADMIN) {
+      try {
+        const { assertWorkspaceAdminAllowed } = await import('@app/db/subscription');
+        await assertWorkspaceAdminAllowed(adminClient, Number(workspaceId), 1);
       } catch (planErr) {
         const { planLimitErrorResponse } = await import('@/lib/plan-limit-response');
         const planResp = planLimitErrorResponse(planErr);
@@ -672,6 +683,28 @@ export async function PUT(req: NextRequest) {
       try {
         const { assertServiceProviderAllowed } = await import('@app/db/subscription');
         await assertServiceProviderAllowed(adminClient, Number(workspaceId), 1);
+      } catch (planErr) {
+        const { planLimitErrorResponse } = await import('@/lib/plan-limit-response');
+        const planResp = planLimitErrorResponse(planErr);
+        if (planResp) return planResp;
+        throw planErr;
+      }
+    }
+
+    const { userHasWorkspaceAdminAccess } = await import('@app/db/subscription');
+    const hadWorkspaceAdminAccess = userHasWorkspaceAdminAccess(
+      existingUser.user_metadata as Record<string, unknown> | undefined
+    );
+    const willHaveWorkspaceAdminAccess = userHasWorkspaceAdminAccess({
+      ...(existingUser.user_metadata as Record<string, unknown>),
+      role: finalPrimaryRole,
+      additional_roles: finalAdditionalRoles,
+    });
+
+    if (!hadWorkspaceAdminAccess && willHaveWorkspaceAdminAccess) {
+      try {
+        const { assertWorkspaceAdminAllowed } = await import('@app/db/subscription');
+        await assertWorkspaceAdminAllowed(adminClient, Number(workspaceId), 1);
       } catch (planErr) {
         const { planLimitErrorResponse } = await import('@/lib/plan-limit-response');
         const planResp = planLimitErrorResponse(planErr);

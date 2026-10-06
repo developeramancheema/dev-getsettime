@@ -11,6 +11,7 @@ import {
   resolvePlanFeatures,
 } from "@app/db/subscription";
 import { useSubscription } from "@/src/hooks/useSubscription";
+import { toast } from "@/src/components/ui/toast";
 
 interface Invoice {
   id: string;
@@ -42,7 +43,6 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [isChangingPlan, setIsChangingPlan] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const isLoading = subscriptionLoading || catalogLoading;
 
@@ -86,20 +86,13 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
     }
 
     if (selectedPlan.slug !== 'free') {
-      setMessage({
-        type: 'error',
-        text: 'Paid plans are coming soon. Contact support to upgrade your workspace.',
-      });
+      toast.error('Paid plans are coming soon. Contact support to upgrade your workspace.');
       setShowPlanModal(false);
       return;
     }
 
     setIsChangingPlan(true);
-    setMessage(null);
-    setMessage({
-      type: 'error',
-      text: 'Downgrading online is not available yet. Contact support if you need to change plans.',
-    });
+    toast.error('Downgrading online is not available yet. Contact support if you need to change plans.');
     setIsChangingPlan(false);
     setShowPlanModal(false);
   };
@@ -346,17 +339,6 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
           <p className="text-xs text-slate-500">Manage your subscription and view invoices.</p>
         </div>
       </header>
-
-      {/* Message */}
-      {message && (
-        <div className={`p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-            : 'bg-red-50 text-red-800 border border-red-200'
-        }`}>
-          {message.text}
-        </div>
-      )}
 
       {/* Current Plan Card */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-md overflow-hidden">

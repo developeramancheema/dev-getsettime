@@ -31,6 +31,7 @@ import {
 } from "@/src/lib/workspace_shell_sync";
 import type { WorkspaceSettings } from "@/src/types/workspace";
 import ScreenGate from "@/src/components/ScreenGate";
+import { toast } from "@/src/components/ui/toast";
 
 type settings_icon_name =
   | "palette"
@@ -195,10 +196,6 @@ export default function SettingsPage() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
@@ -436,8 +433,6 @@ export default function SettingsPage() {
     if (!file) return;
 
     setIsUploadingLogo(true);
-    setSaveMessage(null);
-
     try {
       const { supabase } = await import("@/lib/supabaseClient");
       const {
@@ -470,21 +465,17 @@ export default function SettingsPage() {
           logoUrl: result.url as string,
         };
       }
-      setSaveMessage({ type: "success", text: "Logo uploaded successfully." });
-      setTimeout(() => setSaveMessage(null), 2500);
+      toast.success("Logo uploaded successfully.");
       if (user?.id && typeof result.url === "string") {
         applyPatch({ workspace: { logo_url: result.url } });
       }
     } catch (error) {
       console.error("Error uploading logo:", error);
-      setSaveMessage({
-        type: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Failed to upload logo. Please try again.",
-      });
-      setTimeout(() => setSaveMessage(null), 4000);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to upload logo. Please try again."
+      );
     } finally {
       setIsUploadingLogo(false);
     }
@@ -494,8 +485,6 @@ export default function SettingsPage() {
     if (!canEditAllSettings || !logoUrl) return;
 
     setIsUploadingLogo(true);
-    setSaveMessage(null);
-
     try {
       const { supabase } = await import("@/lib/supabaseClient");
       const {
@@ -523,21 +512,17 @@ export default function SettingsPage() {
           logoUrl: null,
         };
       }
-      setSaveMessage({ type: "success", text: "Logo removed successfully." });
-      setTimeout(() => setSaveMessage(null), 2500);
+      toast.success("Logo removed successfully.");
       if (user?.id) {
         applyPatch({ workspace: { logo_url: null } });
       }
     } catch (error) {
       console.error("Error removing logo:", error);
-      setSaveMessage({
-        type: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Failed to remove logo. Please try again.",
-      });
-      setTimeout(() => setSaveMessage(null), 4000);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to remove logo. Please try again."
+      );
     } finally {
       setIsUploadingLogo(false);
     }
@@ -548,7 +533,6 @@ export default function SettingsPage() {
     if (!canSave) return;
 
     setLinkError(null);
-    setSaveMessage(null);
 
     const trimmedSlug = workspaceSlug.trim();
     const trimmedProviderSlug = serviceProviderSlug.trim();
@@ -556,20 +540,17 @@ export default function SettingsPage() {
     if (isServiceProvider) {
       if (!trimmedProviderSlug) {
         setLinkError("Provider link is required");
-        setSaveMessage({ type: "error", text: "Provider link is required." });
+        toast.error("Provider link is required.");
         return;
       }
       if (!trimmedSlug) {
         setLinkError("Workspace link is not configured");
-        setSaveMessage({
-          type: "error",
-          text: "Workspace booking link is not configured yet.",
-        });
+        toast.error("Workspace booking link is not configured yet.");
         return;
       }
     } else if (!trimmedSlug) {
       setLinkError("Link is required");
-      setSaveMessage({ type: "error", text: "Link is required." });
+      toast.error("Link is required.");
       return;
     }
 
@@ -613,8 +594,7 @@ export default function SettingsPage() {
           sync_settings_response(user.id, providerSettingsResult);
         }
 
-        setSaveMessage({ type: "success", text: "Provider link saved successfully!" });
-        setTimeout(() => setSaveMessage(null), 3000);
+        toast.success("Provider link saved successfully!");
         snapshotRef.current = {
           ...(snapshotRef.current ?? {
             accountName: "",
@@ -735,8 +715,7 @@ export default function SettingsPage() {
         sync_settings_response(user.id, settingsResult);
       }
 
-      setSaveMessage({ type: "success", text: "Settings saved successfully!" });
-      setTimeout(() => setSaveMessage(null), 3000);
+      toast.success("Settings saved successfully!");
       snapshotRef.current = {
         accountName,
         workspaceSlug,
@@ -769,14 +748,11 @@ export default function SettingsPage() {
       };
     } catch (error) {
       console.error("Error saving settings:", error);
-      setSaveMessage({
-        type: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Failed to save settings. Please try again.",
-      });
-      setTimeout(() => setSaveMessage(null), 5000);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save settings. Please try again."
+      );
     } finally {
       setIsSaving(false);
     }
@@ -789,7 +765,6 @@ export default function SettingsPage() {
     } else {
       router.back();
     }
-    setSaveMessage(null);
   };
 
   useEffect(() => {
@@ -1572,18 +1547,6 @@ export default function SettingsPage() {
                 </div>
               </aside>
             </div>
-
-            {saveMessage && (
-              <div
-                className={`mx-5 mb-4 rounded-2xl border px-4 py-3 text-sm font-medium md:mx-8 ${
-                  saveMessage.type === "success"
-                    ? "border-green-200 bg-green-50 text-green-800"
-                    : "border-red-200 bg-red-50 text-red-800"
-                }`}
-              >
-                {saveMessage.text}
-              </div>
-            )}
 
             {canSave ? (
               <div className="relative">

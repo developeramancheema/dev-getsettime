@@ -13,7 +13,7 @@ import {
   type BookingQuickActionFeedback,
 } from '@/src/components/Booking/BookingDetailsCard';
 import { BookingDetailDatetimeModal } from '@/src/components/Booking/BookingDetailDatetimeModal';
-import { AlertModal } from '@/src/components/ui/AlertModal';
+import { toast } from '@/src/components/ui/toast';
 import { ConfirmModal } from '@/src/components/ui/ConfirmModal';
 import type { Booking } from '@/src/types/booking';
 import type {
@@ -118,7 +118,6 @@ export function BookingDetailsWithActions({
     string | null
   >(null);
 
-  const [alert_message, set_alert_message] = useState<string | null>(null);
   const [delete_confirm_open, set_delete_confirm_open] = useState(false);
   const [quick_action_feedback, set_quick_action_feedback] =
     useState<BookingQuickActionFeedback>(null);
@@ -201,7 +200,7 @@ export function BookingDetailsWithActions({
 
   const submit_reminder_email = async () => {
     if (!email_reminder_on) {
-      set_alert_message('Email reminders are turned off in workspace notifications.');
+      toast.warning('Email reminders are turned off in workspace notifications.');
       return;
     }
     if (reminder_success_clear_ref.current) {
@@ -223,7 +222,7 @@ export function BookingDetailsWithActions({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         set_reminder_send_feedback(null);
-        set_alert_message(json?.error || 'Could not send email reminder.');
+        toast.error(json?.error || 'Could not send email reminder.');
         return;
       }
       set_reminder_send_feedback({ channel: 'email', phase: 'success' });
@@ -232,7 +231,7 @@ export function BookingDetailsWithActions({
       }, 2000);
     } catch (e: unknown) {
       set_reminder_send_feedback(null);
-      set_alert_message(
+      toast.error(
         e instanceof Error ? e.message : 'Could not send email reminder.'
       );
     }
@@ -258,7 +257,7 @@ export function BookingDetailsWithActions({
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         set_reminder_send_feedback(null);
-        set_alert_message(json?.error || 'Could not send WhatsApp reminder.');
+        toast.error(json?.error || 'Could not send WhatsApp reminder.');
         return;
       }
       set_reminder_send_feedback({ channel: 'whatsapp', phase: 'success' });
@@ -267,7 +266,7 @@ export function BookingDetailsWithActions({
       }, 2000);
     } catch (e: unknown) {
       set_reminder_send_feedback(null);
-      set_alert_message(
+      toast.error(
         e instanceof Error ? e.message : 'Could not send WhatsApp reminder.'
       );
     }
@@ -362,13 +361,13 @@ export function BookingDetailsWithActions({
             return;
           }
           set_dt_mode(null);
-          set_alert_message('Follow-up booking created.');
+          toast.success('Follow-up booking created.');
         } else {
           set_saving_patch(true);
           const updated = await patch_booking_json({ ...payload });
           if (updated) setBooking(updated);
           set_dt_mode(null);
-          set_alert_message('Booking rescheduled.');
+          toast.success('Booking rescheduled.');
         }
       } catch (e: unknown) {
         if (e instanceof BookingFormSubmitError) {
@@ -432,10 +431,11 @@ export function BookingDetailsWithActions({
           metadata: meta,
         });
         if (updated) setBooking(updated);
+        toast.success('Booking details saved successfully.');
       } catch (e: unknown) {
         const message =
           e instanceof Error ? e.message : 'Could not save booking details.';
-        set_alert_message(message);
+        toast.error(message);
         throw e instanceof Error ? e : new Error(message);
       } finally {
         set_saving_patch(false);
@@ -457,10 +457,11 @@ export function BookingDetailsWithActions({
           invitee_phone: payload.invitee_phone.trim() || null,
         });
         if (updated) setBooking(updated);
+        toast.success('Invitee updated successfully.');
       } catch (e: unknown) {
         const message =
           e instanceof Error ? e.message : 'Could not save invitee.';
-        set_alert_message(message);
+        toast.error(message);
         throw e instanceof Error ? e : new Error(message);
       } finally {
         set_saving_patch(false);
@@ -494,7 +495,7 @@ export function BookingDetailsWithActions({
       return true;
     } catch (e: unknown) {
       set_quick_action_feedback(null);
-      set_alert_message(e instanceof Error ? e.message : 'Update failed.');
+      toast.error(e instanceof Error ? e.message : 'Update failed.');
       return false;
     } finally {
       set_saving_patch(false);
@@ -506,10 +507,11 @@ export function BookingDetailsWithActions({
       set_saving_patch(true);
       await patch_booking_json({ status: 'deleted' });
       set_delete_confirm_open(false);
+      toast.success('Booking deleted successfully.');
       router.push('/bookings');
     } catch (e: unknown) {
       set_delete_confirm_open(false);
-      set_alert_message(e instanceof Error ? e.message : 'Could not delete booking.');
+      toast.error(e instanceof Error ? e.message : 'Could not delete booking.');
     } finally {
       set_saving_patch(false);
     }
@@ -637,7 +639,7 @@ export function BookingDetailsWithActions({
                     type="button"
                     className="text-xs text-indigo-600 underline"
                     onClick={() =>
-                      set_alert_message(
+                      toast.info(
                         'Enable WhatsApp for admin or invitees on the Notifications page.'
                       )
                     }
@@ -702,12 +704,6 @@ export function BookingDetailsWithActions({
         />
       )}
 
-      {alert_message !== null && alert_message !== '' && (
-        <AlertModal
-          message={alert_message}
-          onClose={() => set_alert_message(null)}
-        />
-      )}
     </>
   );
 }

@@ -8,7 +8,7 @@ import {
   LuX as X,
 } from "react-icons/lu";
 import { supabase } from "@/lib/supabaseClient";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import {
   classNames,
   PanelSection,
@@ -82,7 +82,6 @@ export function AddExceptionPanel({
   const isEdit = Boolean(exception?.id);
   const [panelAnimatedOpen, setPanelAnimatedOpen] = useState(false);
   const [busyAction, setBusyAction] = useState(false);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [exceptionDate, setExceptionDate] = useState("");
@@ -170,19 +169,19 @@ export function AddExceptionPanel({
 
   const handleSave = async () => {
     if (!name.trim()) {
-      setAlertMessage("Exception name is required.");
+      toast.error("Exception name is required.");
       return;
     }
     if (!exceptionDate) {
-      setAlertMessage("Date is required.");
+      toast.error("Date is required.");
       return;
     }
     if (availabilityType !== "closed" && (!startTime || !endTime)) {
-      setAlertMessage("Start time and end time are required.");
+      toast.error("Start time and end time are required.");
       return;
     }
     if (availabilityType !== "closed" && startTime >= endTime) {
-      setAlertMessage("End time must be after start time.");
+      toast.error("End time must be after start time.");
       return;
     }
 
@@ -193,7 +192,7 @@ export function AddExceptionPanel({
       } = await supabase.auth.getSession();
       const token = session?.access_token;
       if (!token) {
-        setAlertMessage("Please sign in again.");
+        toast.error("Please sign in again.");
         return;
       }
 
@@ -225,7 +224,7 @@ export function AddExceptionPanel({
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setAlertMessage(
+        toast.error(
           typeof data.error === "string" ? data.error : "Failed to save exception."
         );
         return;
@@ -234,10 +233,13 @@ export function AddExceptionPanel({
       if (data.exception) {
         onSaved?.(data.exception as date_exception);
       }
+      toast.success(
+        isEdit ? "Date exception updated successfully." : "Date exception added successfully."
+      );
       handleClose();
     } catch (error) {
       console.error("Error saving date exception:", error);
-      setAlertMessage("Failed to save exception.");
+      toast.error("Failed to save exception.");
     } finally {
       setBusyAction(false);
     }
@@ -501,9 +503,6 @@ export function AddExceptionPanel({
         ) : null}
       </aside>
 
-      {alertMessage ? (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      ) : null}
     </>
   );
 }

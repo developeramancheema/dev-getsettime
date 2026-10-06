@@ -24,7 +24,7 @@ import {
 } from "react-icons/lu";
 import { Pagination, usePagination } from "@app/ui";
 import { supabase } from "@/lib/supabaseClient";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 import { PortalActionsMenu } from "@/src/components/ui/PortalActionsMenu";
 import {
@@ -191,7 +191,6 @@ export default function ServicesPage() {
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
 
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const currency =
     typeof (general as { currency?: string | null } | undefined)?.currency === "string" &&
@@ -333,7 +332,7 @@ export default function ServicesPage() {
     ) => {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return null;
       }
       const url = query ? `/api/services?${query}` : "/api/services";
@@ -347,7 +346,7 @@ export default function ServicesPage() {
       });
       if (!response.ok) {
         const err = await response.json().catch(() => null);
-        setAlertMessage(err?.error || `Request failed (${response.status})`);
+        toast.error(err?.error || `Request failed (${response.status})`);
         return null;
       }
       return response.json().catch(() => ({}));
@@ -586,11 +585,17 @@ export default function ServicesPage() {
     service,
     assignments_synced,
   }: service_form_saved_result) => {
+    toast.success(
+      showEditServiceModal
+        ? `"${service.name}" updated successfully.`
+        : `"${service.name}" added successfully.`
+    );
+
     if (!assignments_synced) {
       setServices((prev) => [service, ...prev]);
       return;
     }
-      await refreshServiceAssignments();
+    await refreshServiceAssignments();
     closeServicePanel();
   };
 
@@ -615,11 +620,13 @@ export default function ServicesPage() {
   const handleDeleteServiceConfirm = async () => {
     if (!serviceToDelete) return;
     const id = serviceToDelete.id;
+    const deletedName = serviceToDelete.name;
     setBusyAction(true);
     const data = await callServicesApi("DELETE", undefined, `id=${id}`);
     setBusyAction(false);
 
     if (data) {
+      toast.success(`"${deletedName}" deleted successfully.`);
       setServices((prev) => prev.filter((s) => s.id !== id));
       setServiceToDelete(null);
     }
@@ -635,7 +642,7 @@ export default function ServicesPage() {
     try {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       if (exists) {
@@ -648,7 +655,7 @@ export default function ServicesPage() {
         );
         if (!del.ok) {
           const err = await del.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${del.status})`);
+          toast.error(err?.error || `Request failed (${del.status})`);
           return;
         }
       } else {
@@ -665,7 +672,7 @@ export default function ServicesPage() {
         });
         if (!post.ok) {
           const err = await post.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${post.status})`);
+          toast.error(err?.error || `Request failed (${post.status})`);
           return;
         }
       }
@@ -688,7 +695,7 @@ export default function ServicesPage() {
     try {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       for (const service of targets) {
@@ -705,7 +712,7 @@ export default function ServicesPage() {
         });
         if (!post.ok) {
           const err = await post.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${post.status})`);
+          toast.error(err?.error || `Request failed (${post.status})`);
           return;
         }
       }
@@ -726,7 +733,7 @@ export default function ServicesPage() {
     try {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       for (const service of targets) {
@@ -739,7 +746,7 @@ export default function ServicesPage() {
         );
         if (!del.ok) {
           const err = await del.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${del.status})`);
+          toast.error(err?.error || `Request failed (${del.status})`);
           return;
         }
       }
@@ -1585,7 +1592,7 @@ export default function ServicesPage() {
             initial_department_id={newFormDepartmentId}
             resolve_department_doctors={doctorsForDepartmentId}
             doctors_loading={doctorPoolLoading}
-            on_error={setAlertMessage}
+            on_error={(message) => toast.error(message)}
             on_cancel={closeServicePanel}
             on_saved={handleServiceSaved}
           />
@@ -1752,9 +1759,6 @@ export default function ServicesPage() {
         />
       )}
 
-      {alertMessage && (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      )}
 
       <AddDepartmentPanel
         open={showAddDepartmentPanel}

@@ -16,6 +16,7 @@ import {
   BookingFormSubmitError,
   throw_if_booking_api_error,
 } from "@/src/utils/bookingFormDuplicateInvitee";
+import { toast } from "@/src/components/ui/toast";
 import type { EventType as BookingFormEventType } from "@/src/types/bookingForm";
 import type { Department, ServiceProvider } from "@/src/types/booking-entities";
 import {
@@ -145,7 +146,6 @@ const BookingForm = ({
   const [additionalDescription, setAdditionalDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [rescheduleSaving, setRescheduleSaving] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
@@ -154,7 +154,6 @@ const BookingForm = ({
   const [datetimeNeedsReview, setDatetimeNeedsReview] = useState(false);
   const [datetimeModalOpen, setDatetimeModalOpen] = useState(false);
   const [seriesScope, setSeriesScope] = useState<'this' | 'series'>('this');
-  const successRef = useRef<HTMLDivElement | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
   const warningRef = useRef<HTMLDivElement | null>(null);
 
@@ -219,12 +218,6 @@ const BookingForm = ({
     formData.start_at,
     formData.end_at,
   ]);
-
-  useEffect(() => {
-    if (success) {
-      successRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [success]);
 
   useEffect(() => {
     if (error) {
@@ -622,12 +615,13 @@ const BookingForm = ({
         }
 
         // The booking row is already persisted at this point; remaining work
-        // (notifications, calendar sync, etc.) runs in the background on the
-        // server, so surface success immediately inside the modal.
-        setSuccess(true);
-        window.setTimeout(() => {
-          onSave();
-        }, 4500);
+        // (notifications, calendar sync, etc.) runs in the background on the server.
+        toast.success(
+          booking
+            ? "Booking updated successfully."
+            : "Booking created successfully."
+        );
+        onSave();
       } catch (err) {
         setError((err as Error).message || "An error occurred");
       } finally {
@@ -874,29 +868,6 @@ const BookingForm = ({
         </div>
       )}
 
-      {success && (
-        <div
-          ref={successRef}
-          className="md:col-span-2 flex items-start gap-2 p-3 bg-green-100 text-green-700 rounded-lg text-sm"
-        >
-          <svg
-            className="mt-0.5 h-4 w-4 shrink-0"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M5 13l4 4L19 7" />
-          </svg>
-          <span>
-            {booking ? "Booking updated successfully." : "Booking created successfully."}{" "}
-          </span>
-        </div>
-      )}
-
       {eventTypeSyncWarnings.length > 0 && (
         <div
           ref={warningRef}
@@ -989,31 +960,6 @@ const BookingForm = ({
             </option>
           ))}
         </select>
-        {booking?.series_id ? (
-          <fieldset className="mt-3">
-            <legend className="mb-1 text-xs font-medium text-slate-600">
-              Apply changes to
-            </legend>
-            <label className="mr-4 inline-flex items-center gap-1.5 text-sm text-slate-700">
-              <input
-                type="radio"
-                name="series_scope"
-                checked={seriesScope === 'this'}
-                onChange={() => setSeriesScope('this')}
-              />
-              This occurrence only
-            </label>
-            <label className="inline-flex items-center gap-1.5 text-sm text-slate-700">
-              <input
-                type="radio"
-                name="series_scope"
-                checked={seriesScope === 'series'}
-                onChange={() => setSeriesScope('series')}
-              />
-              Entire series
-            </label>
-          </fieldset>
-        ) : null}
       </div>
 
       <div>
@@ -1055,6 +1001,32 @@ const BookingForm = ({
             availability. Click the field above to pick a valid slot.
           </p>
         )}
+        
+        {booking?.series_id ? (
+          <fieldset className="mt-3">
+            <legend className="mb-1 text-xs font-medium text-slate-600">
+              Apply changes to
+            </legend>
+            <label className="mr-4 inline-flex items-center gap-1.5 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="series_scope"
+                checked={seriesScope === 'this'}
+                onChange={() => setSeriesScope('this')}
+              />
+              This occurrence only
+            </label>
+            <label className="inline-flex items-center gap-1.5 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="series_scope"
+                checked={seriesScope === 'series'}
+                onChange={() => setSeriesScope('series')}
+              />
+              Entire series
+            </label>
+          </fieldset>
+        ) : null}
       </div>
 
       <div>
@@ -1353,16 +1325,14 @@ const BookingForm = ({
       <div className="md:col-span-2 flex justify-end gap-2 mt-2">
         <button
           type="submit"
-          disabled={loading || success || hasEventTypeSyncIssues}
+          disabled={loading || hasEventTypeSyncIssues}
           className="px-5 py-2.5 cursor-pointer rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium disabled:opacity-50"
         >
-          {success
-            ? "Saved"
-            : loading
-              ? "Saving..."
-              : booking
-                ? "Update Booking"
-                : "Create Booking"}
+          {loading
+            ? "Saving..."
+            : booking
+              ? "Update Booking"
+              : "Create Booking"}
         </button>
       </div>
     </form>

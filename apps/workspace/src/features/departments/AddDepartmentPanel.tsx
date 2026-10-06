@@ -12,7 +12,7 @@ import {
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 import { supabase } from "@/lib/supabaseClient";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import {
   DEFAULT_DEPARTMENT_COLOR,
   type department_color_id,
@@ -101,7 +101,6 @@ export function AddDepartmentPanel({
 
   const [panelAnimatedOpen, setPanelAnimatedOpen] = useState(false);
   const [busyAction, setBusyAction] = useState(false);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const [departments, setDepartments] = useState<workspace_department[]>([]);
   const [workspaceServices, setWorkspaceServices] = useState<workspace_service[]>(
@@ -316,7 +315,7 @@ export function AddDepartmentPanel({
     async (userId: string, departmentId: number) => {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return false;
       }
       const res = await fetch("/api/user-departments", {
@@ -332,7 +331,7 @@ export function AddDepartmentPanel({
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        setAlertMessage(err?.error || `Request failed (${res.status})`);
+        toast.error(err?.error || `Request failed (${res.status})`);
         return false;
       }
       return true;
@@ -356,7 +355,7 @@ export function AddDepartmentPanel({
           const message: string = err?.error || "";
           // An already-existing assignment is fine; anything else is a failure.
           if (!message.toLowerCase().includes("duplicate")) {
-            setAlertMessage(
+            toast.error(
               message || `Failed to assign consultant to service (${res.status})`
             );
             return false;
@@ -378,7 +377,7 @@ export function AddDepartmentPanel({
 
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return false;
       }
 
@@ -409,7 +408,7 @@ export function AddDepartmentPanel({
           });
           if (!response.ok) {
             const err = await response.json().catch(() => null);
-            setAlertMessage(
+            toast.error(
               err?.error || `Failed to create service (${response.status})`
             );
             return false;
@@ -422,7 +421,7 @@ export function AddDepartmentPanel({
         }
 
         if (!serviceId) {
-          setAlertMessage(`Failed to resolve service id for "${trimmedName}"`);
+          toast.error(`Failed to resolve service id for "${trimmedName}"`);
           return false;
         }
 
@@ -477,7 +476,7 @@ export function AddDepartmentPanel({
       try {
         const token = await getAuthToken();
         if (!token) {
-          setAlertMessage("Not authenticated");
+          toast.error("Not authenticated");
           return null;
         }
 
@@ -520,7 +519,7 @@ export function AddDepartmentPanel({
 
           if (!response.ok) {
             const err = await response.json().catch(() => null);
-            setAlertMessage(err?.error || `Request failed (${response.status})`);
+            toast.error(err?.error || `Request failed (${response.status})`);
             return null;
           }
 
@@ -528,7 +527,10 @@ export function AddDepartmentPanel({
             department?: { id: number; name: string };
           } | null;
 
-          if (!data?.department?.id) return null;
+          if (!data?.department?.id) {
+            toast.error("Failed to create department.");
+            return null;
+          }
           deptId = data.department.id;
           deptName = data.department.name;
         }
@@ -547,7 +549,7 @@ export function AddDepartmentPanel({
           if (!alreadyLinked) {
             const ok = await linkUserToDepartment(userId, deptId);
             if (!ok) {
-              setAlertMessage("Failed to link provider to department");
+              toast.error("Failed to link provider to department");
               return { id: deptId, name: deptName };
             }
           }
@@ -594,6 +596,7 @@ export function AddDepartmentPanel({
     if (suggestionShowsAsSelected(name)) return;
     const created = await createDepartment(name);
     if (!created) return;
+    toast.success(`"${created.name}" added successfully.`);
     onCreated?.(created);
     if (isLoggedInServiceProvider) handleClose();
   };
@@ -616,6 +619,7 @@ export function AddDepartmentPanel({
       color: departmentColor,
     });
     if (!created) return;
+    toast.success(`"${created.name}" added successfully.`);
     onCreated?.(created);
     handleClose();
   };
@@ -1073,9 +1077,6 @@ export function AddDepartmentPanel({
         )}
       </aside>
 
-      {alertMessage && (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      )}
     </>
   );
 }

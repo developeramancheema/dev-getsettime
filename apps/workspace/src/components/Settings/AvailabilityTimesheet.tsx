@@ -15,6 +15,7 @@ import { convertWallClockHHmm } from '@/src/utils/timezone';
 import { sync_settings_response } from '@/src/lib/workspace_shell_sync';
 import type { WorkspaceSettings } from '@/src/types/workspace';
 import ScreenGate from "@/src/components/ScreenGate";
+import { toast } from "@/src/components/ui/toast";
 
 type DayName = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -267,7 +268,6 @@ const AvailabilityTimesheet = forwardRef<
   const [isLoading, setIsLoading] = useState(!hasInitialData);
   const [isSaving, setIsSaving] = useState(false);
   const [savingDay, setSavingDay] = useState<DayName | null>(null);
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [daySaveFeedback, setDaySaveFeedback] = useState<
     Partial<Record<DayName, { type: 'success' | 'error'; text: string }>>
   >({});
@@ -574,9 +574,10 @@ const AvailabilityTimesheet = forwardRef<
         setTimeout(() => onSaveFeedback(null), clearAfterMs);
       }
     } else {
-      setSaveMessage(payload);
-      if (clearAfterMs !== undefined && clearAfterMs > 0) {
-        setTimeout(() => setSaveMessage(null), clearAfterMs);
+      if (payload.type === 'success') {
+        toast.success(payload.text);
+      } else {
+        toast.error(payload.text);
       }
     }
   };
@@ -684,7 +685,6 @@ const AvailabilityTimesheet = forwardRef<
 
   const handleSave = async (): Promise<boolean> => {
     setIsSaving(true);
-    setSaveMessage(null);
     onSaveFeedback?.(null);
 
     try {
@@ -1861,17 +1861,6 @@ const AvailabilityTimesheet = forwardRef<
         ) : null}
       </aside>
 
-      {saveMessage && !onSaveFeedback && (
-        <div
-          className={`mt-6 p-4 rounded-lg text-sm font-medium ${
-            saveMessage.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
-          }`}
-        >
-          {saveMessage.text}
-        </div>
-      )}
     </>
   );
 });

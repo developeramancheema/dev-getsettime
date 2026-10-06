@@ -312,8 +312,14 @@ export function ServiceFormPanel({
 
   const handle_save = async () => {
     const trimmed_name = name.trim();
-    if (!trimmed_name) return;
-    if (!is_edit && department_id == null) return;
+    if (!trimmed_name) {
+      on_error("Service name is required.");
+      return;
+    }
+    if (!is_edit && department_id == null) {
+      on_error("Please select a department.");
+      return;
+    }
     if (is_edit && !service) return;
 
     if (conflicting_names.has(trimmed_name.toLowerCase())) {
@@ -359,7 +365,12 @@ export function ServiceFormPanel({
             status,
           });
 
-      if (!data?.service) return;
+      if (!data?.service) {
+        on_error(
+          is_edit ? "Failed to update service." : "Failed to create service."
+        );
+        return;
+      }
       const saved_service = data.service;
 
       const assignments_synced = await sync_doctor_assignments(

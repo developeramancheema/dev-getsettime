@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isUnlimitedBookingLimit } from './booking_limit';
 import { getWorkspacePlanSnapshot } from './plans';
+import { countWorkspaceAdminSeatsUsed } from './admin_count';
 import { countWorkspaceServiceProviders } from './service_provider_count';
 import type {
   booking_limit_period,
@@ -100,13 +101,14 @@ export function buildWorkspaceUsage(
   counts: {
     bookings_used: number;
     service_provider_count: number;
+    admin_count: number;
     location_count?: number;
   }
 ): workspace_usage {
   const booking_limit = snapshot.plan.booking_limit;
   const booking_limit_period = snapshot.plan.booking_limit_period;
   const unlimited_bookings = isUnlimitedBookingLimit(booking_limit);
-  const { bookings_used, service_provider_count } = counts;
+  const { bookings_used, service_provider_count, admin_count } = counts;
   const location_count = counts.location_count ?? 0;
 
   const booking_percent_used = unlimited_bookings
@@ -123,6 +125,8 @@ export function buildWorkspaceUsage(
     booking_percent_used,
     service_provider_count,
     service_provider_limit: snapshot.plan.service_provider_limit,
+    admin_count,
+    admin_limit: snapshot.plan.admin_limit,
     location_count,
     booking_warning_threshold:
       !unlimited_bookings && booking_percent_used >= BOOKING_WARNING_PERCENT,
@@ -139,15 +143,18 @@ export async function getWorkspaceUsage(
     snapshotOverride ?? (await getWorkspacePlanSnapshot(supabaseAdmin, workspaceId));
   const period = snapshot.plan.booking_limit_period;
 
-  const [bookings_used, service_provider_count, location_count] = await Promise.all([
-    countBookingsForPlanLimit(supabaseAdmin, workspaceId, period),
-    countWorkspaceServiceProviders(supabaseAdmin, workspaceId),
-    countWorkspaceLocations(supabaseAdmin, workspaceId),
-  ]);
+  const [bookings_used, service_provider_count, admin_count, location_count] =
+    await Promise.all([
+      countBookingsForPlanLimit(supabaseAdmin, workspaceId, period),
+      countWorkspaceServiceProviders(supabaseAdmin, workspaceId),
+      countWorkspaceAdminSeatsUsed(supabaseAdmin, workspaceId),
+      countWorkspaceLocations(supabaseAdmin, workspaceId),
+    ]);
 
   return buildWorkspaceUsage(snapshot, {
     bookings_used,
     service_provider_count,
+    admin_count,
     location_count,
   });
 }
