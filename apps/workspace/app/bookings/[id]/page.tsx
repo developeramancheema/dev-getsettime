@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -94,7 +95,7 @@ export default function BookingDetailsPage() {
     }
     set_fetch_state({ status: 'loading' });
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       set_fetch_state({ status: 'error', message: 'Not authenticated' });
       return;
@@ -179,7 +180,7 @@ export default function BookingDetailsPage() {
   const handle_delete_confirm = useCallback(async () => {
     if (fetch_state.status !== 'ready') return;
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       set_delete_confirm_open(false);
       toast.error('Not authenticated');

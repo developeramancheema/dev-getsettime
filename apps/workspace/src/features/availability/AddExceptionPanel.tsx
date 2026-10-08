@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useState } from "react";
 import {
   LuCalendar as Calendar,
@@ -187,9 +188,7 @@ export function AddExceptionPanel({
 
     setBusyAction(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
       if (!token) {
         toast.error("Please sign in again.");

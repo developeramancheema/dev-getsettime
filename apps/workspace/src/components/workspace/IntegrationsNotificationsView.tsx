@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -480,10 +481,7 @@ export function IntegrationsNotificationsView() {
 
   const fetchIntegrations = async () => {
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       const response = await fetch("/api/integrations/status", {
@@ -557,10 +555,7 @@ export function IntegrationsNotificationsView() {
     if (!user) return;
 
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) return;
 
@@ -653,10 +648,7 @@ export function IntegrationsNotificationsView() {
   const handleConnect = async (type: "google" | "zoom") => {
     setActionLoading(type);
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       const response = await fetch(`/api/integrations/${type}/connect`, {
@@ -697,10 +689,7 @@ export function IntegrationsNotificationsView() {
     setDisconnectConfirm(null);
 
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       const response = await fetch("/api/integrations/disconnect", {

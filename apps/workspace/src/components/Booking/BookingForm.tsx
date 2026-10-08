@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { type Booking, BOOKING_STATUSES } from "@/src/types/booking";
@@ -526,7 +527,7 @@ const BookingForm = ({
       setError(null);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
 
         if (!session?.access_token) {
           throw new Error("Not authenticated");
@@ -777,9 +778,7 @@ const BookingForm = ({
       setRescheduleDuplicatePreviewPath(null);
 
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token) throw new Error("Not authenticated");
 
         const existingMetadata = booking.metadata ?? {};

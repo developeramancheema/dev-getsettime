@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { filterBookableEventTypes } from '@/src/utils/bookingFormUtils';
@@ -31,7 +32,7 @@ export function useEventTypes() {
     let cancelled = false;
 
     const run = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setLoading(false);
         return;
@@ -113,7 +114,7 @@ export function useServices() {
     let cancelled = false;
 
     const run = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setLoading(false);
         return;
@@ -153,9 +154,7 @@ export function useUserServices() {
   const [loading, setLoading] = useState(true);
 
   const fetchRows = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       setRows([]);
       setLoading(false);
@@ -212,9 +211,7 @@ export function useUserDepartments() {
   const [loading, setLoading] = useState(true);
 
   const fetchRows = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       setRows([]);
       setLoading(false);

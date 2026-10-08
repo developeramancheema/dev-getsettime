@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   LuBadgeCheck,
@@ -433,7 +434,7 @@ export default function TeamMembersPage() {
 
   const fetchDepartments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) return;
 
       const response = await fetch('/api/departments', {
@@ -453,7 +454,7 @@ export default function TeamMembersPage() {
 
   const loadProviderCatalogDepartments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) return;
 
       const headers = { Authorization: `Bearer ${session.access_token}` };
@@ -584,7 +585,7 @@ export default function TeamMembersPage() {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
         toast.error("Not authenticated");
         setLoading(false);
@@ -740,7 +741,7 @@ export default function TeamMembersPage() {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
         toast.error("Not authenticated");
         setLoading(false);
@@ -871,7 +872,7 @@ export default function TeamMembersPage() {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
         toast.error("Not authenticated");
         setConfirmModal(null);
@@ -929,7 +930,7 @@ export default function TeamMembersPage() {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
         toast.error("Not authenticated");
         setLoading(false);

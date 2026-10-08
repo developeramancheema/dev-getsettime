@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../src/providers/AuthProvider";
@@ -71,9 +72,7 @@ export default function ProfileCreative({ }) {
   );
 
   const getAuthToken = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     return session?.access_token ?? null;
   }, []);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   LuCheck as Check,
@@ -70,9 +71,7 @@ const PANEL_SELECT_CLASS =
   "w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-9 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
 async function get_access_token(): Promise<string | null> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { session } = await getWorkspaceSession();
   return session?.access_token ?? null;
 }
 

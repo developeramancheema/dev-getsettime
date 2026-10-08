@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from '@/src/lib/auth_session';
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,7 +47,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const {
     general,
     loading: loadingSettings,
@@ -58,7 +59,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
 
   const accountName =
     workspaceName?.trim() || general.accountName || "GetSetTime";
-  const currentBillingPlan = subscriptionData?.plan?.name?.trim() || "Billing";
+  const currentBillingPlan = subscriptionData?.plan?.name?.trim() || "...";
   
   const handleSignOut = async () => {
     await signOutWithAuthLog("manual");
@@ -98,27 +99,14 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
   }, []);
 
   useEffect(() => {
-    if (!isNotificationOpen) return;
+    if (!isNotificationOpen || !accessToken) return;
     let alive = true;
 
     const loadNotifications = async () => {
       setNotificationsLoading(true);
       setNotificationsError(null);
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session?.access_token) {
-          if (alive) setNotifications([]);
-          return;
-        }
-
-        const response = await fetch("/api/activity", {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+        const response = await authFetch("/api/activity");
 
         if (!response.ok) {
           const body = await response.json().catch(() => ({}));
@@ -145,7 +133,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
       alive = false;
       window.clearInterval(interval);
     };
-  }, [isNotificationOpen]);
+  }, [isNotificationOpen, accessToken]);
 
   // Prevent clicks inside the dropdown from closing it
   const handleDropdownClick = (e: React.MouseEvent) => {

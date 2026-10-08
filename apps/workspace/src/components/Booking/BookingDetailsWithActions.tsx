@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -148,7 +149,7 @@ export function BookingDetailsWithActions({
 
   const patch_booking_json = useCallback(
     async (body: Record<string, unknown>) => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) throw new Error('Not authenticated');
       const res = await fetch('/api/bookings', {
         method: 'PATCH',
@@ -209,7 +210,7 @@ export function BookingDetailsWithActions({
     }
     set_reminder_send_feedback({ channel: 'email', phase: 'loading' });
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) throw new Error('Not authenticated');
       const res = await fetch(`/api/bookings/${booking.id}/send-reminder`, {
         method: 'POST',
@@ -244,7 +245,7 @@ export function BookingDetailsWithActions({
     }
     set_reminder_send_feedback({ channel: 'whatsapp', phase: 'loading' });
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) throw new Error('Not authenticated');
       const res = await fetch(`/api/bookings/${booking.id}/send-reminder`, {
         method: 'POST',
@@ -293,7 +294,7 @@ export function BookingDetailsWithActions({
       try {
         if (mode_now === 'follow_up') {
           set_saving_follow(true);
-          const { data: { session } } = await supabase.auth.getSession();
+          const { session } = await getWorkspaceSession();
           if (!session?.access_token) throw new Error('Not authenticated');
 
           const baseMeta =

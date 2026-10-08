@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { LuCheck, LuChevronDown, LuCopy, LuGem, LuInfo, LuPlus, LuRefreshCw, LuUsers, LuUser } from "react-icons/lu";
 import {
@@ -585,9 +586,7 @@ export function EventTypeFormLayout({
   const load_department_and_service_lookups = useCallback(async () => {
     set_lookups_loading(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token || !lookups_mounted_ref.current) return;
 
       const headers = { Authorization: `Bearer ${session.access_token}` };

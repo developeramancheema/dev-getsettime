@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/src/lib/auth_session';
 import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { useWorkspaceSettings } from '../../hooks/useWorkspaceSettings';
 import { useBookingFormData } from '../../hooks/useBookingFormData';
@@ -102,7 +103,7 @@ const MultiStepBookingForm = ({
   onCancel,
 }: MultiStepBookingFormProps) => {
   const { general, settings, loading: loadingSettings, bookingStepOrder } = useWorkspaceSettings();
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const parsed_step_order = useMemo(
     () => parse_booking_step_order(bookingStepOrder),
     [bookingStepOrder]
@@ -226,6 +227,7 @@ const MultiStepBookingForm = ({
     selectedProvider,
     selectedType,
     lockEventTypeCatalog: event_type_before_department && !!selectedType,
+    eventTypeBeforeDepartment: event_type_before_department,
     days,
     intakeForm,
     onAvailabilityChange,
@@ -312,8 +314,16 @@ const MultiStepBookingForm = ({
 
   const department_step_ready = department_step_is_ready(step_order, selectedType);
 
+  const event_type_context_ready = event_type_step_is_ready(step_order, {
+    departmentsCount: departments.length,
+    hasSelectedDepartment: !!selectedDepartment,
+    showProviderPicker,
+    hasSelectedProvider: !!selectedProvider,
+  });
+
   useAutoSelectSoleBookingOptions({
     enabled: !disableAutoAdvance && department_step_ready,
+    autoSelectEventTypeEnabled: !disableAutoAdvance && event_type_context_ready,
     loadingDepartments,
     departments,
     selectedDepartment,
@@ -332,12 +342,7 @@ const MultiStepBookingForm = ({
     eventTypes: sortedEventTypes,
     selectedType,
     setSelectedType,
-    eventTypeContextReady: event_type_step_is_ready(step_order, {
-      departmentsCount: departments.length,
-      hasSelectedDepartment: !!selectedDepartment,
-      showProviderPicker,
-      hasSelectedProvider: !!selectedProvider,
-    }),
+    eventTypeContextReady: event_type_context_ready,
   });
 
   const step_states = useBookingStepStates({
@@ -727,9 +732,7 @@ const MultiStepBookingForm = ({
     clearFormError();
 
     try {
-      const { supabase } = await import('@/lib/supabaseClient');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('Not authenticated');
+      if (!accessToken) throw new Error('Not authenticated');
 
       let bookingStatus = 'pending';
       if (resolvedNotifications?.['auto-confirm-booking'] === true) {
@@ -856,9 +859,9 @@ const MultiStepBookingForm = ({
             ? selectedProvider!.id
             : workspaceOwnerUserId ?? null;
 
-      const res = await fetch('/api/bookings', {
+      const res = await authFetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event_type_id: selectedType.id,
           service_provider_id,

@@ -1,6 +1,8 @@
 'use client';
 
+import { authFetch } from '@/src/lib/auth_session';
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useAuth } from '@/src/providers/AuthProvider';
 import { useWorkspaceUsers } from '@/src/providers/WorkspaceUsersProvider';
 import type {
   AvailabilitySettings,
@@ -66,6 +68,8 @@ interface UseBookingFormDataParams {
   onAvailabilityChange?: () => void;
   /** Locks fetch scope to this provider (e.g. reschedule / admin edit modal). */
   fixedServiceProviderId?: string | null;
+  /** When true, event types are shown before department/provider selection. */
+  eventTypeBeforeDepartment?: boolean;
 }
 
 export function useBookingFormData({
@@ -78,7 +82,9 @@ export function useBookingFormData({
   intakeForm,
   onAvailabilityChange,
   fixedServiceProviderId = null,
+  eventTypeBeforeDepartment = false,
 }: UseBookingFormDataParams) {
+  const { accessToken } = useAuth();
   const eventTypeForFetch = schedulingEventType ?? selectedType;
   const {
     settings: workspaceSettings,
@@ -173,7 +179,7 @@ export function useBookingFormData({
   }, [selectedDepartment, workspaceMembers, selectedType]);
 
   const showProviderPicker = useMemo(
-    () => providersActingInDepartment.length > 0,
+    () => providersActingInDepartment.length > 1,
     [providersActingInDepartment]
   );
 
@@ -181,11 +187,11 @@ export function useBookingFormData({
     const fixed = fixedServiceProviderId?.trim();
     if (fixed) return fixed;
     if (!selectedDepartment) return null;
-    if (!showProviderPicker) return workspaceOwnerUserId;
     if (selectedProvider?.id) return selectedProvider.id;
     if (providersActingInDepartment.length === 1) {
       return providersActingInDepartment[0].id;
     }
+    if (!showProviderPicker) return workspaceOwnerUserId;
     return null;
   }, [
     fixedServiceProviderId,
@@ -207,7 +213,12 @@ export function useBookingFormData({
   );
 
   const bookableEventTypes = useMemo(() => {
-    if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
+    if (
+      needsExplicitProvider &&
+      !effectiveProviderId &&
+      !lockEventTypeCatalog &&
+      !eventTypeBeforeDepartment
+    ) {
       return [];
     }
     const provider_scope_id = lockEventTypeCatalog ? null : effectiveProviderId;
@@ -227,20 +238,15 @@ export function useBookingFormData({
     needsExplicitProvider,
     lockEventTypeCatalog,
     selectedType,
+    eventTypeBeforeDepartment,
   ]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     const fetchInitial = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-
-        const departmentsResponse = await fetch('/api/departments', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const departmentsResponse = await authFetch('/api/departments');
 
         if (departmentsResponse.ok) {
           const departmentsResult = await departmentsResponse.json();
@@ -253,7 +259,7 @@ export function useBookingFormData({
       }
     };
     fetchInitial();
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     if (!selectedDepartment) {
@@ -267,11 +273,20 @@ export function useBookingFormData({
 
   useEffect(() => {
     eventTypesCatalogLoadedRef.current = false;
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
-    if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
-      setEventTypes([]);
+    if (!accessToken) return;
+
+    if (
+      needsExplicitProvider &&
+      !effectiveProviderId &&
+      !lockEventTypeCatalog &&
+      !eventTypeBeforeDepartment
+    ) {
+      // Keep any catalog already fetched; bookableEventTypes hides the list until
+      // a provider is chosen. Do not wipe state here — that caused empty UI after
+      // a successful /api/event-types response (see booking form HAR traces).
       setLoadingEventTypes(false);
       return;
     }
@@ -281,22 +296,13 @@ export function useBookingFormData({
     const fetchEventTypes = async () => {
       if (!cancelled) setLoadingEventTypes(true);
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-
         const params = new URLSearchParams();
         if (effectiveProviderId && !lockEventTypeCatalog) {
           params.set('service_provider_id', effectiveProviderId);
         }
         const query = params.toString();
-        const res = await fetch(
-          query ? `/api/event-types?${query}` : '/api/event-types',
-          {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          }
+        const res = await authFetch(
+          query ? `/api/event-types?${query}` : '/api/event-types'
         );
         if (res.ok) {
           const result = await res.json();
@@ -316,8 +322,10 @@ export function useBookingFormData({
       cancelled = true;
     };
   }, [
+    accessToken,
     needsExplicitProvider,
     lockEventTypeCatalog,
+    eventTypeBeforeDepartment,
     lockEventTypeCatalog ? undefined : effectiveProviderId,
   ]);
 
@@ -380,6 +388,8 @@ export function useBookingFormData({
   }, [cachedWorkspaceName, cachedWorkspaceLogo, workspaceSettingsLoading]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     const fetchProviderSettings = async () => {
       if (!effectiveProviderId) {
         setProviderMeetingOptions(undefined);
@@ -387,14 +397,8 @@ export function useBookingFormData({
         return;
       }
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-        const res = await fetch(
-          `/api/settings?service_provider_id=${encodeURIComponent(effectiveProviderId)}`,
-          { headers: { Authorization: `Bearer ${session.access_token}` } }
+        const res = await authFetch(
+          `/api/settings?service_provider_id=${encodeURIComponent(effectiveProviderId)}`
         );
         if (!res.ok) return;
         const result = await res.json();
@@ -405,7 +409,7 @@ export function useBookingFormData({
       }
     };
     fetchProviderSettings();
-  }, [effectiveProviderId]);
+  }, [accessToken, effectiveProviderId]);
 
   const bookingFetchRangeKey = useMemo(() => {
     const providerTimezone = general?.timezone?.trim() || 'UTC';
@@ -427,6 +431,8 @@ export function useBookingFormData({
   }, [days, eventTypeForFetch, general?.timezone]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     const hasReqs = departments.length === 0 || !needsExplicitProvider || effectiveProviderId;
     if (!hasReqs) {
       setExistingBookings([]);
@@ -451,17 +457,10 @@ export function useBookingFormData({
     const fetchBookings = async () => {
       setLoadingBookings(true);
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
         const url = effectiveProviderId
           ? `/api/bookings?start_date=${fmt(rangeStart)}&end_date=${fmt(rangeEnd)}&service_provider_id=${effectiveProviderId}`
           : `/api/bookings?start_date=${fmt(rangeStart)}&end_date=${fmt(rangeEnd)}`;
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await authFetch(url);
         if (cancelled) return;
         if (res.ok) {
           const result = await res.json();
@@ -526,6 +525,7 @@ export function useBookingFormData({
       window.clearTimeout(timer);
     };
   }, [
+    accessToken,
     bookingFetchRangeKey,
     effectiveProviderId,
     departments.length,
@@ -536,6 +536,8 @@ export function useBookingFormData({
   ]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     const hasReqs = departments.length === 0 || !needsExplicitProvider || effectiveProviderId;
     if (!hasReqs) {
       setDateExceptions([]);
@@ -560,11 +562,6 @@ export function useBookingFormData({
     let cancelled = false;
     const fetchExceptions = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
         const params = new URLSearchParams({
           from: fmt(rangeStart),
           to: fmt(rangeEnd),
@@ -574,9 +571,7 @@ export function useBookingFormData({
         if (effectiveProviderId) {
           params.set('provider_id', effectiveProviderId);
         }
-        const res = await fetch(`/api/date-exceptions?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await authFetch(`/api/date-exceptions?${params.toString()}`);
         if (cancelled) return;
         if (res.ok) {
           const result = await res.json();
@@ -596,6 +591,7 @@ export function useBookingFormData({
       window.clearTimeout(timer);
     };
   }, [
+    accessToken,
     bookingFetchRangeKey,
     effectiveProviderId,
     departments.length,
@@ -606,6 +602,8 @@ export function useBookingFormData({
   ]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     if (!isServicesEnabled(intakeForm)) {
       setServices([]);
       return;
@@ -613,14 +611,7 @@ export function useBookingFormData({
     const fetchServices = async () => {
       setLoadingServices(true);
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-        const res = await fetch('/api/services', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await authFetch('/api/services');
         if (res.ok) {
           const data: { services?: Service[] } = await res.json();
           const all = data.services || [];
@@ -633,9 +624,11 @@ export function useBookingFormData({
       }
     };
     fetchServices();
-  }, [intakeForm]);
+  }, [accessToken, intakeForm]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     if (!selectedDepartment || !effectiveProviderId) {
       setProviderScopedCatalogServices([]);
       setProviderScopedCatalogSettled(false);
@@ -649,18 +642,10 @@ export function useBookingFormData({
 
     const fetchScoped = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
         const [svcRes, linkRes] = await Promise.all([
-          fetch('/api/services', {
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          }),
-          fetch(
-            `/api/user-services?user_id=${encodeURIComponent(effectiveProviderId)}`,
-            { headers: { Authorization: `Bearer ${session.access_token}` } }
+          authFetch('/api/services'),
+          authFetch(
+            `/api/user-services?user_id=${encodeURIComponent(effectiveProviderId)}`
           ),
         ]);
         if (!svcRes.ok) return;
@@ -686,7 +671,7 @@ export function useBookingFormData({
       }
     };
     fetchScoped();
-  }, [selectedDepartment, effectiveProviderId]);
+  }, [accessToken, selectedDepartment, effectiveProviderId]);
 
   return {
     departments,

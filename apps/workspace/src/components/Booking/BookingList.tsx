@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import Link from "next/link";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
@@ -136,7 +137,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       serviceProviderId: string,
       sort: string
     ) => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) return;
 
       const params = new URLSearchParams({
@@ -171,7 +172,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   );
 
   const fetchWorkspaceBookingStats = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) return;
 
     try {
@@ -277,7 +278,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       if (!deleteConfirmModal) return;
       const id = deleteConfirmModal.id;
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setDeleteConfirmModal(null);
         toast.error("Not authenticated");
@@ -366,7 +367,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       setBulkDeleteConfirm(false);
       toast.error("Not authenticated");
@@ -428,7 +429,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   ]);
 
   const markBookingAsViewed = useCallback(async (bookingId: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) return;
 
     try {

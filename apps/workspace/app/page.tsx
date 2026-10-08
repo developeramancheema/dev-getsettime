@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/src/providers/AuthProvider";
@@ -90,9 +91,7 @@ const Dashboard: React.FC = () => {
     let alive = true;
     const load_integrations = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         const token = session?.access_token;
         if (!token) return;
         const res = await fetch("/api/integrations/status", {

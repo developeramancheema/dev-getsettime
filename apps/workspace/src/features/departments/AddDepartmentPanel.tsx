@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   LuCheck as Check,
@@ -127,9 +128,7 @@ export function AddDepartmentPanel({
   const panelVisible = open || panelAnimatedOpen;
 
   const getAuthToken = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     return session?.access_token ?? null;
   }, []);
 

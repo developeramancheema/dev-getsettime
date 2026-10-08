@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useMemo, useState, useEffect, useRef, useCallback, type FormEvent } from "react";
 import {
   LuCalendarDays as CalendarDays,
@@ -501,7 +502,7 @@ export default function EventTypes() {
 
   const fetchEventTypes = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setLoading(false);
         return;
@@ -561,15 +562,13 @@ export default function EventTypes() {
   };
 
   const handle_slug_blur = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token || !form.slug.trim()) return;
     await verify_slug(session.access_token, form.slug);
   };
 
   const handle_validate_slug = async (): Promise<boolean> => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       set_slug_error("You are not signed in. Please refresh and try again.");
       return false;
@@ -600,7 +599,7 @@ export default function EventTypes() {
     setSubmitting(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setFormError("You are not signed in. Please refresh and try again.");
         return;
@@ -694,7 +693,7 @@ export default function EventTypes() {
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setDeleteConfirmId(null);
         toast.error("Not authenticated");
@@ -765,7 +764,7 @@ export default function EventTypes() {
   const handleDuplicate = async (item: EventType) => {
     if (isStaffUser) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         toast.error("Not authenticated");
         return;
@@ -947,9 +946,7 @@ export default function EventTypes() {
 
     const load_team_members = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token || cancelled) return;
 
         const response = await fetch("/api/team-members", {

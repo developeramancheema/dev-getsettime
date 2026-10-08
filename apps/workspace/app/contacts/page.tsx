@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import {
   useState,
   useEffect,
@@ -238,11 +239,7 @@ export default function ContactsCreative() {
 
       setError(null);
 
-      const { supabase } = await import("@/lib/supabaseClient");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
         setError("Not authenticated");
@@ -363,11 +360,7 @@ export default function ContactsCreative() {
     }
 
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
         set_delete_confirm(null);
@@ -412,11 +405,7 @@ export default function ContactsCreative() {
     try {
       setSubmitting(true);
 
-      const { supabase } = await import("@/lib/supabaseClient");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
         toast.error("Not authenticated");

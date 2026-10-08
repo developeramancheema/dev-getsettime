@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { env } from '@app/config';
+import { inMemoryAuthLock } from './browser_auth_lock';
 
 /**
  * Client-side Supabase client
@@ -17,7 +18,12 @@ export const createSupabaseClient = (): SupabaseClient => {
     throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
   }
 
-  return createClient(supabaseUrl, supabaseKey);
+  return createClient(supabaseUrl, supabaseKey, {
+    auth:
+      typeof window !== 'undefined'
+        ? { lock: inMemoryAuthLock }
+        : undefined,
+  });
 };
 
 /**

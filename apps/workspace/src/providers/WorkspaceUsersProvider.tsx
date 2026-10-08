@@ -50,7 +50,7 @@ export function WorkspaceUsersProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const userId = user?.id ?? null;
   const workspaceIdRaw = user?.user_metadata?.workspace_id;
   const workspaceId =
@@ -75,7 +75,7 @@ export function WorkspaceUsersProvider({
 
   const loadFromNetwork = useCallback(
     async (options?: { showLoading?: boolean; force?: boolean }) => {
-      if (!userId || !cacheKey) {
+      if (!userId || !cacheKey || !accessToken) {
         clearState();
         return;
       }
@@ -86,18 +86,7 @@ export function WorkspaceUsersProvider({
       }
 
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) {
-          if (generation === fetchGenerationRef.current) {
-            clearState();
-          }
-          return;
-        }
-
-        const json = await fetchTeamMembersApi(session.access_token, cacheKey, {
+        const json = await fetchTeamMembersApi(accessToken, cacheKey, {
           force: options?.force,
         });
 
@@ -115,7 +104,7 @@ export function WorkspaceUsersProvider({
         }
       }
     },
-    [cacheKey, clearState, userId]
+    [accessToken, cacheKey, clearState, userId]
   );
 
   useEffect(() => {

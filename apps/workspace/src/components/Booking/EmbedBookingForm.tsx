@@ -312,8 +312,17 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
 
   const department_step_ready = department_step_is_ready(step_order, selectedType);
 
+  const event_type_context_ready = event_type_step_is_ready(step_order, {
+    departmentsCount: departments.length,
+    hasSelectedDepartment: !!selectedDepartment,
+    showProviderPicker,
+    hasSelectedProvider: !!selectedProvider,
+  });
+
   useAutoSelectSoleBookingOptions({
     enabled: !isRescheduleMode && !disableAutoAdvance && department_step_ready,
+    autoSelectEventTypeEnabled:
+      !isRescheduleMode && !disableAutoAdvance && event_type_context_ready,
     loadingDepartments,
     departments,
     selectedDepartment,
@@ -332,12 +341,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     eventTypes: sortedEventTypes,
     selectedType,
     setSelectedType,
-    eventTypeContextReady: event_type_step_is_ready(step_order, {
-      departmentsCount: departments.length,
-      hasSelectedDepartment: !!selectedDepartment,
-      showProviderPicker,
-      hasSelectedProvider: !!selectedProvider,
-    }),
+    eventTypeContextReady: event_type_context_ready,
   });
 
   const step_states = useBookingStepStates({

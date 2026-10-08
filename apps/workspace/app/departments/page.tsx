@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import {
   useCallback,
   useEffect,
@@ -201,9 +202,7 @@ export default function DepartmentsPage() {
   const doctorAssignmentInFlightRef = useRef<Set<string>>(new Set());
 
   const getAuthToken = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     return session?.access_token ?? null;
   }, []);
 

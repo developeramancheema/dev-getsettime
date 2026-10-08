@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "@/src/components/ui/toast";
@@ -190,7 +191,7 @@ export default function RoutingForm({ dark = false }) {
   ): Promise<boolean> => {
     if (isStaffUser) return false;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
         toast.error('Not authenticated');
         return false;

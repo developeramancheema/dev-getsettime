@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
   format,
@@ -413,7 +414,7 @@ export default function Availability() {
     setIsSaving(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) throw new Error('Not authenticated');
 
       const token = session.access_token;
@@ -664,7 +665,7 @@ export default function Availability() {
 
     const loadTeamMembers = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session || cancelled) return;
 
         const token = session.access_token;
@@ -724,8 +725,7 @@ export default function Availability() {
 
     const loadBookings = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const { data: { session } } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         const token = session?.access_token;
 
         let datesToFetch: Date[];
@@ -800,9 +800,7 @@ export default function Availability() {
   }, [calendarMonth]);
 
   const saveTimezone = async (timezone: string) => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) throw new Error("No active session");
 
     const response = await fetch("/api/settings", {
@@ -825,9 +823,7 @@ export default function Availability() {
   const fetchDateExceptions = async () => {
     setDateExceptionsLoading(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) return;
 
       const params = new URLSearchParams({ status: "active", limit: "100" });
@@ -893,9 +889,7 @@ export default function Availability() {
     const deletedName = exceptionPendingDelete.name;
     setExceptionDeleting(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         toast.error("Not authenticated");
         setExceptionPendingDelete(null);
@@ -930,9 +924,7 @@ export default function Availability() {
   const fetchBookingRulesEventTypes = async () => {
     setBookingRulesEventTypesLoading(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) return;
 
       const res = await fetch("/api/event-types", {
@@ -968,9 +960,7 @@ export default function Availability() {
   };
 
   const handleSaveGlobalBookingRules = async (next: booking_rules) => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       throw new Error("You are not signed in. Please refresh and try again.");
     }
@@ -1017,9 +1007,7 @@ export default function Availability() {
       throw new Error("Event type not found.");
     }
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       throw new Error("You are not signed in. Please refresh and try again.");
     }

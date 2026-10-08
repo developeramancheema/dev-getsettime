@@ -1,12 +1,12 @@
 "use client";
 
+import { authFetch } from '@/src/lib/auth_session';
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../providers/AuthProvider";
 import { useWorkspaceSettings } from "../../hooks/useWorkspaceSettings";
 import { WorkspaceBrandLogo } from "../molecules/WorkspaceBrandLogo";
-import { supabase } from "@/lib/supabaseClient";
 
 const PATH_TO_MENU: Record<string, string> = {
   "/": "dashboard",
@@ -51,7 +51,7 @@ export default function Sidebar() {
   const [isDepartmentsSubmenuOpen, setIsDepartmentsSubmenuOpen] = useState(false);
   const [isAdminCenterOpen, setIsAdminCenterOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const {
     loading: loadingConfig,
     workspaceName,
@@ -65,13 +65,10 @@ export default function Sidebar() {
   const [newBookingsCount, setNewBookingsCount] = useState(0);
 
   const fetchNewBookingsCount = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) return;
+    if (!accessToken) return;
 
     try {
-      const res = await fetch('/api/bookings/new-count', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await authFetch('/api/bookings/new-count');
       if (res.ok) {
         const { count } = await res.json();
         setNewBookingsCount(count ?? 0);
@@ -79,7 +76,7 @@ export default function Sidebar() {
     } catch {
       // silently ignore
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     fetchNewBookingsCount();

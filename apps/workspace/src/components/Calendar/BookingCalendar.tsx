@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import ScreenGate from "@/src/components/ScreenGate";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -621,10 +622,7 @@ export default function BookingCalendar() {
       setLoading(true);
       setRawBookings([]);
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
 
         if (!session?.access_token || !active) {
           if (active) setRawBookings([]);

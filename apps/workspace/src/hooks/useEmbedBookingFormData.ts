@@ -12,6 +12,8 @@ import type { IntakeFormSettings, meeting_options_settings } from '@/src/types/w
 import { getAllowedServiceIds, isServicesEnabled } from '@/src/utils/intakeForm';
 import {
   event_type_session_duration_minutes,
+  is_event_type_before_department,
+  parse_booking_step_order,
   resolve_booking_data_fetch_range,
 } from '@/src/features/booking-flow';
 import { userActsAsServiceProviderFromMetadata } from '@/lib/service_provider_role';
@@ -147,17 +149,17 @@ export function useEmbedBookingFormData({
 
   const showProviderPicker = useMemo(() => {
     if (fixedServiceProviderId) return false;
-    return providersActingInDepartment.length > 0;
+    return providersActingInDepartment.length > 1;
   }, [fixedServiceProviderId, providersActingInDepartment]);
 
   const effectiveProviderId = useMemo(() => {
     if (fixedServiceProviderId) return fixedServiceProviderId;
     if (!selectedDepartment) return null;
-    if (!showProviderPicker) return workspaceOwnerUserId;
     if (selectedProvider?.id) return selectedProvider.id;
     if (providersActingInDepartment.length === 1) {
       return providersActingInDepartment[0].id;
     }
+    if (!showProviderPicker) return workspaceOwnerUserId;
     return null;
   }, [
     fixedServiceProviderId,
@@ -174,8 +176,20 @@ export function useEmbedBookingFormData({
     selectedDepartment !== null &&
     showProviderPicker;
 
+  const eventTypeBeforeDepartment = useMemo(() => {
+    if (!bookingStepOrder) return true;
+    const order = parse_booking_step_order(bookingStepOrder);
+    if (!order) return true;
+    return is_event_type_before_department(order);
+  }, [bookingStepOrder]);
+
   const bookableEventTypes = useMemo(() => {
-    if (needsExplicitProvider && !effectiveProviderId && !lockEventTypeCatalog) {
+    if (
+      needsExplicitProvider &&
+      !effectiveProviderId &&
+      !lockEventTypeCatalog &&
+      !eventTypeBeforeDepartment
+    ) {
       return [];
     }
     const provider_scope_id = lockEventTypeCatalog ? null : effectiveProviderId;
@@ -195,6 +209,7 @@ export function useEmbedBookingFormData({
     needsExplicitProvider,
     lockEventTypeCatalog,
     selectedType,
+    eventTypeBeforeDepartment,
   ]);
 
   useEffect(() => {
@@ -305,7 +320,10 @@ export function useEmbedBookingFormData({
     const fetchEventTypes = async () => {
       if (!cancelled) setLoadingEventTypes(true);
       try {
-        const params = new URLSearchParams({ workspace_slug: workspace.slug });
+        const params = new URLSearchParams({
+          workspace_slug: workspace.slug,
+          workspace_id: String(workspace.id),
+        });
         if (effectiveProviderId && !lockEventTypeCatalog) {
           params.set('service_provider_id', effectiveProviderId);
         }
@@ -316,6 +334,8 @@ export function useEmbedBookingFormData({
         if (res.ok) {
           const result = await res.json();
           if (!cancelled) setEventTypes(result.data || []);
+        } else {
+          console.error('Error fetching embed event types:', res.status, await res.text());
         }
       } catch (e) {
         console.error('Error fetching embed event types:', e);
@@ -332,6 +352,7 @@ export function useEmbedBookingFormData({
     };
   }, [
     workspace.slug,
+    workspace.id,
     eventTypeSlug,
     lockEventTypeCatalog,
     lockEventTypeCatalog ? undefined : effectiveProviderId,

@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Department, EventType, Service, ServiceProvider } from '@/src/types/bookingForm';
 import { useBookingFormData } from '@/src/hooks/useBookingFormData';
@@ -259,10 +260,7 @@ export function BookingDetailDatetimeModal({
     let cancelled = false;
     const load = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token || cancelled) return;
         const res = await fetch('/api/services', {
           headers: { Authorization: `Bearer ${session.access_token}` },

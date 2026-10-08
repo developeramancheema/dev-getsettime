@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -434,10 +435,7 @@ export default function SettingsPage() {
 
     setIsUploadingLogo(true);
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       const formData = new FormData();
@@ -486,10 +484,7 @@ export default function SettingsPage() {
 
     setIsUploadingLogo(true);
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       const response = await fetch("/api/settings/logo", {
@@ -557,10 +552,7 @@ export default function SettingsPage() {
     setIsSaving(true);
 
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       if (isServiceProvider && loggedInUserId) {

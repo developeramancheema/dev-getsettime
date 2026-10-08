@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/src/lib/auth_session';
 import React, {
   createContext,
   useContext,
@@ -41,7 +42,7 @@ function resolve_profession_label(w: workspace_shell_workspace): string | null {
 }
 
 export function WorkspaceSettingsProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const userId = user?.id ?? null;
   const userRole =
     typeof user?.user_metadata?.role === 'string' ? user.user_metadata.role : '';
@@ -125,21 +126,15 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
       setError(null);
 
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session?.access_token) {
+        if (!accessToken) {
           clearShellState();
           setLoading(false);
           return;
         }
 
-        const token = session.access_token;
         const [settingsResponse, workspaceResponse] = await Promise.all([
-          fetch('/api/settings', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('/api/workspace', { headers: { Authorization: `Bearer ${token}` } }),
+          authFetch('/api/settings'),
+          authFetch('/api/workspace'),
         ]);
 
         if (!settingsResponse.ok) {
@@ -168,7 +163,7 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
         setLoading(false);
       }
     },
-    [applyShellData, clearShellState]
+    [accessToken, applyShellData, clearShellState]
   );
 
   const applyPatch = useCallback(
@@ -222,8 +217,10 @@ export function WorkspaceSettingsProvider({ children }: { children: React.ReactN
       return;
     }
 
+    if (!accessToken) return;
+
     void fetchFromNetwork(userId, userRole, { showLoading: true });
-  }, [userId, userRole, applyShellData, fetchFromNetwork, clearShellState]);
+  }, [userId, userRole, accessToken, applyShellData, fetchFromNetwork, clearShellState]);
 
   // Same-tab + cross-tab cache updates
   useEffect(() => {

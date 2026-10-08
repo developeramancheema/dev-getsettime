@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   LuClock as Clock,
@@ -418,10 +419,7 @@ const AvailabilityTimesheet = forwardRef<
   };
 
   const persistTimesheet = async (timesheet: Record<DayName, DaySchedule>) => {
-    const { supabase } = await import('@/lib/supabaseClient');
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     const token = session?.access_token;
     const userId = session?.user?.id;
 
@@ -612,8 +610,7 @@ const AvailabilityTimesheet = forwardRef<
       if (workspaceSettings) {
         availability = workspaceSettings.availability as availability_blob | undefined;
       } else {
-        const { supabase } = await import('@/lib/supabaseClient');
-        const { data: { session } } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         const token = session?.access_token;
 
         const response = await fetch('/api/settings', {
