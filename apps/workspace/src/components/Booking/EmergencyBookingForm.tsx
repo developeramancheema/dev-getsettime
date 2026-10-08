@@ -18,6 +18,7 @@ import {
   resolveProviderTimezone,
 } from "@/src/utils/timezone";
 import ScreenGate from "@/src/components/ScreenGate";
+import { toast } from "@/src/components/ui/toast";
 
 
 type IconName =
@@ -112,7 +113,6 @@ export default function EmergencyBookingForm() {
   const [loadingDepts, setLoadingDepts] = useState(true);
   const [loadingProviders, setLoadingProviders] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -290,7 +290,6 @@ export default function EmergencyBookingForm() {
       return n;
     });
     setError(null);
-    setSuccess(false);
   };
 
   useEffect(() => {
@@ -347,7 +346,6 @@ export default function EmergencyBookingForm() {
     }));
     setFieldErrors((e) => ({ ...e, notes: undefined }));
     setError(null);
-    setSuccess(false);
   };
 
   const priorityLabelForApi = (p: PriorityValue) => {
@@ -381,7 +379,6 @@ export default function EmergencyBookingForm() {
     if (!validate()) return;
     setLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
       if (!accessToken) {
@@ -415,7 +412,7 @@ export default function EmergencyBookingForm() {
         throw new Error(errData.error || "Failed to create emergency booking");
       }
 
-      setSuccess(true);
+      toast.success("Emergency booking created successfully.");
       window.dispatchEvent(new Event("bookings-viewed-update"));
       autoSelectDeptDoneRef.current = false;
       autoSelectProviderDoneRef.current = false;
@@ -528,20 +525,6 @@ export default function EmergencyBookingForm() {
             role="alert"
           >
             {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 rounded-[24px] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                <Icon name="check" className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-semibold text-emerald-900">Emergency booking created successfully.</p>
-                <p className="mt-1 text-sm text-emerald-800">The new booking is on your list and ready to assign.</p>
-              </div>
-            </div>
           </div>
         )}
 
