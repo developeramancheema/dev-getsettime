@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import Link from "next/link";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
@@ -31,8 +32,7 @@ import { BookingPreviewPanel } from "./BookingPreviewPanel";
 import { StatusBadge } from "./StatusBadge";
 import { Pagination } from "@app/ui";
 import { BookingTableSkeleton } from "./BookingTableSkeleton";
-import AlertMessage from "@/src/components/Auth/AlertMessage";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 import { PortalActionsMenu } from "@/src/components/ui/PortalActionsMenu";
 import { BOOKINGS_LIST_REFRESH_EVENT } from "@/src/constants/booking";
@@ -91,8 +91,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   const [mobileActionsId, setMobileActionsId] = useState<string | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
-  const [alertModal, setAlertModal] = useState<{ message: string } | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: ITEMS_PER_PAGE,
@@ -139,7 +137,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       serviceProviderId: string,
       sort: string
     ) => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) return;
 
       const params = new URLSearchParams({
@@ -174,7 +172,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   );
 
   const fetchWorkspaceBookingStats = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) return;
 
     try {
@@ -271,12 +269,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [mobileActionsId]);
 
-  useEffect(() => {
-    if (!successMessage) return;
-    const timer = window.setTimeout(() => setSuccessMessage(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [successMessage]);
-
   const handleDeleteClick = useCallback((id: string) => {
     setDeleteConfirmModal({ id });
   }, []);
@@ -286,10 +278,10 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       if (!deleteConfirmModal) return;
       const id = deleteConfirmModal.id;
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setDeleteConfirmModal(null);
-        setAlertModal({ message: "Not authenticated" });
+        toast.error("Not authenticated");
         return;
       }
 
@@ -301,7 +293,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
 
         if (response.ok) {
           setDeleteConfirmModal(null);
-          setSuccessMessage("Booking deleted successfully.");
+          toast.success("Booking deleted successfully.");
           await fetchBookings(
             currentPage,
             debouncedFilter,
@@ -315,12 +307,12 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
         } else {
           const errorData = await response.json();
           setDeleteConfirmModal(null);
-          setAlertModal({ message: errorData.error || "Failed to delete booking" });
+          toast.error(errorData.error || "Failed to delete booking");
         }
       } catch (error) {
         console.error("Error deleting booking:", error);
         setDeleteConfirmModal(null);
-        setAlertModal({ message: "An error occurred while deleting the booking" });
+        toast.error("An error occurred while deleting the booking");
       }
     },
     [
@@ -375,10 +367,10 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       setBulkDeleteConfirm(false);
-      setAlertModal({ message: "Not authenticated" });
+      toast.error("Not authenticated");
       return;
     }
 
@@ -395,7 +387,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       if (response.ok) {
         setBulkDeleteConfirm(false);
         clearSelection();
-        setSuccessMessage(
+        toast.success(
           ids.length === 1
             ? "Booking deleted successfully."
             : `${ids.length} bookings deleted successfully.`
@@ -413,12 +405,12 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
       } else {
         const errorData = await response.json();
         setBulkDeleteConfirm(false);
-        setAlertModal({ message: errorData.error || "Failed to delete bookings" });
+        toast.error(errorData.error || "Failed to delete bookings");
       }
     } catch (error) {
       console.error("Error deleting bookings:", error);
       setBulkDeleteConfirm(false);
-      setAlertModal({ message: "An error occurred while deleting the bookings" });
+      toast.error("An error occurred while deleting the bookings");
     } finally {
       setBulkDeleting(false);
     }
@@ -437,7 +429,7 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
   ]);
 
   const markBookingAsViewed = useCallback(async (bookingId: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) return;
 
     try {
@@ -689,10 +681,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 shadow-xl p-4 space-y-4">
-          {successMessage ? (
-            <AlertMessage type="success" message={successMessage} />
-          ) : null}
-
           {/* Filters card */}
           <div className="relative">
             <BookingFilters
@@ -1105,9 +1093,6 @@ const BookingList = ({ bookings: initialBookings }: BookingListProps) => {
           />
         )}
 
-        {alertModal && (
-          <AlertModal message={alertModal.message} onClose={() => setAlertModal(null)} />
-        )}
       </section>
       <BookingPreviewPanel
         open={preview_booking_id != null}

@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   LuBadgeCheck,
   LuBriefcase,
@@ -30,6 +31,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
+import { toast } from "@/src/components/ui/toast";
 import { UpgradePlanModal } from "@/src/components/Subscription/UpgradePlanModal";
 import {
   useSubscription,
@@ -40,6 +42,7 @@ import {
   TeamMemberCardsSkeleton,
 } from "@/src/components/ui/TeamMemberSkeleton";
 import {
+  ROLE_MANAGER,
   ROLE_SERVICE_PROVIDER,
   ROLE_WORKSPACE_ADMIN,
   SERVICE_PROVIDER_ASSIGNABLE_ADDITIONAL_ROLES,
@@ -48,6 +51,8 @@ import {
 import { splitDepartmentSelectionByName } from "@/lib/invite_department_assignment";
 import { userActsAsServiceProviderFromMetadata } from "@/lib/service_provider_role";
 import ScreenGate from "@/src/components/ScreenGate";
+import { useWorkspaceUsers } from "@/src/providers/WorkspaceUsersProvider";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 
 interface Department {
   id: number;
@@ -110,6 +115,36 @@ function getServiceProviderLimitUpgradeMessage(
 ): string {
   const { service_provider_limit, service_provider_count } = subscription.usage;
   return `Your ${subscription.plan.name} plan allows up to ${service_provider_limit} service providers, and you already have ${service_provider_count}. Upgrade your plan or contact your administrator to add more.`;
+}
+
+function isAdminPlanLimitReached(
+  subscription: SubscriptionApiResponse | null
+): boolean {
+  if (!subscription) return false;
+  return subscription.usage.admin_count >= subscription.usage.admin_limit;
+}
+
+function getAdminLimitUpgradeMessage(
+  subscription: SubscriptionApiResponse
+): string {
+  const { admin_limit, admin_count } = subscription.usage;
+  return `Your ${subscription.plan.name} plan allows up to ${admin_limit} workspace admin${admin_limit === 1 ? "" : "s"}, and you already have ${admin_count} assigned or pending. Upgrade your plan to add more.`;
+}
+
+function teamMemberHasWorkspaceAdminAccess(member: TeamMember): boolean {
+  if (member.deactivated) return false;
+  if (member.role === ROLE_WORKSPACE_ADMIN) return true;
+  return (member.additional_roles ?? []).includes(ROLE_WORKSPACE_ADMIN);
+}
+
+function memberWouldGainWorkspaceAdminAccess(
+  member: TeamMember,
+  formRole: string,
+  formAdditionalRoles: string[]
+): boolean {
+  if (teamMemberHasWorkspaceAdminAccess(member)) return false;
+  if (formRole === ROLE_WORKSPACE_ADMIN) return true;
+  return formAdditionalRoles.includes(ROLE_WORKSPACE_ADMIN);
 }
 
 function getSortedDepartmentIdsForDisplay(
@@ -236,7 +271,12 @@ export default function TeamMembersPage() {
     "Upgrade your plan to add more service providers."
   );
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const {
+    members: workspaceMembers,
+    loading: workspaceMembersLoading,
+    refresh: refreshWorkspaceMembers,
+  } = useWorkspaceUsers();
+  const teamMembers = workspaceMembers as TeamMember[];
   const [departments, setDepartments] = useState<Department[]>([]);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -254,7 +294,7 @@ export default function TeamMembersPage() {
     name: "",
     email: "",
     phone: "",
-    role: ROLE_WORKSPACE_ADMIN,
+    role: ROLE_MANAGER,
     departments: [] as number[],
   });
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
@@ -262,11 +302,7 @@ export default function TeamMembersPage() {
   const [providerSelectedDepartmentNames, setProviderSelectedDepartmentNames] = useState<string[]>([]);
   const [providerInviteUrl, setProviderInviteUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [modalSuccess, setModalSuccess] = useState<string | null>(null);
+  const initialLoading = workspaceMembersLoading;
   const [confirmModal, setConfirmModal] = useState<{
     action: "deactivate" | "activate";
     memberId: string;
@@ -327,7 +363,6 @@ export default function TeamMembersPage() {
   }, [teamMembers, departments, search, statusFilter]);
 
   useEffect(() => {
-    fetchTeamMembers();
     fetchDepartments();
   }, []);
 
@@ -335,35 +370,71 @@ export default function TeamMembersPage() {
     setOpenActionsId(null);
   }, [search, statusFilter, teamMembers]);
 
-  const fetchTeamMembers = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+  const showProviderLimitUpgrade = useCallback((): boolean => {
+    if (!isServiceProviderPlanLimitReached(subscription)) return false;
+    setUpgradeModalMessage(
+      subscription
+        ? getServiceProviderLimitUpgradeMessage(subscription)
+        : "Upgrade your plan to add more service providers."
+    );
+    setUpgradeModalOpen(true);
+    return true;
+  }, [subscription]);
 
-      const response = await fetch('/api/team-members', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
+  const showAdminLimitUpgrade = useCallback((): boolean => {
+    if (!isAdminPlanLimitReached(subscription)) return false;
+    setUpgradeModalMessage(
+      subscription
+        ? getAdminLimitUpgradeMessage(subscription)
+        : "Upgrade your plan to add more workspace admins."
+    );
+    setUpgradeModalOpen(true);
+    return true;
+  }, [subscription]);
 
-      if (response.ok) {
-        const data = await response.json();
-        setTeamMembers(data.teamMembers || []);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to fetch team members');
+  const handleInviteFormChange = useCallback(
+    (data: typeof inviteFormData) => {
+      if (
+        data.role === ROLE_WORKSPACE_ADMIN &&
+        inviteFormData.role !== ROLE_WORKSPACE_ADMIN &&
+        showAdminLimitUpgrade()
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching team members:', error);
-      setError('An error occurred while fetching team members');
-    } finally {
-      setInitialLoading(false);
-    }
-  };
+      setInviteFormData(data);
+    },
+    [inviteFormData.role, showAdminLimitUpgrade]
+  );
+
+  const handleMemberFormChange = useCallback(
+    (data: typeof memberFormData) => {
+      const target = roleModalMember ?? editingMember;
+      if (
+        target &&
+        data.role === ROLE_WORKSPACE_ADMIN &&
+        memberFormData.role !== ROLE_WORKSPACE_ADMIN &&
+        memberWouldGainWorkspaceAdminAccess(
+          target,
+          data.role,
+          data.additional_roles
+        ) &&
+        showAdminLimitUpgrade()
+      ) {
+        return;
+      }
+      setMemberFormData(data);
+    },
+    [
+      roleModalMember,
+      editingMember,
+      memberFormData.role,
+      showAdminLimitUpgrade,
+    ]
+  );
 
   const fetchDepartments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) return;
 
       const response = await fetch('/api/departments', {
@@ -383,7 +454,7 @@ export default function TeamMembersPage() {
 
   const loadProviderCatalogDepartments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) return;
 
       const headers = { Authorization: `Bearer ${session.access_token}` };
@@ -409,6 +480,8 @@ export default function TeamMembersPage() {
   };
 
   const handleNewMember = () => {
+    if (showProviderLimitUpgrade()) return;
+
     setRoleModalMember(null);
     setEditingMember(null);
     setMemberFormData({
@@ -422,10 +495,6 @@ export default function TeamMembersPage() {
     });
     setProviderSelectedDepartmentNames([]);
     setProviderInviteUrl(null);
-    setError(null);
-    setModalError(null);
-    setSuccess(null);
-    setModalSuccess(null);
     setShowInviteForm(false);
     setShowMemberForm(true);
     void loadProviderCatalogDepartments();
@@ -437,14 +506,10 @@ export default function TeamMembersPage() {
       name: "",
       email: "",
       phone: "",
-      role: ROLE_WORKSPACE_ADMIN,
+      role: ROLE_MANAGER,
       departments: [],
     });
     setInviteUrl(null);
-    setError(null);
-    setModalError(null);
-    setSuccess(null);
-    setModalSuccess(null);
     setShowMemberForm(false);
     setShowInviteForm(true);
   };
@@ -462,9 +527,6 @@ export default function TeamMembersPage() {
       additional_roles: member.additional_roles ?? [],
       departments: [...new Set(member.departments ?? [])],
     });
-    setError(null);
-    setSuccess(null);
-    setModalSuccess(null);
   };
 
   const handleRoleModalCancel = () => {
@@ -478,9 +540,6 @@ export default function TeamMembersPage() {
       additional_roles: [],
       departments: [],
     });
-    setError(null);
-    setSuccess(null);
-    setModalSuccess(null);
   };
 
   const handleEditMember = (member: TeamMember) => {
@@ -495,9 +554,6 @@ export default function TeamMembersPage() {
       additional_roles: member.additional_roles ?? [],
       departments: [...new Set(member.departments ?? [])],
     });
-    setError(null);
-    setSuccess(null);
-    setModalSuccess(null);
     setShowMemberForm(true);
   };
 
@@ -516,10 +572,6 @@ export default function TeamMembersPage() {
     });
     setProviderSelectedDepartmentNames([]);
     setProviderInviteUrl(null);
-    setError(null);
-    setModalError(null);
-    setSuccess(null);
-    setModalSuccess(null);
   };
 
   const toggleProviderDepartmentName = (name: string) => {
@@ -531,13 +583,11 @@ export default function TeamMembersPage() {
   const handleProviderInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setModalError(null);
-    setSuccess(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
-        setModalError("Not authenticated");
+        toast.error("Not authenticated");
         setLoading(false);
         return;
       }
@@ -548,20 +598,12 @@ export default function TeamMembersPage() {
       );
 
       if (departmentIds.length === 0 && departmentNames.length === 0) {
-        setModalError("Select at least one department");
+        toast.error("Select at least one department");
         setLoading(false);
         return;
       }
 
-      if (
-        subscription &&
-        subscription.usage.service_provider_count >=
-          subscription.usage.service_provider_limit
-      ) {
-        setUpgradeModalMessage(
-          `You have reached the limit of ${subscription.usage.service_provider_limit} service providers on your ${subscription.plan.name} plan.`
-        );
-        setUpgradeModalOpen(true);
+      if (showProviderLimitUpgrade()) {
         setLoading(false);
         return;
       }
@@ -584,9 +626,9 @@ export default function TeamMembersPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setSuccess("Provider invite sent successfully!");
+        toast.success("Provider invite sent successfully.");
         setProviderInviteUrl(data.inviteUrl);
-        await fetchTeamMembers();
+        await refreshWorkspaceMembers();
       } else {
         const errorData = (await response.json()) as {
           error?: string;
@@ -598,12 +640,12 @@ export default function TeamMembersPage() {
           );
           setUpgradeModalOpen(true);
         } else {
-          setModalError(errorData.error || "Failed to send provider invite");
+          toast.error(errorData.error || "Failed to send provider invite");
         }
       }
     } catch (err) {
       console.error("Error sending provider invite:", err);
-      setModalError("An error occurred while sending the provider invite");
+      toast.error("An error occurred while sending the provider invite");
     } finally {
       setLoading(false);
     }
@@ -616,13 +658,10 @@ export default function TeamMembersPage() {
       name: "",
       email: "",
       phone: "",
-      role: ROLE_WORKSPACE_ADMIN,
+      role: ROLE_MANAGER,
       departments: [],
     });
     setInviteUrl(null);
-    setError(null);
-    setModalError(null);
-    setSuccess(null);
   };
 
   const toggleDepartment = (departmentId: number) => {
@@ -667,6 +706,16 @@ export default function TeamMembersPage() {
       return;
     }
 
+    if (
+      isAdding &&
+      role === ROLE_WORKSPACE_ADMIN &&
+      !teamMemberHasWorkspaceAdminAccess(formTarget) &&
+      isAdminPlanLimitReached(subscription)
+    ) {
+      showAdminLimitUpgrade();
+      return;
+    }
+
     setMemberFormData((prev) => {
       const additional_roles = prev.additional_roles.includes(role)
         ? prev.additional_roles.filter((r) => r !== role)
@@ -690,14 +739,11 @@ export default function TeamMembersPage() {
   const handleMemberFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-    setSuccess(null);
-    setModalSuccess(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
-        setError('Not authenticated');
+        toast.error("Not authenticated");
         setLoading(false);
         return;
       }
@@ -752,6 +798,18 @@ export default function TeamMembersPage() {
         return;
       }
 
+      if (
+        memberWouldGainWorkspaceAdminAccess(
+          targetMember,
+          memberFormData.role,
+          memberFormData.additional_roles
+        ) &&
+        showAdminLimitUpgrade()
+      ) {
+        setLoading(false);
+        return;
+      }
+
       const body = {
         id: targetMember.id,
         name: memberFormData.name,
@@ -776,12 +834,10 @@ export default function TeamMembersPage() {
       });
 
       if (response.ok) {
-        setModalSuccess('Team member updated successfully');
-        await fetchTeamMembers();
-        setTimeout(() => {
-          if (fromRoleModal) handleRoleModalCancel();
-          else handleMemberFormCancel();
-        }, 1500);
+        toast.success("Team member updated successfully.");
+        await refreshWorkspaceMembers();
+        if (fromRoleModal) handleRoleModalCancel();
+        else handleMemberFormCancel();
       } else {
         const errorData = (await response.json()) as {
           error?: string;
@@ -793,12 +849,12 @@ export default function TeamMembersPage() {
           );
           setUpgradeModalOpen(true);
         } else {
-          setError(errorData.error || "Failed to update team member");
+          toast.error(errorData.error || "Failed to update team member");
         }
       }
     } catch (error) {
       console.error('Error saving team member:', error);
-      setError('An error occurred while saving the team member');
+      toast.error("An error occurred while saving the team member");
     } finally {
       setLoading(false);
     }
@@ -814,19 +870,20 @@ export default function TeamMembersPage() {
     if (!confirmModal) return;
 
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
-        setError('Not authenticated');
+        toast.error("Not authenticated");
         setConfirmModal(null);
         setLoading(false);
         return;
       }
 
       const isDeactivate = confirmModal.action === "deactivate";
+      const deactivatedMember = teamMembers.find(
+        (m) => m.id === confirmModal.memberId
+      );
       const response = await fetch(`/api/team-members?id=${confirmModal.memberId}`, {
         method: isDeactivate ? 'DELETE' : 'PATCH',
         headers: {
@@ -835,28 +892,32 @@ export default function TeamMembersPage() {
       });
 
       if (response.ok) {
-        setSuccess(
+        toast.success(
           isDeactivate
-            ? 'Team member deactivated successfully'
-            : 'Team member activated successfully'
+            ? deactivatedMember
+              ? `"${deactivatedMember.name}" deactivated successfully.`
+              : "Team member deactivated successfully."
+            : deactivatedMember
+              ? `"${deactivatedMember.name}" activated successfully.`
+              : "Team member activated successfully."
         );
-        await fetchTeamMembers();
+        await refreshWorkspaceMembers();
         setConfirmModal(null);
       } else {
         const errorData = await response.json();
-        setError(
+        toast.error(
           errorData.error ||
-            (isDeactivate ? 'Failed to deactivate team member' : 'Failed to activate team member')
+            (isDeactivate ? "Failed to deactivate team member" : "Failed to activate team member")
         );
         setConfirmModal(null);
       }
     } catch (err) {
       const isDeactivate = confirmModal.action === "deactivate";
       console.error(isDeactivate ? 'Error deactivating team member:' : 'Error activating team member:', err);
-      setError(
+      toast.error(
         confirmModal.action === "deactivate"
-          ? 'An error occurred while deactivating the team member'
-          : 'An error occurred while activating the team member'
+          ? "An error occurred while deactivating the team member"
+          : "An error occurred while activating the team member"
       );
       setConfirmModal(null);
     } finally {
@@ -867,13 +928,19 @@ export default function TeamMembersPage() {
   const handleInviteFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setModalError(null);
-    setSuccess(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
-        setModalError('Not authenticated');
+        toast.error("Not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      if (
+        inviteFormData.role === ROLE_WORKSPACE_ADMIN &&
+        showAdminLimitUpgrade()
+      ) {
         setLoading(false);
         return;
       }
@@ -895,15 +962,25 @@ export default function TeamMembersPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setSuccess('Invite created successfully!');
+        toast.success("Invite created successfully.");
         setInviteUrl(data.inviteUrl);
       } else {
-        const errorData = await response.json();
-        setModalError(errorData.error || 'Failed to create invite');
+        const errorData = (await response.json()) as {
+          error?: string;
+          upgradeRequired?: boolean;
+        };
+        if (errorData.upgradeRequired) {
+          setUpgradeModalMessage(
+            errorData.error || "Upgrade your plan to add more workspace admins."
+          );
+          setUpgradeModalOpen(true);
+        } else {
+          toast.error(errorData.error || "Failed to create invite");
+        }
       }
     } catch (error) {
       console.error('Error creating invite:', error);
-      setModalError('An error occurred while creating the invite');
+      toast.error("An error occurred while creating the invite");
     } finally {
       setLoading(false);
     }
@@ -911,28 +988,6 @@ export default function TeamMembersPage() {
 
   return (
     <div className="w-full space-y-6">
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <div className="flex items-center gap-2">
-            <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <div className="flex items-center gap-2">
-            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-green-800">{success}</p>
-          </div>
-        </div>
-      )}
-
       <div className="mx-auto">
           <section className="relative space-y-4">
             <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 p-4 md:p-6">
@@ -1110,9 +1165,14 @@ export default function TeamMembersPage() {
                         <div className="p-4 md:p-6">
                           <div className="flex gap-5 flex-row xl:items-start xl:justify-between">
                             <div className="flex flex-1 gap-3">
-                              <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-indigo-500 text-sm sm:text-lg font-semibold text-white shadow-sm">
-                                {member.name.charAt(0).toUpperCase()}
-                              </div>
+                              <WorkspaceUserAvatar
+                                userId={member.id}
+                                name={member.name}
+                                email={member.email}
+                                size="lg"
+                                shape="rounded"
+                                className="h-8 w-8 sm:h-11 sm:w-11 bg-indigo-500 text-white shadow-sm"
+                              />
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <h3 className="text-lg font-semibold text-slate-900">
@@ -1369,7 +1429,6 @@ export default function TeamMembersPage() {
       <ProviderCreateModal
         open={showMemberForm && !editingMember}
         loading={loading}
-        error={modalError}
         professionLabel={workspaceProfessionLabel ?? null}
         catalogDepartmentNames={providerCatalogNames}
         selectedDepartmentNames={providerSelectedDepartmentNames}
@@ -1384,7 +1443,6 @@ export default function TeamMembersPage() {
       <EditTeamMemberModal
         open={showMemberForm && editingMember !== null}
         loading={loading}
-        success={modalSuccess}
         editingMember={editingMember!}
         departments={departments}
         memberFormData={memberFormData}
@@ -1410,7 +1468,7 @@ export default function TeamMembersPage() {
         }
         onCancel={handleMemberFormCancel}
         onSubmit={handleMemberFormSubmit}
-        onChange={setMemberFormData}
+        onChange={handleMemberFormChange}
         onToggleDepartment={toggleDepartment}
         onToggleAdditionalRole={toggleAdditionalRole}
       />
@@ -1419,7 +1477,6 @@ export default function TeamMembersPage() {
         <ManageRoleModal
           open
           loading={loading}
-          success={modalSuccess}
           member={roleModalMember}
           departments={departments}
           memberFormData={memberFormData}
@@ -1439,7 +1496,7 @@ export default function TeamMembersPage() {
           )}
           onCancel={handleRoleModalCancel}
           onSubmit={handleMemberFormSubmit}
-          onChange={setMemberFormData}
+          onChange={handleMemberFormChange}
           onToggleDepartment={toggleDepartment}
           onToggleAdditionalRole={toggleAdditionalRole}
         />
@@ -1448,13 +1505,12 @@ export default function TeamMembersPage() {
       <StaffInviteModal
         open={showInviteForm}
         loading={loading}
-        error={modalError}
         departments={departments}
         inviteFormData={inviteFormData}
         inviteUrl={inviteUrl}
         onCancel={handleInviteFormCancel}
         onSubmit={handleInviteFormSubmit}
-        onChange={setInviteFormData}
+        onChange={handleInviteFormChange}
         onToggleDepartment={toggleInviteDepartment}
       />
 

@@ -1,12 +1,12 @@
 "use client";
 
+import { authFetch } from '@/src/lib/auth_session';
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../providers/AuthProvider";
 import { useWorkspaceSettings } from "../../hooks/useWorkspaceSettings";
 import { WorkspaceBrandLogo } from "../molecules/WorkspaceBrandLogo";
-import { supabase } from "@/lib/supabaseClient";
 
 const PATH_TO_MENU: Record<string, string> = {
   "/": "dashboard",
@@ -48,14 +48,10 @@ function pathnameToActiveMenu(pathname: string): string {
 }
 
 export default function Sidebar() {
-  const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
-  const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
-
   const [isDepartmentsSubmenuOpen, setIsDepartmentsSubmenuOpen] = useState(false);
   const [isAdminCenterOpen, setIsAdminCenterOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const {
     loading: loadingConfig,
     workspaceName,
@@ -69,13 +65,10 @@ export default function Sidebar() {
   const [newBookingsCount, setNewBookingsCount] = useState(0);
 
   const fetchNewBookingsCount = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) return;
+    if (!accessToken) return;
 
     try {
-      const res = await fetch('/api/bookings/new-count', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await authFetch('/api/bookings/new-count');
       if (res.ok) {
         const { count } = await res.json();
         setNewBookingsCount(count ?? 0);
@@ -83,7 +76,7 @@ export default function Sidebar() {
     } catch {
       // silently ignore
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     fetchNewBookingsCount();
@@ -94,32 +87,6 @@ export default function Sidebar() {
       window.removeEventListener('bookings-viewed-update', fetchNewBookingsCount);
     };
   }, [fetchNewBookingsCount]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
-    const metadataAvatar =
-      (metadata.avatar_url as string) ||
-      (metadata.picture as string) ||
-      null;
-
-    const updateAvatar = () => {
-      const savedAvatar = window.localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY);
-      const normalizedSavedAvatar =
-        savedAvatar && !savedAvatar.startsWith("data:") ? savedAvatar : null;
-      setProfileImage(normalizedSavedAvatar || metadataAvatar);
-    };
-
-    updateAvatar();
-    window.addEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
-    window.addEventListener("storage", updateAvatar);
-
-    return () => {
-      window.removeEventListener(PROFILE_IMAGE_EVENT, updateAvatar);
-      window.removeEventListener("storage", updateAvatar);
-    };
-  }, [user]);
 
   const accountName = workspaceName || "GetSetTime";
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { type public_booking } from '@/src/types/public_booking';
@@ -101,7 +102,7 @@ export default function MyBookingsPage() {
     let cancelled = false;
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (cancelled) return;
         if (session?.user?.user_metadata?.role === 'customer') {
           const name = session.user.user_metadata?.name || session.user.email || 'Customer';

@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { type Booking, BOOKING_STATUSES } from "@/src/types/booking";
@@ -11,6 +12,12 @@ import { normalizeIntakeForm } from "@/src/utils/intakeForm";
 import { BookingDetailDatetimeModal } from "@/src/components/Booking/BookingDetailDatetimeModal";
 import { DateTimePicker } from "@/src/components/molecules/DateTimePicker";
 import { now_datetime_local } from "@/src/features/event-types/event_type_availability";
+import { map_event_types_for_booking_flow } from "@/src/features/booking-flow";
+import {
+  BookingFormSubmitError,
+  throw_if_booking_api_error,
+} from "@/src/utils/bookingFormDuplicateInvitee";
+import { toast } from "@/src/components/ui/toast";
 import type { EventType as BookingFormEventType } from "@/src/types/bookingForm";
 import type { Department, ServiceProvider } from "@/src/types/booking-entities";
 import {
@@ -140,13 +147,14 @@ const BookingForm = ({
   const [additionalDescription, setAdditionalDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [rescheduleSaving, setRescheduleSaving] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [rescheduleDuplicatePreviewPath, setRescheduleDuplicatePreviewPath] =
+    useState<string | null>(null);
   const [datetimeNeedsReview, setDatetimeNeedsReview] = useState(false);
+  const [datetimeModalOpen, setDatetimeModalOpen] = useState(false);
   const [seriesScope, setSeriesScope] = useState<'this' | 'series'>('this');
-  const successRef = useRef<HTMLDivElement | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
   const warningRef = useRef<HTMLDivElement | null>(null);
 
@@ -168,20 +176,49 @@ const BookingForm = ({
     typeof general?.accent_color === "string" ? general.accent_color : null;
 
   const rescheduleEventTypes = useMemo<BookingFormEventType[]>(
-    () =>
-      eventTypes.map((e) => ({
-        id: e.id,
-        title: e.title,
-        duration_minutes: e.duration_minutes ?? 30,
-      })),
+    () => map_event_types_for_booking_flow(eventTypes),
     [eventTypes]
   );
 
-  useEffect(() => {
-    if (success) {
-      successRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [success]);
+  const useEventTypeAwarePicker = Boolean(booking && formData.event_type_id);
+
+  const pickerBooking = useMemo((): Booking | null => {
+    if (!booking) return null;
+    const original_start_local = formatDateTimeLocal(booking.start_at);
+    const original_end_local = formatDateTimeLocal(booking.end_at);
+    const start_unchanged =
+      !formData.start_at || formData.start_at === original_start_local;
+    const end_unchanged =
+      !formData.end_at || formData.end_at === original_end_local;
+    return {
+      ...booking,
+      event_type_id: formData.event_type_id || booking.event_type_id,
+      department_id: formData.department_id || booking.department_id,
+      service_provider_id:
+        formData.service_provider_id || booking.service_provider_id,
+      invitee_email: formData.invitee_email || booking.invitee_email,
+      invitee_phone: formData.invitee_phone || booking.invitee_phone,
+      start_at: start_unchanged
+        ? booking.start_at
+        : formData.start_at
+          ? new Date(formData.start_at).toISOString()
+          : booking.start_at,
+      end_at: end_unchanged
+        ? booking.end_at
+        : formData.end_at
+          ? new Date(formData.end_at).toISOString()
+          : booking.end_at,
+    };
+  }, [
+    booking,
+    formData.event_type_id,
+    formData.department_id,
+    formData.service_provider_id,
+    formData.invitee_email,
+    formData.invitee_phone,
+    formData.start_at,
+    formData.end_at,
+  ]);
 
   useEffect(() => {
     if (error) {
@@ -490,7 +527,7 @@ const BookingForm = ({
       setError(null);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
 
         if (!session?.access_token) {
           throw new Error("Not authenticated");
@@ -579,12 +616,13 @@ const BookingForm = ({
         }
 
         // The booking row is already persisted at this point; remaining work
-        // (notifications, calendar sync, etc.) runs in the background on the
-        // server, so surface success immediately inside the modal.
-        setSuccess(true);
-        window.setTimeout(() => {
-          onSave();
-        }, 4500);
+        // (notifications, calendar sync, etc.) runs in the background on the server.
+        toast.success(
+          booking
+            ? "Booking updated successfully."
+            : "Booking created successfully."
+        );
+        onSave();
       } catch (err) {
         setError((err as Error).message || "An error occurred");
       } finally {
@@ -647,7 +685,11 @@ const BookingForm = ({
         ? end_at_from_start(formData.start_at, next_duration)
         : formData.end_at;
 
-      setDatetimeNeedsReview(Boolean(value) && has_datetime);
+      const needs_review = Boolean(value) && has_datetime;
+      setDatetimeNeedsReview(needs_review);
+      if (needs_review && booking) {
+        setDatetimeModalOpen(true);
+      }
 
       setFormData((prev) => {
         let next_department_id = prev.department_id;
@@ -670,6 +712,7 @@ const BookingForm = ({
       });
     },
     [
+      booking,
       duration_for_event_type,
       eventTypes,
       formData.end_at,
@@ -677,10 +720,40 @@ const BookingForm = ({
     ]
   );
 
+  const handleDatetimePickConfirm = useCallback(
+    (payload: {
+      start_at: string;
+      end_at: string;
+      status?: string;
+      customer_timezone?: string;
+      provider_timezone?: string;
+    }) => {
+      const start_local = formatDateTimeLocal(payload.start_at);
+      const end_local = formatDateTimeLocal(payload.end_at);
+      setFormData((prev) => {
+        const previous_start = booking
+          ? formatDateTimeLocal(booking.start_at)
+          : "";
+        const start_changed =
+          Boolean(booking) && Boolean(start_local) && start_local !== previous_start;
+        return {
+          ...prev,
+          start_at: start_local,
+          end_at: end_local,
+          status: start_changed ? "reschedule" : prev.status,
+        };
+      });
+      setDatetimeNeedsReview(false);
+      setDatetimeModalOpen(false);
+    },
+    [booking]
+  );
+
   const handleStatusChange = useCallback(
     (value: string) => {
       if (isCancelledBooking && value === "reschedule") {
         setRescheduleError(null);
+        setRescheduleDuplicatePreviewPath(null);
         onRescheduleStart?.();
         setRescheduleModalOpen(true);
         return;
@@ -702,11 +775,10 @@ const BookingForm = ({
 
       setRescheduleSaving(true);
       setRescheduleError(null);
+      setRescheduleDuplicatePreviewPath(null);
 
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token) throw new Error("Not authenticated");
 
         const existingMetadata = booking.metadata ?? {};
@@ -748,16 +820,24 @@ const BookingForm = ({
         });
 
         const responseData = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(responseData.error || "Failed to reschedule booking");
-        }
+        throw_if_booking_api_error(
+          response,
+          responseData,
+          "Failed to reschedule booking"
+        );
 
         setRescheduleModalOpen(false);
         onSave();
       } catch (err) {
-        setRescheduleError(
-          err instanceof Error ? err.message : "Failed to reschedule booking"
-        );
+        if (err instanceof BookingFormSubmitError) {
+          setRescheduleError(err.message);
+          setRescheduleDuplicatePreviewPath(err.duplicatePreviewPath ?? null);
+        } else {
+          setRescheduleError(
+            err instanceof Error ? err.message : "Failed to reschedule booking"
+          );
+          setRescheduleDuplicatePreviewPath(null);
+        }
       } finally {
         setRescheduleSaving(false);
       }
@@ -767,6 +847,8 @@ const BookingForm = ({
 
   const handleRescheduleClose = useCallback(() => {
     setRescheduleModalOpen(false);
+    setRescheduleError(null);
+    setRescheduleDuplicatePreviewPath(null);
     onCancel();
   }, [onCancel]);
 
@@ -782,29 +864,6 @@ const BookingForm = ({
           className="md:col-span-2 p-3 bg-red-100 text-red-700 rounded-lg text-sm"
         >
           {error}
-        </div>
-      )}
-
-      {success && (
-        <div
-          ref={successRef}
-          className="md:col-span-2 flex items-start gap-2 p-3 bg-green-100 text-green-700 rounded-lg text-sm"
-        >
-          <svg
-            className="mt-0.5 h-4 w-4 shrink-0"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M5 13l4 4L19 7" />
-          </svg>
-          <span>
-            {booking ? "Booking updated successfully." : "Booking created successfully."}{" "}
-          </span>
         </div>
       )}
 
@@ -900,6 +959,48 @@ const BookingForm = ({
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <span className="mb-1 block text-sm font-medium text-slate-700">
+          Start date & time<span className="text-red-500">*</span>
+        </span>
+        <DateTimePicker
+          id="start_at"
+          value={formData.start_at}
+          min={useEventTypeAwarePicker ? undefined : now_datetime_local()}
+          onChange={
+            useEventTypeAwarePicker ? () => undefined : handleStartAtChange
+          }
+          onTriggerClick={
+            useEventTypeAwarePicker
+              ? () => setDatetimeModalOpen(true)
+              : undefined
+          }
+          invalid={datetimeValidation.start_invalid}
+          error_id="start_at_warning"
+        />
+        <input
+          type="hidden"
+          name="start_at"
+          value={formData.start_at}
+          required
+          tabIndex={-1}
+          aria-hidden
+        />
+        {datetimeValidation.start_invalid && (
+          <p id="start_at_warning" className="mt-1 text-xs text-amber-700">
+            {datetimeValidation.messages[0] ??
+              "The previously selected time slot is no longer available for the selected Event Type. Please choose a new start date and time."}
+          </p>
+        )}
+        {useEventTypeAwarePicker && datetimeNeedsReview && (
+          <p className="mt-1 text-xs text-amber-700">
+            The current date and time may not match this Event Type&apos;s
+            availability. Click the field above to pick a valid slot.
+          </p>
+        )}
+        
         {booking?.series_id ? (
           <fieldset className="mt-3">
             <legend className="mb-1 text-xs font-medium text-slate-600">
@@ -929,34 +1030,6 @@ const BookingForm = ({
 
       <div>
         <span className="mb-1 block text-sm font-medium text-slate-700">
-          Start date & time<span className="text-red-500">*</span>
-        </span>
-        <DateTimePicker
-          id="start_at"
-          value={formData.start_at}
-          min={now_datetime_local()}
-          onChange={handleStartAtChange}
-          invalid={datetimeValidation.start_invalid}
-          error_id="start_at_warning"
-        />
-        <input
-          type="hidden"
-          name="start_at"
-          value={formData.start_at}
-          required
-          tabIndex={-1}
-          aria-hidden
-        />
-        {datetimeValidation.start_invalid && (
-          <p id="start_at_warning" className="mt-1 text-xs text-amber-700">
-            {datetimeValidation.messages[0] ??
-              "The previously selected time slot is no longer available for the selected Event Type. Please choose a new start date and time."}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <span className="mb-1 block text-sm font-medium text-slate-700">
           End date & time
         </span>
         <DateTimePicker
@@ -977,7 +1050,9 @@ const BookingForm = ({
           </p>
         ) : (
           <p id="end_at_hint" className="mt-1 text-xs text-slate-500">
-            Calculated from start time and event type duration
+            {useEventTypeAwarePicker
+              ? "Set automatically from the chosen slot and Event Type duration"
+              : "Calculated from start time and event type duration"}
             {formData.event_type_id
               ? ` (${duration_for_event_type(formData.event_type_id)} min)`
               : ` (${DEFAULT_EVENT_DURATION_MINUTES} min default)`}
@@ -1249,20 +1324,38 @@ const BookingForm = ({
       <div className="md:col-span-2 flex justify-end gap-2 mt-2">
         <button
           type="submit"
-          disabled={loading || success || hasEventTypeSyncIssues}
+          disabled={loading || hasEventTypeSyncIssues}
           className="px-5 py-2.5 cursor-pointer rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium disabled:opacity-50"
         >
-          {success
-            ? "Saved"
-            : loading
-              ? "Saving..."
-              : booking
-                ? "Update Booking"
-                : "Create Booking"}
+          {loading
+            ? "Saving..."
+            : booking
+              ? "Update Booking"
+              : "Create Booking"}
         </button>
       </div>
     </form>
 
+    {pickerBooking &&
+      datetimeModalOpen &&
+      typeof document !== "undefined" &&
+      createPortal(
+        <BookingDetailDatetimeModal
+          open={datetimeModalOpen}
+          mode="pick_datetime"
+          booking={pickerBooking}
+          departments={departments as unknown[]}
+          eventTypes={rescheduleEventTypes}
+          intakeForm={intakeFormSettings}
+          workspacePrimaryColor={workspacePrimaryColor}
+          workspaceAccentColor={workspaceAccentColor}
+          clientTimezone={workspaceTimezone}
+          onClose={() => setDatetimeModalOpen(false)}
+          onConfirm={handleDatetimePickConfirm}
+          saving={false}
+        />,
+        document.body
+      )}
     {booking &&
       rescheduleModalOpen &&
       typeof document !== "undefined" &&
@@ -1281,6 +1374,7 @@ const BookingForm = ({
           onConfirm={handleRescheduleConfirm}
           saving={rescheduleSaving}
           saveError={rescheduleError}
+          saveDuplicatePreviewPath={rescheduleDuplicatePreviewPath}
         />,
         document.body
       )}

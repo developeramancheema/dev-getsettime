@@ -2,8 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import type { plans, plans_with_content, workspace_usage } from "@app/db/subscription";
-import { formatBookingLimitLabel, isUnlimitedBookingLimit, resolvePlanFeatures } from "@app/db/subscription";
+import type { booking_limit_period, plans_with_content } from "@app/db/subscription";
+import {
+  formatBookingLimitFeature,
+  formatBookingLimitLabel,
+  formatBookingUsageLabel,
+  isUnlimitedBookingLimit,
+  resolvePlanFeatures,
+} from "@app/db/subscription";
+import { useSubscription } from "@/src/hooks/useSubscription";
+import { toast } from "@/src/components/ui/toast";
 
 interface Invoice {
   id: string;
@@ -20,6 +28,7 @@ interface AvailablePlan {
   name: string;
   price: number;
   booking_limit: number;
+  booking_limit_period: booking_limit_period;
   service_provider_limit: number;
   admin_limit: number;
   features: string[];
@@ -27,38 +36,24 @@ interface AvailablePlan {
 }
 
 export default function Billing({ dark = false }: { dark?: boolean }) {
-  const [currentPlan, setCurrentPlan] = useState<plans | null>(null);
-  const [usage, setUsage] = useState<workspace_usage | null>(null);
+  const { data: subscriptionData, loading: subscriptionLoading } = useSubscription();
+  const currentPlan = subscriptionData?.plan ?? null;
+  const usage = subscriptionData?.usage ?? null;
   const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isChangingPlan, setIsChangingPlan] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const isLoading = subscriptionLoading || catalogLoading;
 
   useEffect(() => {
-    void fetchBillingData();
+    void fetchPlanCatalog();
   }, []);
 
-  const fetchBillingData = async () => {
+  const fetchPlanCatalog = async () => {
     try {
-      const { supabase } = await import('@/lib/supabaseClient');
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const authHeaders: HeadersInit = token
-        ? { Authorization: `Bearer ${token}` }
-        : {};
-
-      const [planRes, catalogRes] = await Promise.all([
-        fetch('/api/billing/plan', { headers: authHeaders }),
-        fetch('/api/billing/plans'),
-      ]);
-
-      if (planRes.ok) {
-        const data = await planRes.json();
-        if (data.plan) setCurrentPlan(data.plan as plans);
-        if (data.usage) setUsage(data.usage as workspace_usage);
-      }
-
+      setCatalogLoading(true);
+      const catalogRes = await fetch('/api/billing/plans');
       if (catalogRes.ok) {
         const catalog = await catalogRes.json();
         const rows = (catalog.plans || []) as plans_with_content[];
@@ -69,6 +64,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
             name: row.name,
             price: row.price,
             booking_limit: row.booking_limit,
+            booking_limit_period: row.booking_limit_period,
             service_provider_limit: row.service_provider_limit,
             admin_limit: row.admin_limit,
             features: resolvePlanFeatures(row),
@@ -77,9 +73,9 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
         );
       }
     } catch (error) {
-      console.error('Error fetching billing data:', error);
+      console.error('Error fetching plan catalog:', error);
     } finally {
-      setIsLoading(false);
+      setCatalogLoading(false);
     }
   };
 
@@ -90,20 +86,13 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
     }
 
     if (selectedPlan.slug !== 'free') {
-      setMessage({
-        type: 'error',
-        text: 'Paid plans are coming soon. Contact support to upgrade your workspace.',
-      });
+      toast.error('Paid plans are coming soon. Contact support to upgrade your workspace.');
       setShowPlanModal(false);
       return;
     }
 
     setIsChangingPlan(true);
-    setMessage(null);
-    setMessage({
-      type: 'error',
-      text: 'Downgrading online is not available yet. Contact support if you need to change plans.',
-    });
+    toast.error('Downgrading online is not available yet. Contact support if you need to change plans.');
     setIsChangingPlan(false);
     setShowPlanModal(false);
   };
@@ -351,17 +340,6 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
         </div>
       </header>
 
-      {/* Message */}
-      {message && (
-        <div className={`p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-            : 'bg-red-50 text-red-800 border border-red-200'
-        }`}>
-          {message.text}
-        </div>
-      )}
-
       {/* Current Plan Card */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-md overflow-hidden">
         <div className="p-6">
@@ -378,7 +356,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                   {currentPlan ? (
                     <>
                       <p className="text-sm text-slate-500">
-                        {currentPlan.name} • {formatBookingLimitLabel(currentPlan.booking_limit)} bookings/month • up to{" "}
+                        {currentPlan.name} • {formatBookingLimitFeature(currentPlan.booking_limit, currentPlan.booking_limit_period)} • up to{" "}
                         {currentPlan.service_provider_limit} providers
                       </p>
                       <p className="text-sm font-semibold text-slate-800 mt-1">
@@ -387,10 +365,10 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                       {usage && (
                         <>
                           <p className="text-xs text-slate-500 mt-1">
-                            Usage: {usage.bookings_this_month}
+                            {formatBookingUsageLabel(usage.booking_limit_period)}: {usage.bookings_used}
                             {isUnlimitedBookingLimit(usage.booking_limit)
-                              ? " bookings this month (unlimited plan)"
-                              : ` / ${usage.booking_limit} bookings this month`}
+                              ? " (unlimited plan)"
+                              : ` / ${usage.booking_limit}`}
                           </p>
                           <p className="text-xs text-slate-500 mt-1">
                             Usage: {usage.service_provider_count} / {usage.service_provider_limit} service providers
@@ -474,7 +452,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
                           <span className="text-sm text-slate-500">/month</span>
                         </div>
                         <p className="text-sm text-slate-500 mt-2">
-                          {formatBookingLimitLabel(planOption.booking_limit)} bookings/month • {planOption.service_provider_limit}{" "}
+                          {formatBookingLimitFeature(planOption.booking_limit, planOption.booking_limit_period)} • {planOption.service_provider_limit}{" "}
                           providers
                         </p>
                       </div>

@@ -8,7 +8,13 @@ import type {
 import { resolve_provider_scoped_service_gate } from '@/src/utils/provider_scoped_service_gate';
 
 type UseAutoSelectSoleBookingOptionsParams = {
+  /** Gates department, provider, and service auto-select (may wait for event-type-first). */
   enabled: boolean;
+  /**
+   * Gates sole event-type auto-select separately. When event-type is the first step,
+   * `enabled` stays false until a type is chosen — so this must not use that flag.
+   */
+  autoSelectEventTypeEnabled?: boolean;
   loadingDepartments: boolean;
   departments: Department[];
   selectedDepartment: Department | null;
@@ -37,6 +43,7 @@ type UseAutoSelectSoleBookingOptionsParams = {
  */
 export function useAutoSelectSoleBookingOptions({
   enabled,
+  autoSelectEventTypeEnabled = enabled,
   loadingDepartments,
   departments,
   selectedDepartment,
@@ -58,13 +65,13 @@ export function useAutoSelectSoleBookingOptions({
   eventTypeContextReady = true,
 }: UseAutoSelectSoleBookingOptionsParams) {
   useLayoutEffect(() => {
-    if (!enabled || loadingEventTypes || !setSelectedType) return;
+    if (!autoSelectEventTypeEnabled || loadingEventTypes || !setSelectedType) return;
     if (eventTypes.length !== 1 || !eventTypeContextReady) return;
     const soleEventType = eventTypes[0];
     if (selectedType?.id === soleEventType.id) return;
     setSelectedType(soleEventType);
   }, [
-    enabled,
+    autoSelectEventTypeEnabled,
     loadingEventTypes,
     eventTypes,
     selectedType,

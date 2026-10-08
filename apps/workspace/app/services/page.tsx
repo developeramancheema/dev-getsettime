@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -24,7 +25,7 @@ import {
 } from "react-icons/lu";
 import { Pagination, usePagination } from "@app/ui";
 import { supabase } from "@/lib/supabaseClient";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 import { PortalActionsMenu } from "@/src/components/ui/PortalActionsMenu";
 import {
@@ -57,6 +58,7 @@ import { useServiceDepartmentDoctors } from "@/src/features/services/useServiceD
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import ScreenGate from "@/src/components/ScreenGate";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 
 type DepartmentStatus = "active" | "inactive";
 type ServiceStatus = service_status;
@@ -98,57 +100,11 @@ interface Department {
 type Service = service_record;
 type DoctorRow = service_doctor_row;
 
-function ProviderAvatar({
-  name,
-  initials,
-  avatarUrl,
-  size = "md",
-}: {
-  name: string;
-  initials: string;
-  avatarUrl?: string | null;
-  size?: "sm" | "md";
-}) {
-  const sizeClass = size === "sm" ? "h-7 w-7 text-[10px]" : "h-9 w-9 text-sm";
-  if (avatarUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={avatarUrl}
-        alt={name}
-        className={classNames(sizeClass, "shrink-0 rounded-full object-cover")}
-      />
-    );
-  }
-  return (
-    <span
-      className={classNames(
-        sizeClass,
-        "flex shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700"
-      )}
-    >
-      {initials}
-    </span>
-  );
-}
-
 const SERVICES_PAGE_SIZE = 10;
 const VISIBLE_DEPARTMENT_TABS = 5;
 
 function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
-}
-
-function providerInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  const first = parts[0].replace(/^Dr\.?$/i, "");
-  if (parts.length === 1) return (first || parts[0]).slice(0, 2).toUpperCase();
-  const primary = first || parts[1] || "";
-  const secondary = parts[parts.length - 1] || "";
-  const a = primary.charAt(0);
-  const b = secondary.charAt(0);
-  return (a + b).toUpperCase() || parts[0].slice(0, 2).toUpperCase();
 }
 
 function formatCurrency(
@@ -236,7 +192,6 @@ export default function ServicesPage() {
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
 
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const currency =
     typeof (general as { currency?: string | null } | undefined)?.currency === "string" &&
@@ -246,9 +201,7 @@ export default function ServicesPage() {
   const currencySign = currencySymbol(currency);
 
   const getAuthToken = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     return session?.access_token ?? null;
   }, []);
 
@@ -378,7 +331,7 @@ export default function ServicesPage() {
     ) => {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return null;
       }
       const url = query ? `/api/services?${query}` : "/api/services";
@@ -392,7 +345,7 @@ export default function ServicesPage() {
       });
       if (!response.ok) {
         const err = await response.json().catch(() => null);
-        setAlertMessage(err?.error || `Request failed (${response.status})`);
+        toast.error(err?.error || `Request failed (${response.status})`);
         return null;
       }
       return response.json().catch(() => ({}));
@@ -454,27 +407,6 @@ export default function ServicesPage() {
     () => doctorsForDepartmentId(selectedDepartmentId),
     [doctorsForDepartmentId, selectedDepartmentId]
   );
-
-  const providerAvatarById = useMemo(() => {
-    const map = new Map<string, string | null>();
-    for (const sp of serviceProviders) {
-      map.set(sp.id, sp.avatar_url?.trim() || null);
-    }
-    if (currentUserId && user?.user_metadata) {
-      const meta = user.user_metadata as {
-        avatar_url?: string;
-        picture?: string;
-      };
-      const avatarUrl =
-        (typeof meta.avatar_url === "string" && meta.avatar_url.trim()) ||
-        (typeof meta.picture === "string" && meta.picture.trim()) ||
-        null;
-      if (!map.has(currentUserId)) {
-        map.set(currentUserId, avatarUrl);
-      }
-    }
-    return map;
-  }, [serviceProviders, currentUserId, user]);
 
   const visibleDoctorsCount = useMemo(() => {
     if (selectedDepartment) return departmentDoctors.length;
@@ -652,11 +584,17 @@ export default function ServicesPage() {
     service,
     assignments_synced,
   }: service_form_saved_result) => {
+    toast.success(
+      showEditServiceModal
+        ? `"${service.name}" updated successfully.`
+        : `"${service.name}" added successfully.`
+    );
+
     if (!assignments_synced) {
       setServices((prev) => [service, ...prev]);
       return;
     }
-      await refreshServiceAssignments();
+    await refreshServiceAssignments();
     closeServicePanel();
   };
 
@@ -681,11 +619,13 @@ export default function ServicesPage() {
   const handleDeleteServiceConfirm = async () => {
     if (!serviceToDelete) return;
     const id = serviceToDelete.id;
+    const deletedName = serviceToDelete.name;
     setBusyAction(true);
     const data = await callServicesApi("DELETE", undefined, `id=${id}`);
     setBusyAction(false);
 
     if (data) {
+      toast.success(`"${deletedName}" deleted successfully.`);
       setServices((prev) => prev.filter((s) => s.id !== id));
       setServiceToDelete(null);
     }
@@ -701,7 +641,7 @@ export default function ServicesPage() {
     try {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       if (exists) {
@@ -714,7 +654,7 @@ export default function ServicesPage() {
         );
         if (!del.ok) {
           const err = await del.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${del.status})`);
+          toast.error(err?.error || `Request failed (${del.status})`);
           return;
         }
       } else {
@@ -731,7 +671,7 @@ export default function ServicesPage() {
         });
         if (!post.ok) {
           const err = await post.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${post.status})`);
+          toast.error(err?.error || `Request failed (${post.status})`);
           return;
         }
       }
@@ -754,7 +694,7 @@ export default function ServicesPage() {
     try {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       for (const service of targets) {
@@ -771,7 +711,7 @@ export default function ServicesPage() {
         });
         if (!post.ok) {
           const err = await post.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${post.status})`);
+          toast.error(err?.error || `Request failed (${post.status})`);
           return;
         }
       }
@@ -792,7 +732,7 @@ export default function ServicesPage() {
     try {
       const token = await getAuthToken();
       if (!token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       for (const service of targets) {
@@ -805,7 +745,7 @@ export default function ServicesPage() {
         );
         if (!del.ok) {
           const err = await del.json().catch(() => null);
-          setAlertMessage(err?.error || `Request failed (${del.status})`);
+          toast.error(err?.error || `Request failed (${del.status})`);
           return;
         }
       }
@@ -1266,12 +1206,9 @@ export default function ServicesPage() {
                                           )}
                                           style={{ zIndex: assigned.length - index }}
                                         >
-                                          <ProviderAvatar
+                                          <WorkspaceUserAvatar
                                             name={doctor.name}
-                                            initials={providerInitials(doctor.name)}
-                                            avatarUrl={providerAvatarById.get(
-                                              doctor.id
-                                            )}
+                                            userId={doctor.id}
                                             size="sm"
                                           />
                                         </div>
@@ -1468,10 +1405,9 @@ export default function ServicesPage() {
                                             )}
                                             style={{ zIndex: visibleAvatars.length - index }}
                                           >
-                                            <ProviderAvatar
+                                            <WorkspaceUserAvatar
                                               name={doctor.name}
-                                              initials={providerInitials(doctor.name)}
-                                              avatarUrl={providerAvatarById.get(doctor.id)}
+                                              userId={doctor.id}
                                               size="sm"
                                             />
                                           </div>
@@ -1515,10 +1451,9 @@ export default function ServicesPage() {
                                           )}
                                           style={{ zIndex: visibleAvatars.length - index }}
                                         >
-                                          <ProviderAvatar
+                                          <WorkspaceUserAvatar
                                             name={doctor.name}
-                                            initials={providerInitials(doctor.name)}
-                                            avatarUrl={providerAvatarById.get(doctor.id)}
+                                            userId={doctor.id}
                                             size="sm"
                                           />
                                         </div>
@@ -1656,7 +1591,7 @@ export default function ServicesPage() {
             initial_department_id={newFormDepartmentId}
             resolve_department_doctors={doctorsForDepartmentId}
             doctors_loading={doctorPoolLoading}
-            on_error={setAlertMessage}
+            on_error={(message) => toast.error(message)}
             on_cancel={closeServicePanel}
             on_saved={handleServiceSaved}
           />
@@ -1823,9 +1758,6 @@ export default function ServicesPage() {
         />
       )}
 
-      {alertMessage && (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      )}
 
       <AddDepartmentPanel
         open={showAddDepartmentPanel}

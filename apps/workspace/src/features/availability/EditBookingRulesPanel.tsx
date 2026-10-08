@@ -7,7 +7,7 @@ import {
   LuStar as Star,
   LuX as X,
 } from "react-icons/lu";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { classNames } from "@/src/features/departments/DepartmentPanelPrimitives";
 import {
   BOOKING_RULES_BUFFER_OPTIONS,
@@ -173,7 +173,6 @@ export function EditBookingRulesPanel({
     min_booking_notice_minutes: 120,
   });
   const [busy, setBusy] = useState(false);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const panelVisible = open && target !== null;
   const isEventType = target?.kind === "event_type";
@@ -248,12 +247,14 @@ export function EditBookingRulesPanel({
     try {
       if (target.kind === "event_type") {
         await onSaveEventType(target.event_type_id, eventDraft);
+        toast.success("Event type booking rules saved successfully.");
       } else {
         await onSaveGlobal(draft);
+        toast.success("Booking rules saved successfully.");
       }
       handleClose();
     } catch (error) {
-      setAlertMessage(
+      toast.error(
         error instanceof Error ? error.message : "Failed to save booking rules."
       );
     } finally {
@@ -596,9 +597,6 @@ export function EditBookingRulesPanel({
         ) : null}
       </aside>
 
-      {alertMessage ? (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      ) : null}
     </>
   );
 }

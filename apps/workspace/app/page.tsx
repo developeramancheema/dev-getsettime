@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/src/providers/AuthProvider";
@@ -90,9 +91,7 @@ const Dashboard: React.FC = () => {
     let alive = true;
     const load_integrations = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         const token = session?.access_token;
         if (!token) return;
         const res = await fetch("/api/integrations/status", {
@@ -347,7 +346,7 @@ const Dashboard: React.FC = () => {
           <ScreenGate minWidth={1024}>
             <PlanUsageCard
               loading={subscription_loading}
-              used={subscription_data?.usage.bookings_this_month ?? 0}
+              used={subscription_data?.usage.bookings_used ?? 0}
               limit={subscription_data?.usage.booking_limit ?? 250}
               plan={subscription_data?.plan ?? null}
               usage={subscription_data?.usage ?? null}
@@ -371,7 +370,7 @@ const Dashboard: React.FC = () => {
             />
             <PlanUsageCard
               loading={subscription_loading}
-              used={subscription_data?.usage.bookings_this_month ?? 0}
+              used={subscription_data?.usage.bookings_used ?? 0}
               limit={subscription_data?.usage.booking_limit ?? 250}
               plan={subscription_data?.plan ?? null}
               usage={subscription_data?.usage ?? null}
@@ -399,7 +398,7 @@ const Dashboard: React.FC = () => {
       <DashboardUpgradeModal
         open={show_upgrade_modal}
         onClose={() => set_show_upgrade_modal(false)}
-        usedBookings={subscription_data?.usage.bookings_this_month ?? 0}
+        usedBookings={subscription_data?.usage.bookings_used ?? 0}
         bookingLimit={subscription_data?.usage.booking_limit ?? 250}
       />
 

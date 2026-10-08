@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import DashboardIcon from "./DashboardIcon";
@@ -77,10 +78,7 @@ export default function DashboardCalendarSnapshot() {
     const load = async () => {
       set_loading(true);
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token) {
           if (alive) set_bookings([]);
           return;

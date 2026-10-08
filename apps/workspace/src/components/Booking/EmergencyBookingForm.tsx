@@ -1,7 +1,9 @@
 "use client";
 
+import { authFetch } from '@/src/lib/auth_session';
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/providers/AuthProvider";
 import {
   get_service_provider_display_name,
   type service_provider_display_source,
@@ -16,6 +18,7 @@ import {
   resolveProviderTimezone,
 } from "@/src/utils/timezone";
 import ScreenGate from "@/src/components/ScreenGate";
+import { toast } from "@/src/components/ui/toast";
 
 
 type IconName =
@@ -79,6 +82,7 @@ type FieldErrors = Partial<Record<"name" | "email" | "phone" | "department_id" |
 
 export default function EmergencyBookingForm() {
   const router = useRouter();
+  const { user, accessToken } = useAuth();
   const { general } = useWorkspaceSettings();
   const {
     customerTimezone: manualCustomerTz,
@@ -109,42 +113,23 @@ export default function EmergencyBookingForm() {
   const [loadingDepts, setLoadingDepts] = useState(true);
   const [loadingProviders, setLoadingProviders] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    const loadSessionUser = async () => {
-      try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const meta = user.user_metadata as Record<string, string | undefined> | undefined;
-          const n =
-            meta?.name ||
-            meta?.full_name ||
-            (typeof user.email === "string" ? user.email.split("@")[0] : undefined);
-          if (n) setCreatedByLabel(n);
-        }
-      } catch {
-        /* keep default */
-      }
-    };
-    loadSessionUser();
-  }, []);
+    if (!user) return;
+    const meta = user.user_metadata as Record<string, string | undefined> | undefined;
+    const n =
+      meta?.name ||
+      meta?.full_name ||
+      (typeof user.email === "string" ? user.email.split("@")[0] : undefined);
+    if (n) setCreatedByLabel(n);
+  }, [user]);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     const fetchEventTypes = async () => {
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-
-        const res = await fetch("/api/event-types", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await authFetch("/api/event-types");
         if (res.ok) {
           const json = await res.json();
           const types = filterBookableEventTypes((json.data || []) as EventType[]);
@@ -163,15 +148,7 @@ export default function EmergencyBookingForm() {
 
     const fetchDepartments = async () => {
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-
-        const res = await fetch("/api/departments", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await authFetch("/api/departments");
         if (res.ok) {
           const json = await res.json();
           const list = (json.departments || []) as Department[];
@@ -186,15 +163,7 @@ export default function EmergencyBookingForm() {
 
     const fetchServiceProviders = async () => {
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
-
-        const res = await fetch("/api/team-members", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+        const res = await authFetch("/api/team-members");
         if (res.ok) {
           const json = await res.json();
           const members = (json.teamMembers || []) as Array<{
@@ -258,7 +227,7 @@ export default function EmergencyBookingForm() {
     fetchEventTypes();
     fetchDepartments();
     fetchServiceProviders();
-  }, []);
+  }, [accessToken]);
 
   const selectedDepartment = useMemo(
     () => departments.find((d) => String(d.id) === String(formData.department_id)),
@@ -321,7 +290,6 @@ export default function EmergencyBookingForm() {
       return n;
     });
     setError(null);
-    setSuccess(false);
   };
 
   useEffect(() => {
@@ -378,7 +346,6 @@ export default function EmergencyBookingForm() {
     }));
     setFieldErrors((e) => ({ ...e, notes: undefined }));
     setError(null);
-    setSuccess(false);
   };
 
   const priorityLabelForApi = (p: PriorityValue) => {
@@ -412,14 +379,9 @@ export default function EmergencyBookingForm() {
     if (!validate()) return;
     setLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      if (!accessToken) {
         throw new Error("Not authenticated");
       }
 
@@ -427,11 +389,10 @@ export default function EmergencyBookingForm() {
       const notes = formData.additional_description.trim();
       const description = notes ? `[Priority: ${pl}]\n\n${notes}` : `[Priority: ${pl}]`;
 
-      const res = await fetch("/api/bookings/emergency", {
+      const res = await authFetch("/api/bookings/emergency", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           invitee_name: formData.name.trim(),
@@ -451,7 +412,7 @@ export default function EmergencyBookingForm() {
         throw new Error(errData.error || "Failed to create emergency booking");
       }
 
-      setSuccess(true);
+      toast.success("Emergency booking created successfully.");
       window.dispatchEvent(new Event("bookings-viewed-update"));
       autoSelectDeptDoneRef.current = false;
       autoSelectProviderDoneRef.current = false;
@@ -564,20 +525,6 @@ export default function EmergencyBookingForm() {
             role="alert"
           >
             {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 rounded-[24px] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                <Icon name="check" className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-semibold text-emerald-900">Emergency booking created successfully.</p>
-                <p className="mt-1 text-sm text-emerald-800">The new booking is on your list and ready to assign.</p>
-              </div>
-            </div>
           </div>
         )}
 

@@ -29,6 +29,7 @@ import {
   fetchActiveDateExceptionsForSlot,
   validateSlotDateExceptions,
 } from '@/src/utils/dateExceptionApiValidation';
+import { assert_no_duplicate_invitee_booking_on_date } from '@/lib/invitee_duplicate_booking';
 import {
   insert_validated_booking,
   load_event_type_for_booking,
@@ -87,7 +88,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('bookings')
       .select(
-        'id, start_at, end_at, status, service_provider_id, event_type_id, event_types(event_type_format, capacity_per_slot, recurrence)'
+        'id, start_at, end_at, status, service_provider_id, event_type_id, invitee_email, invitee_phone, contact_id, public_code, event_types(event_type_format, capacity_per_slot, recurrence)'
       )
       .eq('workspace_id', workspaceId)
       .order('start_at', { ascending: true });
@@ -579,6 +580,34 @@ export async function POST(req: NextRequest) {
         workspace_id,
         service_provider_id || null
       );
+
+    const duplicateInviteeCheck = await assert_no_duplicate_invitee_booking_on_date(
+      supabase,
+      {
+        workspace_id,
+        start_at,
+        timezone:
+          tz ||
+          tzFields.provider_timezone ||
+          tzFields.customer_timezone ||
+          'UTC',
+        event_type_id,
+        invitee: {
+          invitee_email: invitee_email?.trim() || null,
+          invitee_phone: invitee_phone_e164,
+          contact_id: contactId,
+        },
+      }
+    );
+    if (!duplicateInviteeCheck.ok) {
+      return NextResponse.json(
+        {
+          error: duplicateInviteeCheck.message,
+          duplicate_booking: duplicateInviteeCheck.duplicate_booking,
+        },
+        { status: 400 }
+      );
+    }
 
     const created = await insert_validated_booking({
       supabase,

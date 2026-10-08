@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   LuCheck as Check,
@@ -11,9 +12,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { currencySymbol } from "@/src/constants/currency";
 import {
   PanelSection,
-  ProviderAvatar,
   classNames,
 } from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import {
   SERVICE_DESCRIPTION_MAX_LENGTH,
   SERVICE_DURATION_OPTIONS,
@@ -70,9 +71,7 @@ const PANEL_SELECT_CLASS =
   "w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-9 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
 async function get_access_token(): Promise<string | null> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { session } = await getWorkspaceSession();
   return session?.access_token ?? null;
 }
 
@@ -312,8 +311,14 @@ export function ServiceFormPanel({
 
   const handle_save = async () => {
     const trimmed_name = name.trim();
-    if (!trimmed_name) return;
-    if (!is_edit && department_id == null) return;
+    if (!trimmed_name) {
+      on_error("Service name is required.");
+      return;
+    }
+    if (!is_edit && department_id == null) {
+      on_error("Please select a department.");
+      return;
+    }
     if (is_edit && !service) return;
 
     if (conflicting_names.has(trimmed_name.toLowerCase())) {
@@ -359,7 +364,12 @@ export function ServiceFormPanel({
             status,
           });
 
-      if (!data?.service) return;
+      if (!data?.service) {
+        on_error(
+          is_edit ? "Failed to update service." : "Failed to create service."
+        );
+        return;
+      }
       const saved_service = data.service;
 
       const assignments_synced = await sync_doctor_assignments(
@@ -606,10 +616,9 @@ export function ServiceFormPanel({
                           key={doctor.id}
                           className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
                         >
-                          <ProviderAvatar
+                          <WorkspaceUserAvatar
                             name={doctor.name}
-                            initials={doctor.avatar}
-                            avatarUrl={doctor.avatarUrl}
+                            userId={doctor.id}
                             size="sm"
                           />
                           <span className="text-sm font-medium text-indigo-900">

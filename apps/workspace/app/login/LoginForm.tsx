@@ -1,5 +1,10 @@
 "use client";
 import {
+  getWorkspaceSession,
+  refreshWorkspaceSession,
+  validateWorkspaceUser,
+} from '@/src/lib/auth_session';
+import {
   workspaceAdminNeedsOnboardingWizard,
   serviceProviderNeedsOnboardingWizard,
   workspaceOnboardingRegisterUrl,
@@ -38,7 +43,7 @@ export default function LoginForm() {
     let cancelled = false;
     (async () => {
       const em = searchParams.get("email");
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!cancelled && session) {
         await supabase.auth.signOut();
       }
@@ -275,9 +280,9 @@ export default function LoginForm() {
         return;
       }
 
-      const { data: freshUserResult } = await supabase.auth.getUser();
-      if (freshUserResult.user) {
-        userForNav = freshUserResult.user;
+      const { user: freshUser } = await validateWorkspaceUser();
+      if (freshUser) {
+        userForNav = freshUser;
       }
       const freshMeta = userForNav.user_metadata as Record<string, unknown> | undefined;
       const hasWorkspaceId =
@@ -297,10 +302,7 @@ export default function LoginForm() {
           }),
         });
         if (bootRes.ok) {
-          await supabase.auth.refreshSession();
-          const {
-            data: { session: s2 },
-          } = await supabase.auth.getSession();
+          const { session: s2 } = await refreshWorkspaceSession();
           if (s2?.access_token && s2.user) {
             accessToken = s2.access_token;
             userForNav = s2.user;

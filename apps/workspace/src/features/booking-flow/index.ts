@@ -63,3 +63,7 @@ export {
   type booking_step_states,
 } from './booking_step_resolution';
 export { build_offered_schedule_timeslots } from './offered_schedule_timeslots';
+export {
+  map_event_type_for_booking_flow,
+  map_event_types_for_booking_flow,
+} from './map_event_type_for_booking_flow';

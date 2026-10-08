@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useMemo, useState, useEffect, useRef, useCallback, type FormEvent } from "react";
 import {
   LuCalendarDays as CalendarDays,
@@ -7,7 +8,6 @@ import {
   LuUsers as Users,
   LuX as X,
   LuSettings2 as Settings2,
-  LuCircleCheckBig as CheckCircle2,
   LuRotateCcw as RotateCcw,
   LuEyeOff as EyeOff,
   LuGlobe as Globe,
@@ -15,7 +15,7 @@ import {
 import { Pagination, usePagination } from "@app/ui";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/src/providers/AuthProvider";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 import { EventTypeSkeleton } from "@/src/components/ui/EventTypeSkeleton";
 import {
@@ -81,10 +81,7 @@ import {
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { format_timezone_display_label } from "@/lib/date-timezone";
 import { parse_event_type_format } from "@/src/features/event-types/event_type_format";
-import {
-  ProviderAvatar,
-  provider_initials,
-} from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import type { event_type_format } from "@/src/types/event_types";
 import type { event_type_format_filter_value } from "@/src/features/event-types/EventTypeFilters";
 import ScreenGate from "@/src/components/ScreenGate";
@@ -250,7 +247,6 @@ export default function EventTypes() {
   const loadingSlug = workspaceSettingsLoading;
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
@@ -265,8 +261,6 @@ export default function EventTypes() {
   const { data: serviceProviders, loading: service_providers_loading } =
     useServiceProviders();
   const [settings_open, set_settings_open] = useState(false);
-  const [settings_saved_message, set_settings_saved_message] = useState("");
-  const [event_type_saved_message, set_event_type_saved_message] = useState("");
   const [event_settings, set_event_settings] = useState<event_settings_state>(
     DEFAULT_EVENT_SETTINGS
   );
@@ -508,7 +502,7 @@ export default function EventTypes() {
 
   const fetchEventTypes = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setLoading(false);
         return;
@@ -568,15 +562,13 @@ export default function EventTypes() {
   };
 
   const handle_slug_blur = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token || !form.slug.trim()) return;
     await verify_slug(session.access_token, form.slug);
   };
 
   const handle_validate_slug = async (): Promise<boolean> => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       set_slug_error("You are not signed in. Please refresh and try again.");
       return false;
@@ -607,7 +599,7 @@ export default function EventTypes() {
     setSubmitting(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setFormError("You are not signed in. Please refresh and try again.");
         return;
@@ -673,8 +665,7 @@ export default function EventTypes() {
       setItems((prev) => [result.data, ...prev]);
 
       setFormError(null);
-      set_event_type_saved_message("Event type created successfully.");
-      window.setTimeout(() => set_event_type_saved_message(""), 4000);
+      toast.success("Event type created successfully.");
       closePanelAnimated();
       await fetchEventTypes();
     } catch (err) {
@@ -702,10 +693,10 @@ export default function EventTypes() {
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setDeleteConfirmId(null);
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       const response = await fetch(
@@ -718,17 +709,18 @@ export default function EventTypes() {
       if (!response.ok) {
         const error = await response.json();
         setDeleteConfirmId(null);
-        setAlertMessage(error?.error || "Failed to delete event type");
+        toast.error(error?.error || "Failed to delete event type");
         return;
       }
       setItems((prev) =>
         prev.filter((item) => item.id !== deleteConfirmId)
       );
       setDeleteConfirmId(null);
+      toast.success("Event type deleted successfully.");
     } catch (err) {
       console.error("Error:", err);
       setDeleteConfirmId(null);
-      setAlertMessage("An error occurred while deleting the event type");
+      toast.error("An error occurred while deleting the event type");
     }
   };
 
@@ -772,9 +764,9 @@ export default function EventTypes() {
   const handleDuplicate = async (item: EventType) => {
     if (isStaffUser) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
-        setAlertMessage("Not authenticated");
+        toast.error("Not authenticated");
         return;
       }
       const base_slug = slugify_event_type_title(`${item.title} Copy`);
@@ -820,20 +812,21 @@ export default function EventTypes() {
       });
       if (!response.ok) {
         const error = await response.json();
-        setAlertMessage(error?.error || "Failed to duplicate event type");
+        toast.error(error?.error || "Failed to duplicate event type");
         return;
       }
       const result = await response.json();
       setItems((prev) => [result.data, ...prev]);
+      toast.success("Event type duplicated successfully.");
     } catch (err) {
       console.error("Error duplicating:", err);
-      setAlertMessage("Failed to duplicate event type");
+      toast.error("Failed to duplicate event type");
     }
   };
 
   const handleCopyLink = async (item: EventType): Promise<boolean> => {
     if (!item.slug) {
-      setAlertMessage(
+      toast.error(
         `Unable to copy link. Event type "${item.title}" does not have a slug. Please edit and save the event type to generate a slug.`
       );
       return false;
@@ -862,14 +855,14 @@ export default function EventTypes() {
     );
 
     if (!resolved.ok) {
-      setAlertMessage(resolved.error);
+      toast.error(resolved.error);
       return false;
     }
 
     try {
       const copied = await copy_text_to_clipboard(resolved.url);
       if (!copied) {
-        setAlertMessage("Failed to copy link. Please try again.");
+        toast.error("Failed to copy link. Please try again.");
         return false;
       }
       setCopiedId(item.id);
@@ -877,7 +870,7 @@ export default function EventTypes() {
       return true;
     } catch (err) {
       console.error("Failed to copy link:", err);
-      setAlertMessage("Failed to copy link. Please try again.");
+      toast.error("Failed to copy link. Please try again.");
       return false;
     }
   };
@@ -910,30 +903,26 @@ export default function EventTypes() {
         },
       });
       if (error) {
-        set_settings_saved_message(
-          error.message || "Failed to save settings. Please try again."
-        );
+        toast.error(error.message || "Failed to save settings. Please try again.");
       } else {
-        set_settings_saved_message("View settings saved successfully.");
+        toast.success("View settings saved successfully.");
         if (showForm && editingId === null) {
           apply_settings_defaults_to_create_form();
         }
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to save settings.";
-      set_settings_saved_message(message);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save settings."
+      );
     } finally {
       set_settings_saving(false);
-      setTimeout(() => set_settings_saved_message(""), 2500);
     }
   };
 
   const handle_reset_settings = () => {
     set_event_settings(DEFAULT_EVENT_SETTINGS);
     set_default_location_types([DEFAULT_EVENT_SETTINGS.default_location]);
-    set_settings_saved_message("Settings reset to default values.");
-    setTimeout(() => set_settings_saved_message(""), 2500);
+    toast.success("Settings reset to default values.");
   };
 
   const show_owner_labels = useMemo(() => {
@@ -957,9 +946,7 @@ export default function EventTypes() {
 
     const load_team_members = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token || cancelled) return;
 
         const response = await fetch("/api/team-members", {
@@ -1213,14 +1200,6 @@ export default function EventTypes() {
     });
   };
 
-  const get_provider_avatar_url = (ownerId: string | null | undefined) => {
-    if (!ownerId) return null;
-    return (
-      serviceProviders.find((provider) => provider.id === ownerId)?.avatar_url?.trim() ||
-      null
-    );
-  };
-
   const panel_open = showForm || editingId !== null;
   const panel_visible = panel_open || panel_animated_open;
 
@@ -1301,13 +1280,6 @@ export default function EventTypes() {
           panel_animated_open && "hidden md:block"
         )}
       >
-          {event_type_saved_message ? (
-            <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{event_type_saved_message}</span>
-            </div>
-          ) : null}
-
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -1526,7 +1498,6 @@ export default function EventTypes() {
                           const short_description =
                             parse_short_description_from_settings(item.settings);
                           const provider_label = get_provider_label(item.owner_id);
-                          const provider_avatar = get_provider_avatar_url(item.owner_id);
                           const capacity =
                             typeof item.capacity_per_slot === "number" &&
                             Number.isFinite(item.capacity_per_slot)
@@ -1589,12 +1560,9 @@ export default function EventTypes() {
                               </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
                                 <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
-                                  <ProviderAvatar
+                                  <WorkspaceUserAvatar
                                     name={provider_label === "—" ? "Provider" : provider_label}
-                                    initials={provider_initials(
-                                      provider_label === "—" ? "?" : provider_label
-                                    )}
-                                    avatarUrl={provider_avatar}
+                                    userId={item.owner_id}
                                     size="sm"
                                   />
                                   <span className="truncate">{provider_label}</span>
@@ -1717,8 +1685,7 @@ export default function EventTypes() {
                     variant="panel"
                     onClose={handleEditPanelClose}
                     onSaved={(message) => {
-                      set_event_type_saved_message(message);
-                      window.setTimeout(() => set_event_type_saved_message(""), 4000);
+                      toast.success(message);
                       closePanelAnimated(() => {
                         void fetchEventTypes();
                       });
@@ -1764,14 +1731,6 @@ export default function EventTypes() {
         />
       )}
 
-      {alertMessage && (
-        <AlertModal
-          message={alertMessage}
-          onClose={() => setAlertMessage(null)}
-        />
-      )}
-
-
       {settings_open && (
         <div className="fixed inset-0 z-999 flex">
           <button
@@ -1806,13 +1765,6 @@ export default function EventTypes() {
             </div>
 
             <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
-              {settings_saved_message && (
-                <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{settings_saved_message}</span>
-                </div>
-              )}
-
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <h3 className="text-sm font-bold text-slate-900">
                   Default Setup

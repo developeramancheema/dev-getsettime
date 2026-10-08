@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import ScreenGate from "@/src/components/ScreenGate";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -11,6 +12,7 @@ import {
 import type { Booking } from "@/src/types/booking";
 import { useCreateBookingModal } from "@/src/providers/CreateBookingModalProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
+import { useWorkspaceUsers } from "@/src/providers/WorkspaceUsersProvider";
 import { CUSTOMER_TIMEZONE_OPTIONS } from "@/src/constants/timezone";
 import {
   formatTimezoneSelectLabel,
@@ -47,17 +49,6 @@ type DepartmentsApiResponse = {
   departments?: Array<{
     id: number | string;
     name: string;
-  }>;
-};
-
-type TeamMembersApiResponse = {
-  teamMembers?: Array<{
-    id: string;
-    name?: string;
-    avatar_url?: string | null;
-    departments?: number[];
-    role?: string | null;
-    deactivated?: boolean;
   }>;
 };
 
@@ -223,15 +214,22 @@ export default function BookingCalendar() {
   const [departmentNameById, setDepartmentNameById] = useState<
     Record<string, string>
   >({});
-  const [providerMetaById, setProviderMetaById] = useState<
-    Record<
+  const { members: workspaceMembers } = useWorkspaceUsers();
+  const providerMetaById = useMemo(() => {
+    const nextProviderMeta: Record<
       string,
-      {
-        avatarUrl: string | null;
-        departmentIds: number[];
-      }
-    >
-  >({});
+      { avatarUrl: string | null; departmentIds: number[] }
+    > = {};
+    for (const member of workspaceMembers) {
+      const id = String(member.id ?? "").trim();
+      if (!id || member.deactivated) continue;
+      nextProviderMeta[id] = {
+        avatarUrl: member.avatar_url?.trim() || null,
+        departmentIds: Array.isArray(member.departments) ? member.departments : [],
+      };
+    }
+    return nextProviderMeta;
+  }, [workspaceMembers]);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const monthLabel = useMemo(
@@ -624,10 +622,7 @@ export default function BookingCalendar() {
       setLoading(true);
       setRawBookings([]);
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
 
         if (!session?.access_token || !active) {
           if (active) setRawBookings([]);
@@ -681,9 +676,6 @@ export default function BookingCalendar() {
         const departmentsRes = await fetch("/api/departments", {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        const teamMembersRes = await fetch("/api/team-members", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
 
         if (!active) return;
 
@@ -713,25 +705,6 @@ export default function BookingCalendar() {
             nextDepartmentNames[id] = name;
           }
           setDepartmentNameById(nextDepartmentNames);
-        }
-        if (teamMembersRes.ok) {
-          const teamJson = (await teamMembersRes.json()) as TeamMembersApiResponse;
-          const nextProviderMeta: Record<
-            string,
-            { avatarUrl: string | null; departmentIds: number[] }
-          > = {};
-          for (const member of teamJson.teamMembers ?? []) {
-            const id = String(member.id ?? "").trim();
-            if (!id) continue;
-            if (member.deactivated) continue;
-            nextProviderMeta[id] = {
-              avatarUrl: member.avatar_url?.trim() || null,
-              departmentIds: Array.isArray(member.departments)
-                ? member.departments
-                : [],
-            };
-          }
-          setProviderMetaById(nextProviderMeta);
         }
       } catch {
         if (active) setRawBookings([]);

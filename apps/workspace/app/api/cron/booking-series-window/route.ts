@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ok: result.errors.length === 0,
     extended: result.extended,
+    skipped_plan_limit: result.skipped_plan_limit,
     errors: result.errors,
   });
 }
