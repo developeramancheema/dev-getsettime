@@ -190,10 +190,10 @@ export function CalendarDayGrid({
                         </div>
                       )}
                       <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate text-xs font-semibold text-slate-900">
+                        <p className="truncate text-sm font-semibold text-slate-900">
                           {column.label}
                         </p>
-                        <p className="truncate text-[11px] text-slate-500">
+                        <p className="truncate text-xs text-slate-500">
                           {column.department}
                         </p>
                       </div>

@@ -239,7 +239,7 @@ export function CalendarSidebar({
             <h3 className="text-xl font-semibold text-slate-900">{summaryTitle}</h3>
             <ChartColumn className="h-5 w-5 text-indigo-600" aria-hidden />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 gap-2">
             {summaryCards.map((card) => (
               <div key={card.key} className={`rounded-lg border p-3 ${card.className}`}>
                 <p className="text-2xl font-bold">{card.value}</p>
@@ -348,7 +348,7 @@ export function CalendarSidebar({
                       )}
                       aria-hidden
                     />
-                    <span className="text-sm font-medium text-slate-600 capitalize">
+                    <span className="text-xs font-medium text-slate-600 capitalize">
                       {statusLabel(booking.status)}
                     </span>
                   </div>
@@ -411,7 +411,7 @@ export function CalendarSidebar({
                 key={booking.id}
                 type="button"
                 onClick={() => onSelectBooking?.(booking)}
-                className="grid w-full grid-cols-[72px_minmax(0,1fr)_76px] items-start gap-2 rounded-lg p-1.5 text-left transition hover:bg-slate-50"
+                className="grid w-full grid-cols-[72px_minmax(0,1fr)_76px] items-start gap-2 rounded-lg p-2 text-left transition bg-slate-50 hover:bg-slate-100 border border-slate-200"
               >
                 <p className="text-sm font-semibold text-indigo-700">
                   {booking.start_at ? formatTime(booking.start_at) : "—"}

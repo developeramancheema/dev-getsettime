@@ -367,7 +367,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
         <div className="p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex-1 min-w-[200px]">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-start gap-3 mb-2">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -416,7 +416,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
 
       {/* Plan Selection Modal */}
       {showPlanModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !isChangingPlan && setShowPlanModal(false)}>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-10001 p-4" onClick={() => !isChangingPlan && setShowPlanModal(false)}>
           <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-slate-200">
               <div className="flex items-center justify-between">
@@ -435,7 +435,7 @@ export default function Billing({ dark = false }: { dark?: boolean }) {
             </div>
 
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {availablePlans.map((planOption) => {
                   const isCurrentPlan = planOption.slug === currentPlan?.slug;
                   const isPopular = planOption.popular;

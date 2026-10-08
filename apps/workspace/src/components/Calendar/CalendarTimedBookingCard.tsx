@@ -48,7 +48,7 @@ export function CalendarTimedBookingCard({
         onSelect();
       }}
       className={cn(
-        "flex min-h-0 w-full flex-col overflow-hidden rounded-md border p-2 text-left shadow-sm transition hover:shadow",
+        "flex w-full flex-col rounded-md border p-2 text-left shadow-sm transition hover:shadow",
         selected ? "border-indigo-300 bg-indigo-50" : statusCardClass,
         className,
       )}
@@ -74,7 +74,7 @@ export function CalendarTimedBookingCard({
       </div>
       <p
         className={cn(
-          "truncate font-semibold text-slate-900",
+          "font-semibold text-slate-900",
           compact ? "text-xs" : "text-sm",
         )}
       >
@@ -82,7 +82,7 @@ export function CalendarTimedBookingCard({
       </p>
       <p
         className={cn(
-          "truncate text-slate-600",
+          "text-slate-600",
           compact ? "text-[11px]" : "text-xs",
           ultraCompact && "hidden",
         )}
@@ -90,7 +90,7 @@ export function CalendarTimedBookingCard({
         {serviceName}
       </p>
       {showProvider && providerName ? (
-        <p className="-mt-0.5 truncate text-[11px] text-slate-500">{providerName}</p>
+        <p className="-mt-0.5 text-[11px] text-slate-500">{providerName}</p>
       ) : null}
     </button>
   );

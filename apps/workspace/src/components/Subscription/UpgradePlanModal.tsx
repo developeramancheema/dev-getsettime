@@ -19,7 +19,7 @@ export function UpgradePlanModal({
 
   return (
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
+      className="fixed inset-0 z-10001 flex items-center justify-center overflow-y-auto bg-black/40 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

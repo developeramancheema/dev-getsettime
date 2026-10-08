@@ -518,7 +518,7 @@ export function BookingDetailsWithActions({
 
       {reminder_open && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
+          className="fixed inset-0 z-100001 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-[2px] p-4"
           role="dialog"
           aria-modal
           onClick={() => close_reminder_modal()}

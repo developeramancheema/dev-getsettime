@@ -444,17 +444,17 @@ export function BookingDetailDatetimeModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/50 p-4"
+      className="fixed inset-0 z-100001 flex items-start justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-[2px] p-4"
       role="dialog"
       aria-modal
       aria-labelledby="booking-datetime-modal-title"
       onClick={onClose}
     >
       <div
-        className="my-8 w-full max-w-4xl rounded-3xl border border-slate-200 bg-white shadow-2xl"
+        className="my-8 w-full max-w-4xl rounded-2xl border border-slate-200 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-2">
           <h2 id="booking-datetime-modal-title" className="text-lg font-semibold text-slate-900">
             {title}
           </h2>

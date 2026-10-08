@@ -808,14 +808,14 @@ export default function EmergencyBookingForm() {
                     type="button"
                     onClick={handleCancel}
                     disabled={loading}
-                    className="inline-flex h-11 min-w-[7rem] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex h-11 min-w-[12rem] items-center justify-center rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg transition disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition disabled:opacity-60"
                   >
                     {loading ? "Saving…" : "Add Emergency Booking"}
                   </button>

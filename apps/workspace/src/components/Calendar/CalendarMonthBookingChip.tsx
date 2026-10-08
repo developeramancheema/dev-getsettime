@@ -32,13 +32,13 @@ export function CalendarMonthBookingChip({
         onClick();
       }}
       className={cn(
-        "flex w-full cursor-pointer items-center gap-1 truncate rounded-lg border px-1.5 py-2 text-left text-[11px] leading-tight transition",
+        "flex flex-wrap w-full cursor-pointer items-center gap-1 truncate rounded-lg border p-1 text-left text-[10px] sm:text-[11px] leading-tight transition",
         chipClass.chip,
         className,
       )}
     >
-      <span className={cn("shrink-0 font-bold", chipClass.time)}>{timeLabel}</span>
-      <span className="truncate font-medium text-slate-800">{serviceLabel}</span>
+      <span className={cn("shrink-0 sm:font-bold", chipClass.time)}>{timeLabel}</span>
+      <span className="truncate sm:font-medium text-slate-800">{serviceLabel}</span>
     </button>
   );
 }

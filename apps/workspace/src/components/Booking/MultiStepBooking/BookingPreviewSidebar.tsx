@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import type { Department, EventType, Service, ServiceProvider } from '@/src/types/bookingForm';
 import type { IntakeFormSettings } from '@/src/types/workspace';
 import {
@@ -118,6 +118,16 @@ export function BookingPreviewSidebar({
   const hasAdditionalInfo =
     showIntakeInPreview &&
     (customFieldRows.length > 0 || notes.trim().length > 0);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [belowLg, setBelowLg] = useState(false);
+
+  useLayoutEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const sync = () => setBelowLg(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   useLayoutEffect(() => {
     if (selectedDate) step3PerfSidebarDateRendered(selectedDate);
@@ -129,7 +139,7 @@ export function BookingPreviewSidebar({
 
   return (
     <div
-      className="w-full lg:sticky lg:top-0 lg:overflow-y-auto bg-gradient-to-br p-4 sm:p-6 lg:p-8 relative overflow-hidden"
+      className="w-full lg:sticky lg:top-0 lg:overflow-y-auto bg-gradient-to-br p-4 sm:p-6 relative overflow-hidden"
       style={{ background: `linear-gradient(135deg, ${primary}08 0%, ${accent}08 100%)` }}
     >
       <div className="absolute inset-0 opacity-5">
@@ -144,17 +154,37 @@ export function BookingPreviewSidebar({
 
       <div className="relative z-10">
         <div className="mb-4 sm:mb-4 lg:mb-6">
-          <div className="flex justify-end w-full mb-3 sm:mb-4 px-2 min-h-[1rem]">
-            {workspaceLogoUrl ? (
+        {workspaceLogoUrl ? (
+          <div className="flex justify-end w-full mb-3 sm:mb-4 px-2 min-h-[1rem]">            
               <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
                 Powered by GetSetTime
               </span>
-            ) : null}
           </div>
-          <div className="inline-flex items-center gap-2 mb-2 sm:mb-3">
+          ) : null}
+
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 mb-2 sm:mb-3 border-0 bg-transparent p-0 text-left font-inherit text-inherit cursor-pointer lg:cursor-default"
+            aria-expanded={belowLg ? detailsOpen : true}
+            aria-controls="booking-live-preview-details"
+            onClick={() => {
+              if (!belowLg) return;
+              setDetailsOpen((open) => !open);
+            }}
+          >
             <div className="w-2 h-2 rounded-full animate-pulse bg-indigo-600" />
             <span className="text-xs font-semibold uppercase tracking-wider">Live Preview</span>
-          </div>
+            <svg
+              className={`h-3.5 w-3.5 text-gray-500 transition-transform lg:hidden ${detailsOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
           <div className="py-2 z-10 relative">
             <div className="flex flex-wrap items-center gap-4">
               {!loadingSettings ? (
@@ -177,7 +207,10 @@ export function BookingPreviewSidebar({
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group space-y-6">
+        <div
+          id="booking-live-preview-details"
+          className={`bg-white/80 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group space-y-6 ${detailsOpen ? '' : 'hidden lg:block'}`}
+        >
           {!hasSelection ? (
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
@@ -198,7 +231,7 @@ export function BookingPreviewSidebar({
               {selectedDepartment && !selectedProvider && (
                 <div className="details-box">
                   <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg">
+                    <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg">
                       <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
@@ -216,7 +249,7 @@ export function BookingPreviewSidebar({
               {selectedDepartment && selectedProvider && (
                 <div className="details-box">
                   <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg">
+                    <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg">
                       <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>

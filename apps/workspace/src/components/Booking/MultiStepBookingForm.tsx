@@ -870,7 +870,7 @@ const MultiStepBookingForm = ({
       <div
         className={
           embedded
-            ? 'relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white shadow-[0_16px_40px_-20px_rgba(15,23,42,0.18)] backdrop-blur-xl'
+            ? 'relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_16px_40px_-20px_rgba(15,23,42,0.18)] backdrop-blur-xl'
             : 'relative overflow-hidden rounded-xl bg-gray-100 drop-shadow-xl backdrop-blur-xl'
         }
       >
@@ -917,7 +917,7 @@ const MultiStepBookingForm = ({
             customFieldValues={customFieldValues}
             meetingChoiceLabel={meetingChoiceLabel.trim() || undefined}
           />
-          <div ref={stepTopRef} className="scroll-mt-4 p-4 sm:p-6 lg:p-8 xl:p-10 bg-white relative">
+          <div ref={stepTopRef} className="scroll-mt-4 p-4 sm:p-6 bg-white relative">
             {embedded && !hide_embedded_toolbar && (
               <div className="mb-4 flex justify-end lg:absolute lg:right-6 lg:top-6 lg:z-20 lg:mb-0">
                 <button

@@ -222,7 +222,7 @@ export function BookingPreviewPanel({
 
   return (
     <aside
-      className={`fixed top-16 right-0 bottom-0 z-10001 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[32rem] transform transition-transform duration-300 ease-in-out will-change-transform ${
+      className={`fixed top-16 right-0 bottom-0 z-10001 flex w-full h-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl lg:w-[32rem] transform transition-transform duration-300 ease-in-out will-change-transform ${
         panel_animated_open
           ? 'translate-x-0'
           : 'pointer-events-none translate-x-full'
@@ -231,7 +231,7 @@ export function BookingPreviewPanel({
       aria-label="Booking preview"
     >
       {panel_visible ? (
-        <div className="flex flex-col">
+        <div className="flex flex-col overflow-y-auto pb-[60px]">
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
             <div className="min-w-0">
               <h2 className="text-lg font-bold text-slate-900">
@@ -273,7 +273,7 @@ export function BookingPreviewPanel({
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <div className="overflow-y-scroll px-5 py-5">
             {is_loading ? (
               <PreviewLoadingState />
             ) : fetch_state.status === 'not_found' ? (
@@ -316,6 +316,7 @@ export function BookingPreviewPanel({
               </button>
             )}
           </div>
+          
         </div>
       ) : null}
     </aside>

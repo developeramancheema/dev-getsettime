@@ -847,12 +847,12 @@ export function BookingDetailsCard({
     <>
     <div
       data-print-root="booking-details"
-      className={`relative mx-auto w-full overflow-hidden rounded-3xl border border-slate-200 bg-white ${
+      className={`relative mx-auto w-full overflow-hidden rounded-2xl border border-slate-200 bg-white ${
         variant === 'page' ? 'shadow-sm' : 'max-w-5xl shadow-2xl'
       }`}
     >
-      <div className="sticky top-0 z-10 border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-6 py-5 md:px-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="sticky top-0 z-10 border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-4 py-5 md:px-8">
+        <div className="flex flex-col gap-4 lg:flex-row md:items-start md:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
@@ -954,11 +954,11 @@ export function BookingDetailsCard({
         </div>
       </div>
 
-      <div className="grid gap-6 bg-slate-50/40 p-6 md:grid-cols-3 md:p-8">
-        <div className="space-y-6 md:col-span-2">
+      <div className="grid gap-6 bg-slate-50/40 p-6 xl:grid-cols-3 px-4 py-5 md:px-8">
+        <div className="space-y-6 w-full xl:col-span-2">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">
                 Customer Information
               </h2>
               {(invitee_inline_edit || onEditInvitee) &&
@@ -1052,7 +1052,7 @@ export function BookingDetailsCard({
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">
                 Booking Information
               </h2>
               {(booking_inline_edit || onEditBooking) &&
@@ -1314,7 +1314,7 @@ export function BookingDetailsCard({
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">
                 Date &amp; Time
               </h2>
               {!hide_booking_change_actions && (
@@ -1351,7 +1351,7 @@ export function BookingDetailsCard({
 
           {fieldsToShow.length > 0 && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+              <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
                 Custom Fields
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -1377,7 +1377,7 @@ export function BookingDetailsCard({
 
           {fileUploadUrls.length > 0 && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+              <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
                 {fileUploadUrls.length === 1 ? 'Uploaded File' : 'Uploaded Files'}
               </h2>
               <div className="flex flex-col gap-2">
@@ -1429,7 +1429,7 @@ export function BookingDetailsCard({
 
           {showAdditionalInfo && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
-              <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+              <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
                 Notes &amp; Additional Information
               </h2>
               <div className="whitespace-pre-line rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700">
@@ -1439,10 +1439,10 @@ export function BookingDetailsCard({
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="w-full space-y-6">
           <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm print:hidden">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-amber-800">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-amber-800">
                 Admin Notice
               </h2>
               <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
@@ -1477,7 +1477,7 @@ export function BookingDetailsCard({
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
               Quick Actions
             </h2>
 
@@ -1589,7 +1589,7 @@ export function BookingDetailsCard({
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-slate-500">
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
               Booking Summary
             </h2>
             <div className="space-y-3 text-sm text-slate-600">
@@ -1656,7 +1656,7 @@ export function BookingDetailsCard({
 
     {copy_booking_links_modal_open && (
       <div
-        className="fixed inset-0 z-[65] flex items-center justify-center overflow-y-auto bg-black/40 p-4 print:hidden"
+        className="fixed inset-0 z-10001 flex items-center justify-center overflow-y-auto bg-slate-900/40 backdrop-blur-[2px] p-4 print:hidden"
         role="dialog"
         aria-modal
         aria-labelledby="copy-booking-links-title"

@@ -5,7 +5,10 @@ import type { RefObject } from "react";
 import { BookingPreviewPanel } from "@/src/components/Booking/BookingPreviewPanel";
 import type { Booking } from "@/src/types/booking";
 import type { CalendarCell } from "@/src/components/Calendar/calendar_utils";
-import { CALENDAR_MONTH_VISIBLE_COUNT } from "@/src/components/Calendar/calendar_booking_layout";
+import {
+  CALENDAR_MONTH_CHIP_VISIBILITY_CLASS,
+  CALENDAR_MONTH_VISIBLE_COUNT,
+} from "@/src/components/Calendar/calendar_booking_layout";
 import {
   toDateKey,
   WEEK_DAYS,
@@ -88,6 +91,7 @@ export function CalendarMonthGrid({
                         {cell.dayNumber}
                       </div>
                     </div>
+                    
                     <div
                       className={cn(
                         "space-y-1",
@@ -100,12 +104,16 @@ export function CalendarMonthGrid({
 
                       {!loading && dayBookings.length > 0 && (
                         <>
-                          {dayBookings.slice(0, CALENDAR_MONTH_VISIBLE_COUNT).map((booking) => (
-                            <CalendarMonthBookingChip
+                          {dayBookings.slice(0, CALENDAR_MONTH_VISIBLE_COUNT).map((booking, index) => (
+                            <div
                               key={booking.id}
-                              booking={booking}
-                              onClick={() => set_preview_booking(booking)}
-                            />
+                              className={CALENDAR_MONTH_CHIP_VISIBILITY_CLASS[index]}
+                            >
+                              <CalendarMonthBookingChip
+                                booking={booking}
+                                onClick={() => set_preview_booking(booking)}
+                              />
+                            </div>
                           ))}
 
                           <CalendarMonthDayBookingsPopover

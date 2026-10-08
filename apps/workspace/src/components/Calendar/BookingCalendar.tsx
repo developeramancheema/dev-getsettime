@@ -923,14 +923,14 @@ export default function BookingCalendar() {
 
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="inline-flex w-fit items-center rounded-lg bg-slate-50 gap-2">
+            <div className="inline-flex w-fit items-center gap-2">
               <button
                 type="button"
                 onClick={() => switchViewMode("day")}
                 className={`rounded-md px-4 py-2 text-sm font-semibold transition border cursor-pointer ${
                   viewMode === "day"
                     ? "bg-indigo-600 border-indigo-700 text-white"
-                    : "text-slate-500 border-slate-200 hover:text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200"
+                    : "text-slate-500 border-slate-200 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200"
                 }`}
               >
                 Day

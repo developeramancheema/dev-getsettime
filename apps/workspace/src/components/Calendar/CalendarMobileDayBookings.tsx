@@ -241,7 +241,7 @@ export function CalendarMobileDayBookings({
                     <div
                       key={`${hour}-row-${rowIndex}`}
                       className={`grid gap-2 ${
-                        row.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                        row.length > 1 ? "grid-cols-1 min-[600px]:grid-cols-2" : "grid-cols-1"
                       }`}
                     >
                       {row.map((booking) => (

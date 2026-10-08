@@ -216,9 +216,9 @@ export default function BookingDetailsPage() {
   }, [fetch_state, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 p-4 md:p-6">
+    <div className="relative">
       <div className="mx-auto w-full max-w-7xl space-y-5">
-        <div className="flex items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center flex-wrap justify-between gap-3 print:hidden">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Link
               href="/bookings"
@@ -249,14 +249,14 @@ export default function BookingDetailsPage() {
             </Link>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <button
+            {/* <button
               type="button"
               onClick={open_create_booking}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition hover:from-indigo-700 hover:to-violet-700"
             >
               <Plus className="h-4 w-4" aria-hidden />
               Add New Booking
-            </button>
+            </button> */}
             {fetch_state.status === 'ready' && (
               <>
                 {!is_booking_read_only && !show_toolbar_save && (
