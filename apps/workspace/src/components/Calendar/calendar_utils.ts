@@ -181,6 +181,8 @@ export function filterBookingsBySearch(
   const q = search.trim().toLowerCase();
   if (!q) return bookings;
 
+  const qDigits = q.replace(/\D/g, "");
+
   return bookings.filter((booking) => {
     const invitee =
       (booking.invitee_name?.trim() ||
@@ -188,10 +190,18 @@ export function filterBookingsBySearch(
         "");
     const eventType = booking.event_types?.title?.trim() || "";
     const creatorName = booking.creator?.name?.trim() || "";
+    const inviteePhone = booking.invitee_phone?.replace(/\D/g, "") ?? "";
+    const contactPhone = booking.contacts?.phone?.replace(/\D/g, "") ?? "";
+    const phoneMatch =
+      qDigits.length >= 3 &&
+      ((inviteePhone.length > 0 && inviteePhone.includes(qDigits)) ||
+        (contactPhone.length > 0 && contactPhone.includes(qDigits)));
+
     return (
       invitee.toLowerCase().includes(q) ||
       eventType.toLowerCase().includes(q) ||
-      creatorName.toLowerCase().includes(q)
+      creatorName.toLowerCase().includes(q) ||
+      phoneMatch
     );
   });
 }

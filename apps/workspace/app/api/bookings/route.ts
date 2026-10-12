@@ -32,6 +32,7 @@ import {
 } from '@/src/utils/google_meet';
 import { list_bookable_meeting_option_keys } from '@/src/utils/meeting_options';
 import { normalizeInviteePhoneForStorage } from '@/src/utils/phone';
+import { buildBookingsSearchOrExpression } from '@/src/utils/bookingListSearch';
 import {
   resolveMeetingOptionsForServiceProvider,
   resolveNotificationsForServiceProvider,
@@ -176,9 +177,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Apply search filter if provided
+    // Apply search filter if provided (name, email, provider, phone)
     if (search.trim()) {
-      query = query.ilike('invitee_name', `%${search.trim()}%`);
+      const searchOr = buildBookingsSearchOrExpression(search);
+      if (searchOr) {
+        query = query.or(searchOr);
+      }
     }
 
     // Apply date filter if provided (fetch bookings for a specific date)
