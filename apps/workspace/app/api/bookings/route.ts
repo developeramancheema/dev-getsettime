@@ -773,6 +773,16 @@ export async function POST(req: NextRequest) {
 
     after(async () => {
       try {
+        const serviceRoleClient = getServiceRoleClient();
+        if (serviceRoleClient) {
+          const { notifyBookingLimitReachedIfNeeded } = await import(
+            '@/lib/send-booking-limit-reached-notifications'
+          );
+          await notifyBookingLimitReachedIfNeeded(
+            serviceRoleClient,
+            Number(workspaceId)
+          );
+        }
         await run_post_booking_processing({
           origin,
           booking: data,
