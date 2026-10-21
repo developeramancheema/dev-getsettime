@@ -14,7 +14,7 @@ const createTransporter = () => {
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
+      pass: process.env.SMTP_PASSWORD || process.env.SMTP_PASS,
     },
   });
 };
@@ -1298,4 +1298,32 @@ export const sendConfirmationEmail = async (
     `,
   });
 };
+
+/** Plain transactional OTP for public embed booking verification. */
+export async function sendBookingVerificationOtpEmail(
+  to: string,
+  code: string,
+  expiryMinutes: number
+): Promise<boolean> {
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPass = (process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim();
+  if (!smtpUser || !smtpPass) {
+    console.error('SMTP not configured (SMTP_USER / SMTP_PASSWORD) for booking OTP email');
+    return false;
+  }
+  try {
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"GetSetTime" <${smtpUser}>`,
+      to,
+      subject: 'Your booking verification code',
+      text: `Your booking verification code is: ${code}. It expires in ${expiryMinutes} minutes.`,
+      html: `<p>Your booking verification code is: <strong>${code}</strong></p><p>It expires in ${expiryMinutes} minutes.</p>`,
+    });
+    return true;
+  } catch (err) {
+    console.error('Error sending booking verification OTP email:', err);
+    return false;
+  }
+}
 
