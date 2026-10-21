@@ -1,4 +1,8 @@
 "use client";
+import {
+  getWorkspaceSession,
+  validateWorkspaceUser,
+} from '@/src/lib/auth_session';
 import { useState, useEffect, useRef, useCallback, type ComponentType } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -101,10 +105,10 @@ async function enqueueAuthRefresh(): Promise<void> {
  * right after OAuth, extra refreshes can fail or rotate tokens in a way that clears the session.
  */
 async function ensureSupabaseSessionOrThrow(): Promise<void> {
-  let { data: { session } } = await supabase.auth.getSession();
+  let { session } = await getWorkspaceSession({ bypassCache: true });
   if (session?.user) return;
   await enqueueAuthRefresh();
-  ({ data: { session } } = await supabase.auth.getSession());
+  ({ session } = await getWorkspaceSession({ bypassCache: true }));
   if (!session?.user) {
     throw new Error("Not signed in or session expired. Please sign in again.");
   }
@@ -112,11 +116,11 @@ async function ensureSupabaseSessionOrThrow(): Promise<void> {
 
 /** Bearer + JSON headers for workspace API routes; refresh only if access_token is missing. */
 async function headers_for_workspace_api(): Promise<Record<string, string>> {
-  let { data: { session } } = await supabase.auth.getSession();
+  let { session } = await getWorkspaceSession({ bypassCache: true });
   let token = session?.access_token;
   if (!token) {
     await enqueueAuthRefresh();
-    ({ data: { session } } = await supabase.auth.getSession());
+    ({ session } = await getWorkspaceSession({ bypassCache: true }));
     token = session?.access_token;
   }
   if (!token) {
@@ -195,8 +199,8 @@ export default function RegisterForm() {
 
   useEffect(() => {
     if (onboardingMode !== true || onboardingRole !== "service_provider") return;
-    void supabase.auth.getUser().then(({ data }) => {
-      const id = data.user?.id;
+    void getWorkspaceSession().then(({ session }) => {
+      const id = session?.user?.id;
       if (id) setOnboardingProviderUserId(id);
     });
   }, [onboardingMode, onboardingRole, onboardingStep]);
@@ -442,9 +446,9 @@ export default function RegisterForm() {
 
     const isOnboardingFlow = searchParams.get("onboarding") === "1";
 
-    const { data: userResultEarly, error: getUserEarlyErr } = await supabase.auth.getUser();
-    if (!getUserEarlyErr && userResultEarly.user?.user_metadata) {
-      meta = userResultEarly.user.user_metadata as Record<string, unknown>;
+    const { user: userResultEarly, error: getUserEarlyErr } = await validateWorkspaceUser();
+    if (!getUserEarlyErr && userResultEarly?.user_metadata) {
+      meta = userResultEarly.user_metadata as Record<string, unknown>;
       if (onboardingKindRef.current !== "invite") {
         wid = parseWorkspaceIdFromMeta(meta) ?? wid;
       }
@@ -563,9 +567,9 @@ export default function RegisterForm() {
             25_000,
             "Session refresh timed out. Please refresh the page or sign in again."
           );
-          const { data: userAfterSync } = await supabase.auth.getUser();
-          if (userAfterSync.user?.user_metadata) {
-            meta = userAfterSync.user.user_metadata as Record<string, unknown>;
+          const { user: userAfterSync } = await validateWorkspaceUser();
+          if (userAfterSync?.user_metadata) {
+            meta = userAfterSync.user_metadata as Record<string, unknown>;
           }
         } catch {
           setOnboardingMode(false);
@@ -624,13 +628,13 @@ export default function RegisterForm() {
     }
 
     // Fresh metadata before wizard check (JWT can lag behind auth.users after updateUser).
-    const { data: userResult, error: getUserErr } = await supabase.auth.getUser();
-    if (!getUserErr && userResult.user?.user_metadata) {
-      meta = userResult.user.user_metadata as Record<string, unknown>;
+    const { user: userResult, error: getUserErr } = await validateWorkspaceUser();
+    if (!getUserErr && userResult?.user_metadata) {
+      meta = userResult.user_metadata as Record<string, unknown>;
     }
 
     const userIdForResume =
-      userResult.user?.id ?? session.user.id;
+      userResult?.id ?? session.user.id;
 
     if (isServiceProvider) {
       setOnboardingProviderUserId(userIdForResume);
@@ -653,14 +657,14 @@ export default function RegisterForm() {
     // after saveStep1, onAuthStateChange runs resolveMode while useSearchParams() still has the old ?step=,
     // which would reset the UI to step 1 and make Next appear broken. Step comes from goToOnboardingStep / full hydration.
     if (resumeStepHydratedUserIdRef.current === userIdForResume) {
-      const { data: { session: latestSession } } = await supabase.auth.getSession();
+      const { session: latestSession } = await getWorkspaceSession({ bypassCache: true });
       const tokenAfterRefreshFast =
         latestSession?.access_token ?? session.access_token;
       const authHeadersFast: Record<string, string> = {
         Authorization: `Bearer ${tokenAfterRefreshFast}`,
         "Content-Type": "application/json",
       };
-      const emailUser = userResult.user ?? latestSession?.user ?? session.user;
+      const emailUser = userResult ?? latestSession?.user ?? session.user;
       setWorkspaceType(ws?.type ?? null);
       setOnboardingUser({
         email: emailUser.email ?? undefined,
@@ -674,7 +678,7 @@ export default function RegisterForm() {
       return;
     }
 
-    const { data: { session: latestSession } } = await supabase.auth.getSession();
+    const { session: latestSession } = await getWorkspaceSession({ bypassCache: true });
     const tokenAfterRefresh = latestSession?.access_token ?? session.access_token;
     const authHeadersFresh: Record<string, string> = {
       Authorization: `Bearer ${tokenAfterRefresh}`,
@@ -830,7 +834,7 @@ export default function RegisterForm() {
 
     setOnboardingMode(true);
     const userIdForResumeFull =
-      userResult.user?.id ?? latestSession?.user?.id ?? session.user.id;
+      userResult?.id ?? latestSession?.user?.id ?? session.user.id;
     // Initial login / first load: resume from metadata; optional ?step= is capped so users cannot skip ahead.
     // Later resolveMode runs (auth events, searchParams) must not override Back/Next.
     if (resumeStepHydratedUserIdRef.current !== userIdForResumeFull) {
@@ -854,7 +858,7 @@ export default function RegisterForm() {
       setOnboardingStep(initialStep);
       resumeStepHydratedUserIdRef.current = userIdForResumeFull;
     }
-    const emailUser = userResult.user ?? latestSession?.user ?? session.user;
+    const emailUser = userResult ?? latestSession?.user ?? session.user;
     setOnboardingUser({
       email: emailUser.email ?? undefined,
       google_calendar_sync: read_google_calendar_sync(meta),
@@ -886,7 +890,7 @@ export default function RegisterForm() {
         .catch(() => undefined)
         .then(async () => {
           try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { session } = await getWorkspaceSession();
             await resolveMode(session);
           } catch (e: unknown) {
             console.error("register onboarding resolve", e);
@@ -1070,12 +1074,12 @@ export default function RegisterForm() {
       }
 
       await enqueueAuthRefresh();
-      const { data: userResult, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userResult.user) {
+      const { user: userResult, error: userErr } = await validateWorkspaceUser();
+      if (userErr || !userResult) {
         throw new Error(userErr?.message ?? "Failed to refresh session");
       }
 
-      const completed = userResult.user.user_metadata?.onboarding_completed === true;
+      const completed = userResult.user_metadata?.onboarding_completed === true;
       if (!completed) {
         throw new Error("Setup did not complete. Please try again.");
       }
@@ -1580,7 +1584,7 @@ export default function RegisterForm() {
                       setError("");
                       try {
                         const returnTo = "/register?onboarding=1&step=2";
-                        const { data: { session } } = await supabase.auth.getSession();
+                        const { session } = await getWorkspaceSession();
                         const token = session?.access_token;
                         const connectUrl = `/api/integrations/google/connect?returnTo=${encodeURIComponent(returnTo)}`;
                         const res = await fetch(connectUrl, {

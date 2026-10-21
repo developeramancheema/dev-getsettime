@@ -1,7 +1,8 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { sync_settings_response } from "@/src/lib/workspace_shell_sync";
@@ -156,7 +157,6 @@ export default function RoutingForm({ dark = false }) {
 
   const [loading, setLoading] = useState(false);
   const [fileUploadSaving, setFileUploadSaving] = useState(false);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [draggedCustomFieldId, setDraggedCustomFieldId] = useState<string | null>(null);
   const [dragOverCustomFieldId, setDragOverCustomFieldId] = useState<string | null>(null);
 
@@ -191,9 +191,9 @@ export default function RoutingForm({ dark = false }) {
   ): Promise<boolean> => {
     if (isStaffUser) return false;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session) {
-        setAlertMessage('Not authenticated');
+        toast.error('Not authenticated');
         return false;
       }
 
@@ -212,7 +212,7 @@ export default function RoutingForm({ dark = false }) {
 
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setAlertMessage(`Error: ${(result as { error?: string }).error || 'Failed to save settings'}`);
+        toast.error(`Error: ${(result as { error?: string }).error || 'Failed to save settings'}`);
         return false;
       }
       if (user?.id && (result as { settings?: WorkspaceSettings }).settings) {
@@ -221,7 +221,7 @@ export default function RoutingForm({ dark = false }) {
       return true;
     } catch (error) {
       console.error('Error saving intake form settings:', error);
-      setAlertMessage('An error occurred while saving settings');
+      toast.error('An error occurred while saving settings');
       return false;
     }
   };
@@ -233,7 +233,7 @@ export default function RoutingForm({ dark = false }) {
     try {
       const ok = await persistIntakeFormSettings();
       if (ok) {
-        setAlertMessage('Intake form settings saved successfully!');
+        toast.success('Intake form settings saved successfully!');
       }
     } finally {
       setLoading(false);
@@ -835,9 +835,6 @@ export default function RoutingForm({ dark = false }) {
         </div>
       )}
 
-      {alertMessage && (
-        <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
-      )}
       </div>
     </div>
   );

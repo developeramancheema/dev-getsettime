@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @deprecated Use `toast` from `@/src/components/ui/toast` for transient feedback.
+ * ConfirmModal remains the choice for destructive confirmations.
+ */
 interface AlertModalProps {
   message: string;
   onClose: () => void;

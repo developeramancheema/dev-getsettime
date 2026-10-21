@@ -1,7 +1,13 @@
 "use client";
 
 import DashboardIcon from "./DashboardIcon";
-import { formatBookingLimitLabel, isUnlimitedBookingLimit } from "@app/db/subscription";
+import {
+  formatBookingLimitFeature,
+  formatBookingLimitLabel,
+  formatBookingRemainingLabel,
+  formatBookingUsageLabel,
+  isUnlimitedBookingLimit,
+} from "@app/db/subscription";
 import type { plans, workspace_usage } from "@app/db/subscription";
 
 type PlanUsageCardProps = {
@@ -21,6 +27,7 @@ export default function PlanUsageCard({
   plan,
   usage,
 }: PlanUsageCardProps) {
+  const period = usage?.booking_limit_period ?? plan?.booking_limit_period ?? "monthly";
   const unlimited = isUnlimitedBookingLimit(limit);
   const remaining = unlimited ? null : Math.max(0, limit - used);
   const percent = unlimited
@@ -38,7 +45,7 @@ export default function PlanUsageCard({
             <h3 className="text-lg font-bold text-slate-900">Plan Usage</h3>
             {!loading && remaining !== null ? (
               <span className="text-sm font-medium text-slate-600">
-                {remaining} remaining this month
+                {remaining} {formatBookingRemainingLabel(period)}
               </span>
             ) : null}
           </div>
@@ -75,7 +82,7 @@ export default function PlanUsageCard({
             <div className="min-w-0 space-y-2">
               <p className="truncate text-sm font-bold bg-indigo-50 text-indigo-600 px-4 py-1 rounded-xl w-fit">{plan.name} Plan</p>
               <p className="text-sm font-medium text-slate-600">
-                {formatBookingLimitLabel(plan.booking_limit)} bookings/month · up
+                {formatBookingLimitFeature(plan.booking_limit, plan.booking_limit_period)} · up
                 to {plan.service_provider_limit} providers
               </p>
             </div>
@@ -89,10 +96,10 @@ export default function PlanUsageCard({
             <dl className="mt-3 grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                 <dt className="text-sm font-medium text-slate-500">
-                  Bookings this month
+                  {formatBookingUsageLabel(usage.booking_limit_period)}
                 </dt>
                 <dd className="text-sm font-bold text-slate-900">
-                  {usage.bookings_this_month}
+                  {usage.bookings_used}
                   {isUnlimitedBookingLimit(usage.booking_limit)
                     ? ""
                     : ` / ${usage.booking_limit}`}

@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, {
   useCallback,
   useEffect,
@@ -155,9 +156,7 @@ export function BookingPreviewPanel({
     set_fetch_state({ status: 'loading' });
 
     const load = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         if (!cancelled) {
           set_fetch_state({ status: 'error', message: 'Not authenticated' });

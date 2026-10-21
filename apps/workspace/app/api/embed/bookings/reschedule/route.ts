@@ -24,6 +24,7 @@ import {
   validateBookingEndAt,
 } from '@/lib/booking-effective-duration';
 import { load_customer_booking_rules_for_workspace } from '@/lib/customer-booking-rules';
+import { assert_no_duplicate_invitee_booking_on_date } from '@/lib/invitee_duplicate_booking';
 import {
   fetchActiveDateExceptionsForSlot,
   validateSlotDateExceptions,
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
     const { data: booking, error: fetchError } = await supabase
       .from('bookings')
       .select(
-        'id, workspace_id, status, invitee_name, invitee_email, invitee_phone, start_at, end_at, event_type_id, service_provider_id, service_provider_name, department_id, metadata, location, public_code'
+        'id, workspace_id, status, invitee_name, invitee_email, invitee_phone, contact_id, start_at, end_at, event_type_id, service_provider_id, service_provider_name, department_id, metadata, location, public_code'
       )
       .eq('public_code', public_code)
       .single();
@@ -274,6 +275,44 @@ export async function POST(req: NextRequest) {
       if (hasConflict) {
         return NextResponse.json({ error: 'This time slot is already booked. Please select another time.' }, { status: 400 });
       }
+    }
+
+    const duplicateInviteeCheck = await assert_no_duplicate_invitee_booking_on_date(
+      supabase,
+      {
+        workspace_id: booking.workspace_id,
+        start_at,
+        timezone:
+          tzFields.provider_timezone ||
+          tzFields.customer_timezone ||
+          resolveValidationTimezone(
+            workspaceTimezone,
+            tzFields.customer_timezone,
+            tzFields.provider_timezone
+          ) ||
+          'UTC',
+        event_type_id: booking.event_type_id,
+        invitee: {
+          invitee_email: booking.invitee_email,
+          invitee_phone: booking.invitee_phone,
+          contact_id:
+            typeof booking.contact_id === 'number'
+              ? booking.contact_id
+              : booking.contact_id != null
+                ? Number(booking.contact_id)
+                : null,
+        },
+        exclude_booking_id: booking.id,
+      }
+    );
+    if (!duplicateInviteeCheck.ok) {
+      return NextResponse.json(
+        {
+          error: duplicateInviteeCheck.message,
+          duplicate_booking: duplicateInviteeCheck.duplicate_booking,
+        },
+        { status: 400 }
+      );
     }
 
     const reschedule_metadata = merge_reschedule_metadata(

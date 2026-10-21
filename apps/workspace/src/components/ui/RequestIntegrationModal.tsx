@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useState } from "react";
 
 type RequestIntegrationModalProps = {
@@ -38,10 +39,7 @@ export function RequestIntegrationModal({ open, onClose, onSubmitted }: RequestI
     }
     setLoading(true);
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       const token = session?.access_token;
 
       const res = await fetch("/api/integrations/request", {

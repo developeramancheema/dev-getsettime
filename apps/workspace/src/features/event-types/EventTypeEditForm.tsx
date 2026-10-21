@@ -1,7 +1,9 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/src/components/ui/toast";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { EventTypeSkeleton } from "@/src/components/ui/EventTypeSkeleton";
@@ -135,7 +137,6 @@ export function EventTypeEditForm({
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [slug_error, set_slug_error] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [serviceProviderOwnerIds, setServiceProviderOwnerIds] = useState<Set<string>>(
     () => new Set()
@@ -194,9 +195,7 @@ export function EventTypeEditForm({
     const load_event_type = async () => {
       set_load_state({ status: "loading" });
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token || cancelled) {
           if (!cancelled) {
             set_load_state({ status: "error", message: "Not authenticated" });
@@ -331,9 +330,7 @@ export function EventTypeEditForm({
 
     const load_team_members = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token || cancelled) return;
 
         const response = await fetch("/api/team-members", {
@@ -467,17 +464,13 @@ export function EventTypeEditForm({
   }, [cached_workspace_slug, form.slug]);
 
   const handle_slug_blur = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token || !form.slug.trim()) return;
     await verify_slug(session.access_token, form.slug);
   };
 
   const handle_validate_slug = async (): Promise<boolean> => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.access_token) {
       set_slug_error("You are not signed in. Please refresh and try again.");
       return false;
@@ -489,7 +482,6 @@ export function EventTypeEditForm({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    setSuccessMessage(null);
 
     if (!form.title.trim()) return;
 
@@ -510,9 +502,7 @@ export function EventTypeEditForm({
 
     let succeeded = false;
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         setFormError("You are not signed in. Please refresh and try again.");
         return;
@@ -582,19 +572,16 @@ export function EventTypeEditForm({
       } else if (onClose) {
         onClose();
       } else {
-        setSuccessMessage(saved_message);
-        setTimeout(() => {
-          router.push("/event-type");
-        }, 1200);
+        toast.success(saved_message);
+        router.push("/event-type");
       }
     } catch (err) {
       console.error("Error:", err);
       setFormError("Something went wrong. Please try again.");
     } finally {
       submitInFlightRef.current = false;
-      // Keep the submit button disabled while the success message shows and we
-      // redirect, so the form cannot be submitted again.
       if (!succeeded) setSubmitting(false);
+      else if (!onSaved) setSubmitting(false);
     }
   };
 
@@ -659,7 +646,6 @@ export function EventTypeEditForm({
         }}
         editingId={eventTypeId}
         formError={formError}
-        successMessage={successMessage}
         submitting={submitting}
         onSubmit={handleSubmit}
         onCancel={handleCancel}

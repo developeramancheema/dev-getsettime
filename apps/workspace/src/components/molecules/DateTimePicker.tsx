@@ -63,6 +63,8 @@ export type date_time_picker_props = {
   id?: string;
   disabled?: boolean;
   readOnly?: boolean;
+  /** When set, clicking the trigger calls this instead of opening the built-in picker. */
+  onTriggerClick?: () => void;
 };
 
 type picker_parts = {
@@ -336,9 +338,11 @@ export function DateTimePicker({
   id,
   disabled = false,
   readOnly = false,
+  onTriggerClick,
 }: date_time_picker_props) {
   const { show_date, show_time } = resolve_modes(date_prop, time_prop);
   const locked = disabled || readOnly;
+  const external_trigger = Boolean(onTriggerClick);
 
   const root_ref = useRef<HTMLDivElement>(null);
   const hour_list_ref = useRef<HTMLDivElement>(null);
@@ -558,6 +562,10 @@ export function DateTimePicker({
         data-event-type-field={focus_key}
         onClick={() => {
           if (locked) return;
+          if (onTriggerClick) {
+            onTriggerClick();
+            return;
+          }
           set_open((prev) => !prev);
         }}
         className={`flex w-full min-w-0 items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-left text-sm outline-none transition ${trigger_class}`}
@@ -580,7 +588,7 @@ export function DateTimePicker({
         )}
       </button>
 
-      {open && !locked ? (
+      {open && !locked && !external_trigger ? (
         <div
           ref={dialog_ref}
           role="dialog"

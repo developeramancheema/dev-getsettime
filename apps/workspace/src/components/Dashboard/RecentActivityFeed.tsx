@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardIcon, { type DashboardIconName } from "./DashboardIcon";
@@ -54,10 +55,7 @@ export default function RecentActivityFeed() {
       set_loading(true);
       set_error(null);
       try {
-        const { supabase } = await import("@/lib/supabaseClient");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token) {
           if (alive) set_items([]);
           return;

@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import {
   useState,
   useEffect,
@@ -21,7 +22,7 @@ import { LuEllipsis } from "react-icons/lu";
 
 import type { Contact, FormContact } from "@/src/types/contact";
 
-import { AlertModal } from "@/src/components/ui/AlertModal";
+import { toast } from "@/src/components/ui/toast";
 
 import { ConfirmModal } from "@/src/components/ui/ConfirmModal";
 
@@ -211,7 +212,6 @@ export default function ContactsCreative() {
 
   const [delete_confirm, set_delete_confirm] = useState<string | null>(null);
 
-  const [alert_message, set_alert_message] = useState<string | null>(null);
 
   const [openActionsId, setOpenActionsId] = useState<string | null>(null);
 
@@ -239,11 +239,7 @@ export default function ContactsCreative() {
 
       setError(null);
 
-      const { supabase } = await import("@/lib/supabaseClient");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
         setError("Not authenticated");
@@ -364,19 +360,18 @@ export default function ContactsCreative() {
     }
 
     try {
-      const { supabase } = await import("@/lib/supabaseClient");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
         set_delete_confirm(null);
 
-        set_alert_message("Not authenticated");
+        toast.error("Not authenticated");
 
         return;
       }
+
+      const deletedContact = contacts.find((c) => c.id === delete_confirm);
+      const deletedName = deletedContact?.name?.trim() || "Contact";
 
       const res = await fetch(`/api/contacts?id=${delete_confirm}`, {
         method: "DELETE",
@@ -393,11 +388,13 @@ export default function ContactsCreative() {
       setContacts((prev) => prev.filter((c) => c.id !== delete_confirm));
 
       set_delete_confirm(null);
+
+      toast.success(`"${deletedName}" deleted successfully.`);
     } catch (e) {
       set_delete_confirm(null);
 
-      set_alert_message(
-        e instanceof Error ? e.message : "Failed to delete contact",
+      toast.error(
+        e instanceof Error ? e.message : "Failed to delete contact"
       );
     }
   };
@@ -408,13 +405,16 @@ export default function ContactsCreative() {
     try {
       setSubmitting(true);
 
-      const { supabase } = await import("@/lib/supabaseClient");
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
+        toast.error("Not authenticated");
+        return;
+      }
+
+      const trimmedName = form_data.name.trim();
+      if (!trimmedName) {
+        toast.error("Contact name is required.");
         return;
       }
 
@@ -464,6 +464,8 @@ export default function ContactsCreative() {
             c.id === editing_contact.id ? toFormContact(contact) : c,
           ),
         );
+
+        toast.success(`"${trimmedName}" updated successfully.`);
       } else {
         const res = await fetch("/api/contacts", {
           method: "POST",
@@ -498,6 +500,8 @@ export default function ContactsCreative() {
         const { contact } = await res.json();
 
         setContacts((prev) => [toFormContact(contact), ...prev]);
+
+        toast.success(`"${trimmedName}" added successfully.`);
       }
 
       set_show_modal(false);
@@ -522,8 +526,8 @@ export default function ContactsCreative() {
         notes: "",
       });
     } catch (e) {
-      set_alert_message(
-        e instanceof Error ? e.message : "Something went wrong",
+      toast.error(
+        e instanceof Error ? e.message : "Something went wrong"
       );
     } finally {
       setSubmitting(false);
@@ -599,7 +603,7 @@ export default function ContactsCreative() {
                 <button
                   type="button"
                   onClick={() =>
-                    set_alert_message("Import CSV is coming soon.")
+                    toast.info("Import CSV is coming soon.")
                   }
                   className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-600 shadow-sm transition hover:bg-emerald-700 hover:text-white"
                 >
@@ -608,7 +612,7 @@ export default function ContactsCreative() {
 
                 <button
                   type="button"
-                  onClick={() => set_alert_message("Export is coming soon.")}
+                  onClick={() => toast.info("Export is coming soon.")}
                   className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                   <Icon name="download" className="h-4 w-4" /> Export
@@ -1515,12 +1519,6 @@ export default function ContactsCreative() {
         />
       )}
 
-      {alert_message && (
-        <AlertModal
-          message={alert_message}
-          onClose={() => set_alert_message(null)}
-        />
-      )}
     </div>
   );
 }

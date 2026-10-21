@@ -1,5 +1,6 @@
 'use client';
 
+import { authFetch } from '@/src/lib/auth_session';
 import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { useWorkspaceSettings } from '../../hooks/useWorkspaceSettings';
 import { useBookingFormData } from '../../hooks/useBookingFormData';
@@ -77,6 +78,13 @@ import { Step2ServiceSelection } from './MultiStepBooking/Step2ServiceSelection'
 import { Step4IntakeForm } from './MultiStepBooking/Step4IntakeForm';
 import { Step5Success } from './MultiStepBooking/Step5Success';
 import { useAuth } from '@/src/providers/AuthProvider';
+import { InviteeDuplicateBookingAlert } from './InviteeDuplicateBookingAlert';
+import {
+  apply_booking_form_error,
+  BookingFormSubmitError,
+  find_client_duplicate_invitee_error,
+  throw_if_booking_api_error,
+} from '@/src/utils/bookingFormDuplicateInvitee';
 
 const Step3DateTime = lazy(() =>
   import('./MultiStepBooking/Step3DateTime').then((m) => ({ default: m.Step3DateTime }))
@@ -95,7 +103,7 @@ const MultiStepBookingForm = ({
   onCancel,
 }: MultiStepBookingFormProps) => {
   const { general, settings, loading: loadingSettings, bookingStepOrder } = useWorkspaceSettings();
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const parsed_step_order = useMemo(
     () => parse_booking_step_order(bookingStepOrder),
     [bookingStepOrder]
@@ -126,6 +134,7 @@ const MultiStepBookingForm = ({
     }
     stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [current_step_id]);
+
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [selectedType, setSelectedType] = useState<EventType | null>(null);
@@ -146,6 +155,22 @@ const MultiStepBookingForm = ({
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [duplicatePreviewPath, setDuplicatePreviewPath] = useState<string | null>(null);
+  const showFormError = useCallback((message: string, previewPath?: string | null) => {
+    setError(message);
+    setDuplicatePreviewPath(previewPath ?? null);
+  }, []);
+  const clearFormError = useCallback(() => {
+    setError(null);
+    setDuplicatePreviewPath(null);
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      stepTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [error, duplicatePreviewPath]);
+
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [workspacePrimaryColor, setWorkspacePrimaryColor] = useState(DEFAULT_PRIMARY_COLOR);
@@ -202,6 +227,7 @@ const MultiStepBookingForm = ({
     selectedProvider,
     selectedType,
     lockEventTypeCatalog: event_type_before_department && !!selectedType,
+    eventTypeBeforeDepartment: event_type_before_department,
     days,
     intakeForm,
     onAvailabilityChange,
@@ -288,8 +314,16 @@ const MultiStepBookingForm = ({
 
   const department_step_ready = department_step_is_ready(step_order, selectedType);
 
+  const event_type_context_ready = event_type_step_is_ready(step_order, {
+    departmentsCount: departments.length,
+    hasSelectedDepartment: !!selectedDepartment,
+    showProviderPicker,
+    hasSelectedProvider: !!selectedProvider,
+  });
+
   useAutoSelectSoleBookingOptions({
     enabled: !disableAutoAdvance && department_step_ready,
+    autoSelectEventTypeEnabled: !disableAutoAdvance && event_type_context_ready,
     loadingDepartments,
     departments,
     selectedDepartment,
@@ -308,12 +342,7 @@ const MultiStepBookingForm = ({
     eventTypes: sortedEventTypes,
     selectedType,
     setSelectedType,
-    eventTypeContextReady: event_type_step_is_ready(step_order, {
-      departmentsCount: departments.length,
-      hasSelectedDepartment: !!selectedDepartment,
-      showProviderPicker,
-      hasSelectedProvider: !!selectedProvider,
-    }),
+    eventTypeContextReady: event_type_context_ready,
   });
 
   const step_states = useBookingStepStates({
@@ -661,7 +690,7 @@ const MultiStepBookingForm = ({
 
   const handleConfirm = async () => {
     if (!selectedType || !selectedDate || !selectedTime) {
-      setError('Please fill in all required fields');
+      showFormError('Please fill in all required fields');
       return;
     }
     if (!isStep4Valid) {
@@ -672,18 +701,18 @@ const MultiStepBookingForm = ({
         intakeValidation.phone ||
         intakeValidation.services ||
         intakeValidation.meeting_option;
-      setError(first || 'Please fill in all required fields');
+      showFormError(first || 'Please fill in all required fields');
       return;
     }
     const usesExplicitProviderPicker =
       departments.length > 0 && selectedDepartment !== null && showProviderPicker;
     if (departments.length > 0) {
       if (!selectedDepartment) {
-        setError('Please select a department');
+        showFormError('Please select a department');
         return;
       }
       if (usesExplicitProviderPicker && !selectedProvider) {
-        setError('Please select a service provider');
+        showFormError('Please select a service provider');
         return;
       }
     }
@@ -691,21 +720,19 @@ const MultiStepBookingForm = ({
       selectedStartUtc ? s.startUtc === selectedStartUtc : s.time === selectedTime
     );
     if (selectedSlot?.disabled) {
-      setError(`This time slot is not available${selectedSlot.reason ? ` (${selectedSlot.reason})` : ''}. Please select another time.`);
+      showFormError(`This time slot is not available${selectedSlot.reason ? ` (${selectedSlot.reason})` : ''}. Please select another time.`);
       return;
     }
     if (!selectedSlot?.startUtc) {
-      setError('Invalid time selection. Please try again.');
+      showFormError('Invalid time selection. Please try again.');
       return;
     }
 
     setLoading(true);
-    setError(null);
+    clearFormError();
 
     try {
-      const { supabase } = await import('@/lib/supabaseClient');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('Not authenticated');
+      if (!accessToken) throw new Error('Not authenticated');
 
       let bookingStatus = 'pending';
       if (resolvedNotifications?.['auto-confirm-booking'] === true) {
@@ -722,7 +749,7 @@ const MultiStepBookingForm = ({
       );
       const startDate = new Date(selectedSlot.startUtc);
       if (startDate < new Date()) {
-        setError('Cannot book a time slot in the past. Please select a future time.');
+        showFormError('Cannot book a time slot in the past. Please select a future time.');
         setLoading(false);
         return;
       }
@@ -738,7 +765,7 @@ const MultiStepBookingForm = ({
           slot_occupancy_context_from_event_type(selectedType)
         )
       ) {
-        setError('This time slot has already been booked. Please refresh and select another time.');
+        showFormError('This time slot has already been booked. Please refresh and select another time.');
         setLoading(false);
         return;
       }
@@ -753,11 +780,26 @@ const MultiStepBookingForm = ({
       if (phoneEnabled) {
         const normalized = normalizeInviteePhoneForStorage(phone);
         if (normalized.invalid) {
-          setError('Enter a valid phone number');
+          showFormError('Enter a valid phone number');
           setLoading(false);
           return;
         }
         inviteePhoneE164 = normalized.value;
+      }
+
+      const duplicateError = find_client_duplicate_invitee_error(existingBookings, {
+        start_at: startDate.toISOString(),
+        timezone: viewerTimezone,
+        event_type_id: selectedType.id,
+        invitee: {
+          invitee_email: emailEnabled ? email.trim() || null : null,
+          invitee_phone: inviteePhoneE164,
+        },
+      });
+      if (duplicateError) {
+        apply_booking_form_error(setError, setDuplicatePreviewPath, duplicateError);
+        setLoading(false);
+        return;
       }
 
       const inviteeName = nameEnabled
@@ -817,9 +859,9 @@ const MultiStepBookingForm = ({
             ? selectedProvider!.id
             : workspaceOwnerUserId ?? null;
 
-      const res = await fetch('/api/bookings', {
+      const res = await authFetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event_type_id: selectedType.id,
           service_provider_id,
@@ -840,15 +882,20 @@ const MultiStepBookingForm = ({
       });
 
       const result = await res.json();
-      if (!res.ok) {
-        throw new Error(result.error || 'Failed to create booking');
-      }
+      throw_if_booking_api_error(res, result, 'Failed to create booking');
       if (result.preview_url) setPreviewUrl(result.preview_url);
       go_to_step('success');
       window.dispatchEvent(new Event(BOOKINGS_LIST_REFRESH_EVENT));
       window.dispatchEvent(new Event('bookings-viewed-update'));
     } catch (err) {
-      setError((err as Error).message || 'An error occurred');
+      if (err instanceof BookingFormSubmitError) {
+        apply_booking_form_error(setError, setDuplicatePreviewPath, {
+          message: err.message,
+          duplicatePreviewPath: err.duplicatePreviewPath,
+        });
+      } else {
+        showFormError((err as Error).message || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -938,9 +985,11 @@ const MultiStepBookingForm = ({
               />
             )}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
-                {error}
-              </div>
+              <InviteeDuplicateBookingAlert
+                message={error}
+                previewPath={duplicatePreviewPath}
+                className="mb-6"
+              />
             )}
             <div className="relative">
               {current_step_resolving && <StepFallback />}

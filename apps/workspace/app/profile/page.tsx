@@ -1,4 +1,5 @@
 "use client";
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../../src/providers/AuthProvider";
@@ -11,10 +12,11 @@ import {
 } from "@/src/hooks/useBookingLookups";
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { WorkspaceBrandLogo } from "@/src/components/molecules/WorkspaceBrandLogo";
+import { resolveAvatarUrlFromMetadata } from "@app/db/user-avatar";
+import { writeCachedProfileImage } from "@/src/utils/profile_image_cache";
+import { toast } from "@/src/components/ui/toast";
 
 export default function ProfileCreative({ }) {
-  const PROFILE_IMAGE_STORAGE_KEY = "workspace_profile_image";
-  const PROFILE_IMAGE_EVENT = "workspace-profile-image-updated";
   const { user, loading } = useAuth();
   const {
     workspaceName: workspace_brand_name,
@@ -39,7 +41,6 @@ export default function ProfileCreative({ }) {
   const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "",
@@ -71,9 +72,7 @@ export default function ProfileCreative({ }) {
   );
 
   const getAuthToken = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     return session?.access_token ?? null;
   }, []);
 
@@ -109,10 +108,7 @@ export default function ProfileCreative({ }) {
       phone: (metadata.phone as string) || "",
     });
 
-    const avatarUrl =
-      (metadata.avatar_url as string) ||
-      (metadata.picture as string) ||
-      null;
+    const avatarUrl = resolveAvatarUrlFromMetadata(metadata);
     setProfileImage(avatarUrl);
     setSelectedImageFile(null);
     setSelectedImagePreview(null);
@@ -139,29 +135,20 @@ export default function ProfileCreative({ }) {
     setSelectedServiceIds(fromTable ? [...fromTable].sort().map(String) : []);
   }, [user, userServicesLoading, serviceIdsByUser]);
 
-  const FEEDBACK_AUTO_DISMISS_MS = 5000;
-
-  useEffect(() => {
-    if (!feedback) return;
-    const id = window.setTimeout(() => setFeedback(null), FEEDBACK_AUTO_DISMISS_MS);
-    return () => window.clearTimeout(id);
-  }, [feedback]);
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const validImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
       if (!validImageTypes.includes(file.type)) {
-        setFeedback({ type: "error", message: "Invalid file type. Please upload JPG, PNG, GIF, or WebP." });
+        toast.error("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        setFeedback({ type: "error", message: "Image is too large. Maximum allowed size is 5MB." });
+        toast.error("Image is too large. Maximum allowed size is 5MB.");
         return;
       }
 
       setIsUploading(true);
-      setFeedback(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImageFile(file);
@@ -178,7 +165,7 @@ export default function ProfileCreative({ }) {
     if (!user) return false;
     const token = await getAuthToken();
     if (!token) {
-      setFeedback({ type: "error", message: "Not authenticated" });
+      toast.error("Not authenticated");
       return false;
     }
     const res = await fetch("/api/user-departments", {
@@ -194,10 +181,7 @@ export default function ProfileCreative({ }) {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
-      setFeedback({
-        type: "error",
-        message: err?.error || `Failed to sync departments (${res.status})`,
-      });
+      toast.error(err?.error || `Failed to sync departments (${res.status})`);
       return false;
     }
     await refetchUserDepts();
@@ -208,7 +192,7 @@ export default function ProfileCreative({ }) {
     if (!user) return false;
     const token = await getAuthToken();
     if (!token) {
-      setFeedback({ type: "error", message: "Not authenticated" });
+      toast.error("Not authenticated");
       return false;
     }
     const res = await fetch("/api/user-services", {
@@ -224,10 +208,7 @@ export default function ProfileCreative({ }) {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
-      setFeedback({
-        type: "error",
-        message: err?.error || `Failed to sync services (${res.status})`,
-      });
+      toast.error(err?.error || `Failed to sync services (${res.status})`);
       return false;
     }
     await refetchUserServices();
@@ -244,7 +225,7 @@ export default function ProfileCreative({ }) {
       const token = await getAuthToken();
       if (!token) {
         setSelectedDepartmentIds(previous);
-        setFeedback({ type: "error", message: "Not authenticated" });
+        toast.error("Not authenticated");
         return;
       }
       const department_id = parseInt(departmentId, 10);
@@ -263,10 +244,7 @@ export default function ProfileCreative({ }) {
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         setSelectedDepartmentIds(previous);
-        setFeedback({
-          type: "error",
-          message: err?.error || `Failed to assign department (${res.status})`,
-        });
+        toast.error(err?.error || `Failed to assign department (${res.status})`);
         return;
       }
       await refetchUserDepts();
@@ -285,7 +263,7 @@ export default function ProfileCreative({ }) {
       const token = await getAuthToken();
       if (!token) {
         setSelectedDepartmentIds(previous);
-        setFeedback({ type: "error", message: "Not authenticated" });
+        toast.error("Not authenticated");
         return;
       }
       const department_id = parseInt(departmentId, 10);
@@ -303,10 +281,7 @@ export default function ProfileCreative({ }) {
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         setSelectedDepartmentIds(previous);
-        setFeedback({
-          type: "error",
-          message: err?.error || `Failed to unassign department (${res.status})`,
-        });
+        toast.error(err?.error || `Failed to unassign department (${res.status})`);
         return;
       }
       await refetchUserDepts();
@@ -325,7 +300,7 @@ export default function ProfileCreative({ }) {
       const token = await getAuthToken();
       if (!token) {
         setSelectedServiceIds(previous);
-        setFeedback({ type: "error", message: "Not authenticated" });
+        toast.error("Not authenticated");
         return;
       }
       const res = await fetch("/api/user-services", {
@@ -339,10 +314,7 @@ export default function ProfileCreative({ }) {
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         setSelectedServiceIds(previous);
-        setFeedback({
-          type: "error",
-          message: err?.error || `Failed to assign service (${res.status})`,
-        });
+        toast.error(err?.error || `Failed to assign service (${res.status})`);
         return;
       }
       await refetchUserServices();
@@ -361,7 +333,7 @@ export default function ProfileCreative({ }) {
       const token = await getAuthToken();
       if (!token) {
         setSelectedServiceIds(previous);
-        setFeedback({ type: "error", message: "Not authenticated" });
+        toast.error("Not authenticated");
         return;
       }
       const res = await fetch(
@@ -374,10 +346,7 @@ export default function ProfileCreative({ }) {
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         setSelectedServiceIds(previous);
-        setFeedback({
-          type: "error",
-          message: err?.error || `Failed to unassign service (${res.status})`,
-        });
+        toast.error(err?.error || `Failed to unassign service (${res.status})`);
         return;
       }
       await refetchUserServices();
@@ -389,19 +358,24 @@ export default function ProfileCreative({ }) {
   const handleSaveChanges = async () => {
     if (!user) return;
     setIsSaving(true);
-    setFeedback(null);
 
     try {
       let avatarUrl = profileImage;
 
       // Upload selected image only when user clicks Save Changes.
       if (selectedImageFile) {
+        const token = await getAuthToken();
+        if (!token) {
+          throw new Error("Not authenticated");
+        }
+
         const formData = new FormData();
         formData.append("file", selectedImageFile);
         formData.append("userId", user.id);
 
         const uploadRes = await fetch("/api/profile/avatar", {
           method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
 
@@ -453,20 +427,13 @@ export default function ProfileCreative({ }) {
         fileInputRef.current.value = "";
       }
 
-      if (typeof window !== "undefined") {
-        if (avatarUrl) {
-          window.localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, avatarUrl);
-        } else {
-          window.localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
-        }
-        window.dispatchEvent(new Event(PROFILE_IMAGE_EVENT));
-      }
+      writeCachedProfileImage(avatarUrl);
 
-      setFeedback({ type: "success", message: "Profile updated successfully." });
+      toast.success("Profile updated successfully.");
       formDirtyRef.current = false;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to save profile changes.";
-      setFeedback({ type: "error", message });
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -508,7 +475,6 @@ export default function ProfileCreative({ }) {
     );
     setSelectedImageFile(null);
     setSelectedImagePreview(null);
-    setFeedback(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -933,20 +899,7 @@ export default function ProfileCreative({ }) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="min-w-0 flex-1 basis-full sm:basis-0 sm:max-w-md" role="status" aria-live="polite">
-                    {feedback ? (
-                      <p
-                        className={`rounded-xl border px-4 py-3 text-sm font-medium shadow-sm ${
-                          feedback.type === "success"
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                            : "border-red-200 bg-red-50 text-red-800"
-                        }`}
-                      >
-                        {feedback.message}
-                      </p>
-                    ) : null}
-                  </div>
+                <div className="flex flex-wrap items-center justify-end gap-4">
                   <div className="flex shrink-0 justify-end gap-4">
                     <button
                       onClick={handleSaveChanges}

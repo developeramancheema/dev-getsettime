@@ -5,6 +5,8 @@ import {
   CreateBookingModalProvider,
 } from "../../providers/CreateBookingModalProvider";
 import { WorkspaceSettingsProvider } from "../../providers/WorkspaceSettingsProvider";
+import { SubscriptionProvider } from "../../providers/SubscriptionProvider";
+import { WorkspaceUsersProvider } from "../../providers/WorkspaceUsersProvider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,6 +18,7 @@ import { is_public_embed_booking_path } from "@/lib/public_embed_route";
 import { canAccessPage } from "@/src/constants/permissions";
 import { ROLE_CUSTOMER } from "@/src/constants/roles";
 import ScreenGate from "../ScreenGate";
+import { ToastProvider, ToastRegistrar } from "../ui/toast";
 
 // Public routes that don't require authentication or sidebar
 const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/callback", "/invite-accept", "/my-bookings"];
@@ -129,6 +132,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <WorkspaceSettingsProvider>
+    <WorkspaceUsersProvider>
+    <SubscriptionProvider>
     <CreateBookingModalProvider>
       <div className="flex h-screen relative w-full overflow-hidden">
         
@@ -151,6 +156,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     </CreateBookingModalProvider>
+    </SubscriptionProvider>
+    </WorkspaceUsersProvider>
     </WorkspaceSettingsProvider>
   );
 }
@@ -158,7 +165,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <LayoutContent>{children}</LayoutContent>
+      <ToastProvider defaultPosition="top-right">
+        <ToastRegistrar />
+        <LayoutContent>{children}</LayoutContent>
+      </ToastProvider>
     </AuthProvider>
   );
 }

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { logAuthActivityFromSession } from "@/src/lib/auth_activity_log_client";
+import { getWorkspaceSession } from "@/src/lib/auth_session";
 
 const INSTALL_FLAG = "__getsettimeWorkspaceApi401Handler";
 
@@ -90,9 +91,7 @@ export function installWorkspaceApiUnauthorizedHandler(): void {
     const path = window.location.pathname;
     if (isAuthPublicPath(path)) return response;
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { session } = await getWorkspaceSession();
     if (!session?.user) return response;
 
     redirectInProgress = true;

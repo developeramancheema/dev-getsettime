@@ -89,6 +89,10 @@ interface Step3DateTimeProps {
   maxWindowDays?: number;
   /** When true, auto-selects the sole date/time and continues to the next step. */
   allowAutoAdvance?: boolean;
+  /** Prevents the date strip from auto-expanding (avoids repeated busy-slot refetches). */
+  disableStripExpansion?: boolean;
+  /** Keep showing timeslots while bookings refresh in the background. */
+  retainTimeslotsWhileLoading?: boolean;
 }
 
 export function Step3DateTime({
@@ -134,6 +138,8 @@ export function Step3DateTime({
   showBookSeriesOption = false,
   maxWindowDays,
   allowAutoAdvance = false,
+  disableStripExpansion = false,
+  retainTimeslotsWhileLoading = false,
 }: Step3DateTimeProps) {
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
   const slotCapacity = useMemo(
@@ -200,6 +206,7 @@ export function Step3DateTime({
   }, [visibleTimeslots]);
 
   const loadMoreDates = useCallback(() => {
+    if (disableStripExpansion) return;
     if (isLoadingMoreRef.current) return;
     isLoadingMoreRef.current = true;
     const windowCap = Math.min(
@@ -218,9 +225,10 @@ export function Step3DateTime({
       return [...prevDays, ...newDates];
     });
     setTimeout(() => { isLoadingMoreRef.current = false; }, 300);
-  }, [onDaysChange, maxWindowDays]);
+  }, [disableStripExpansion, onDaysChange, maxWindowDays]);
 
   useEffect(() => {
+    if (disableStripExpansion) return;
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -252,7 +260,7 @@ export function Step3DateTime({
       container.removeEventListener('scroll', checkAndLoadMore);
       resizeObserver.disconnect();
     };
-  }, [loadMoreDates, days.length]);
+  }, [disableStripExpansion, loadMoreDates, days.length]);
 
   useEffect(() => {
     if (selectedDate && selectedDateRef.current && scrollContainerRef.current) {
@@ -700,7 +708,9 @@ export function Step3DateTime({
             {slotAvailabilityMessage}
           </div>
         ) : null}
-        {loadingAvailability || loadingBookings ? (
+        {loadingAvailability ||
+        (loadingBookings &&
+          !(retainTimeslotsWhileLoading && visibleTimeslots.length > 0)) ? (
           <div className="text-center py-12">
             <div className="inline-flex items-center gap-3 text-gray-500">
               <div className="w-6 h-6 border-[3px] border-indigo-600 border-t-transparent rounded-full animate-spin" />

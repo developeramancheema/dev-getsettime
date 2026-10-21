@@ -51,6 +51,7 @@ import {
   uses_offered_schedule_slots,
 } from '@/lib/complete_booking_create';
 import { should_block_booking_on_external_calendar } from '@/src/features/booking-flow';
+import { assert_no_duplicate_invitee_booking_on_date } from '@/lib/invitee_duplicate_booking';
 import {
   cancel_booking_series,
   load_booking_series,
@@ -698,6 +699,33 @@ export async function POST(req: NextRequest) {
         bookingServiceProviderId
       );
 
+    const duplicateInviteeCheck = await assert_no_duplicate_invitee_booking_on_date(
+      supabase,
+      {
+        workspace_id: workspaceId,
+        start_at,
+        timezone:
+          tz ||
+          tzFields.provider_timezone ||
+          tzFields.customer_timezone ||
+          'UTC',
+        event_type_id,
+        invitee: {
+          invitee_email: invitee_email?.trim() || null,
+          invitee_phone: invitee_phone_e164,
+        },
+      }
+    );
+    if (!duplicateInviteeCheck.ok) {
+      return NextResponse.json(
+        {
+          error: duplicateInviteeCheck.message,
+          duplicate_booking: duplicateInviteeCheck.duplicate_booking,
+        },
+        { status: 400 }
+      );
+    }
+
     const created = await insert_validated_booking({
       supabase,
       event_type: loadedEventType,
@@ -1212,6 +1240,48 @@ export async function PATCH(req: NextRequest) {
         }
       } catch (e) {
         console.error('resolveContactForInviteeUpdate:', e);
+      }
+    }
+
+    if (timeChanged && typeof start_at === 'string' && start_at) {
+      const duplicateInviteeCheck = await assert_no_duplicate_invitee_booking_on_date(
+        supabase,
+        {
+          workspace_id: workspaceId,
+          start_at,
+          timezone:
+            (updateData.provider_timezone as string | null | undefined) ??
+            (updateData.customer_timezone as string | null | undefined) ??
+            (typeof existingRow.provider_timezone === 'string'
+              ? existingRow.provider_timezone.trim() || null
+              : null) ??
+            (typeof existingRow.customer_timezone === 'string'
+              ? existingRow.customer_timezone.trim() || null
+              : null) ??
+            'UTC',
+          event_type_id:
+            event_type_id !== undefined ? event_type_id : existingRow.event_type_id,
+          invitee: {
+            invitee_email: next_invitee_email,
+            invitee_phone: next_invitee_phone,
+            contact_id:
+              typeof existingRow.contact_id === 'number'
+                ? existingRow.contact_id
+                : existingRow.contact_id != null
+                  ? Number(existingRow.contact_id)
+                  : null,
+          },
+          exclude_booking_id: id,
+        }
+      );
+      if (!duplicateInviteeCheck.ok) {
+        return NextResponse.json(
+          {
+            error: duplicateInviteeCheck.message,
+            duplicate_booking: duplicateInviteeCheck.duplicate_booking,
+          },
+          { status: 400 }
+        );
       }
     }
 

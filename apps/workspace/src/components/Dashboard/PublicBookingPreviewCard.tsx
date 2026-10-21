@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import DashboardIcon from '@/src/components/Dashboard/DashboardIcon';
@@ -62,9 +63,7 @@ export function PublicBookingPreviewCard() {
 
     (async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { session } = await getWorkspaceSession();
         if (!session?.access_token || !alive) return;
 
         const res = await fetch('/api/event-types', {

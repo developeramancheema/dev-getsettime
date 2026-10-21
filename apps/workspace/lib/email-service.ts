@@ -1170,6 +1170,7 @@ export interface WelcomeEmailParams {
   upgradeUrl: string;
   planName: string;
   bookingLimit: number;
+  bookingLimitPeriod?: import('@app/db/subscription').booking_limit_period;
   adminLimit: number;
   serviceProviderLimit: number;
 }
@@ -1183,6 +1184,7 @@ export const sendWelcomeEmail = async (params: WelcomeEmailParams): Promise<void
     upgradeUrl,
     planName,
     bookingLimit,
+    bookingLimitPeriod = 'lifetime',
     adminLimit,
     serviceProviderLimit,
   } = params;
@@ -1218,7 +1220,7 @@ export const sendWelcomeEmail = async (params: WelcomeEmailParams): Promise<void
       <p>Your workspace <strong>${workspaceName}</strong> is ready.</p>
       <p>You are on the <strong>${planName}</strong> plan:</p>
       <ul>
-        <li>${formatBookingLimitFeature(bookingLimit)}</li>
+        <li>${formatBookingLimitFeature(bookingLimit, bookingLimitPeriod)}</li>
         <li>${adminLimit} admin</li>
         <li>Up to ${serviceProviderLimit} service providers</li>
         <li>Google Calendar sync</li>
@@ -1240,7 +1242,7 @@ export const sendWelcomeEmail = async (params: WelcomeEmailParams): Promise<void
 Hello ${adminName},
 Your workspace ${workspaceName} is ready.
 You are on the ${planName} plan:
-${formatBookingLimitFeature(bookingLimit)}
+${formatBookingLimitFeature(bookingLimit, bookingLimitPeriod)}
 ${adminLimit} admin
 Up to ${serviceProviderLimit} service providers
 Google Calendar sync

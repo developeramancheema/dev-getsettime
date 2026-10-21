@@ -1,5 +1,6 @@
 'use client';
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import React, {
   useCallback,
   useEffect,
@@ -477,10 +478,7 @@ export function BookingDetailsCard({
     }
     let cancelled = false;
     (async () => {
-      const { supabase } = await import('@/lib/supabaseClient');
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) return;
       const res = await fetch(
         `/api/user-services?user_id=${encodeURIComponent(booking_edit_effective_provider_id)}`,
@@ -607,10 +605,7 @@ export function BookingDetailsCard({
     set_google_meet_sync_error(null);
     set_google_meet_syncing(true);
     try {
-      const { supabase } = await import('@/lib/supabaseClient');
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
       if (!session?.access_token) {
         set_google_meet_sync_error('Not signed in.');
         return;

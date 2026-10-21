@@ -4,10 +4,7 @@ import { LuMonitor, LuUser, LuUsers } from "react-icons/lu";
 import { parse_event_type_format } from "@/src/features/event-types/event_type_format";
 import type { event_type_format, event_type_status } from "@/src/types/event_types";
 import { EventTypeActionsMenu } from "@/src/features/event-types/EventTypeActionsMenu";
-import {
-  ProviderAvatar,
-  provider_initials,
-} from "@/src/features/departments/DepartmentPanelPrimitives";
+import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import {
   capitalize_booking_display_label,
   getServiceProviderName,
@@ -82,14 +79,6 @@ export function EventTypeListMobileCards({
     useServiceProviders();
   
 
-  const get_provider_avatar_url = (ownerId: string | null | undefined) => {
-    if (!ownerId) return null;
-    return (
-      serviceProviders.find((provider) => provider.id === ownerId)?.avatar_url?.trim() ||
-      null
-    );
-  };
-
   const get_provider_label = (ownerId: string | null | undefined) => {
     if (!ownerId) return "—";
     const name = capitalize_booking_display_label(
@@ -107,8 +96,6 @@ export function EventTypeListMobileCards({
           const format = parse_event_type_format(item.event_type_format);
           const duration_label = format_duration_label(item.duration_minutes);
           const provider_label = get_provider_label(item.owner_id);
-          const provider_avatar = get_provider_avatar_url(item.owner_id);
-
 
           return (
             <div
@@ -150,12 +137,9 @@ export function EventTypeListMobileCards({
                     </div>
                     <p>
                       <span className="flex items-center gap-2 text-sm text-slate-700">
-                      <ProviderAvatar
+                      <WorkspaceUserAvatar
                         name={provider_label === "—" ? "Provider" : provider_label}
-                        initials={provider_initials(
-                          provider_label === "—" ? "?" : provider_label
-                        )}
-                        avatarUrl={provider_avatar}
+                        userId={item.owner_id}
                         size="sm"
                       />
                         <span className="truncate">{provider_label}</span>
@@ -187,12 +171,9 @@ export function EventTypeListMobileCards({
                   </div>
                   <p>
                     <span className="flex items-center gap-2 text-sm text-slate-700">
-                    <ProviderAvatar
+                    <WorkspaceUserAvatar
                       name={provider_label === "—" ? "Provider" : provider_label}
-                      initials={provider_initials(
-                        provider_label === "—" ? "?" : provider_label
-                      )}
-                      avatarUrl={provider_avatar}
+                      userId={item.owner_id}
                       size="sm"
                     />
                       <span className="truncate">{provider_label}</span>

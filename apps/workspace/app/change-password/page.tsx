@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,9 +22,7 @@ export default function ChangePasswordPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       setIsAuthenticated(Boolean(session));
       setIsLoadingSession(false);

@@ -1,5 +1,6 @@
 "use client";
 
+import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -72,9 +73,7 @@ export default function AllNotifications() {
   const loadActivities = async () => {
     setError(null);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await getWorkspaceSession();
 
       if (!session?.access_token) {
         setItems([]);

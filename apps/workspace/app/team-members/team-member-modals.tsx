@@ -368,12 +368,6 @@ export function ProviderCreateModal({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {inviteUrl ? (
             <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
-              <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-                <p className="text-sm font-semibold text-indigo-900">Provider invite sent</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Share this link with the service provider:
-                </p>
-              </div>
               <InviteLinkCopyBlock inviteUrl={inviteUrl} variant="sky" />
               <div className="flex justify-end border-t border-slate-100 pt-4">
                 <button
@@ -562,12 +556,6 @@ export function StaffInviteModal({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {inviteUrl ? (
             <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm font-semibold text-emerald-900">Invite created successfully</p>
-                <p className="mt-1 text-sm text-emerald-800">
-                  Share this link with the team member:
-                </p>
-              </div>
               <InviteLinkCopyBlock inviteUrl={inviteUrl} variant="emerald" />
               <div className="flex justify-end border-t border-slate-100 pt-4">
                 <button
@@ -1107,7 +1095,7 @@ export function ManageRoleModal({
             </span>
             <div>
               <h2 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">
-                Manage Role1
+                Manage Role
               </h2>
               <p className="mt-1 text-sm text-slate-600">
                 Update role access and department permissions for{" "}
