@@ -1914,12 +1914,9 @@ export default function DepartmentsPage() {
                                                 <Check className="h-2.5 w-2.5" />
                                               )}
                                             </span>
-                                            <ProviderAvatar
+                                            <WorkspaceUserAvatar
                                               name={doctor.name}
-                                              initials={provider_initials(
-                                                doctor.name
-                                              )}
-                                              avatarUrl={doctor.avatarUrl}
+                                              userId={doctor.id}
                                               size="sm"
                                             />
                                             <span className="min-w-0 truncate text-slate-800">

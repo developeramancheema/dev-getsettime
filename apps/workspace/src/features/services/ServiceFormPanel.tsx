@@ -617,9 +617,9 @@ export function ServiceFormPanel({
                             key={doctor.id}
                             className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
                           >
-                            <ProviderAvatar
+                            <WorkspaceUserAvatar
+                              userId={doctor.id}
                               name={doctor.name}
-                              initials={doctor.avatar}
                               avatarUrl={doctor.avatarUrl}
                               size="sm"
                             />

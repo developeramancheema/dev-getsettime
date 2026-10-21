@@ -887,12 +887,9 @@ export function AddDepartmentPanel({
                                                 <Check className="h-2.5 w-2.5" />
                                               )}
                                             </span>
-                                            <ProviderAvatar
+                                            <WorkspaceUserAvatar
+                                              userId={doctor.id}
                                               name={doctor.name}
-                                              initials={provider_initials(
-                                                doctor.name
-                                              )}
-                                              avatarUrl={doctor.avatarUrl}
                                               size="sm"
                                             />
                                             <span className="min-w-0 truncate text-slate-800">
