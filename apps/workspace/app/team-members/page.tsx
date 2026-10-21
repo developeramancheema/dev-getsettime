@@ -988,15 +988,37 @@ export default function TeamMembersPage() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="mx-auto">
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-center gap-2">
+            <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+          <div className="flex items-center gap-2">
+            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-green-800">{success}</p>
+          </div>
+        </div>
+      )}
+
+        <div className="mx-auto">
           <section className="relative space-y-4">
             <div className="rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-sky-50 via-white to-indigo-50 p-4 md:p-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur">
+                  {/* <div className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm backdrop-blur">
                     <LuUsers className="h-4 w-4" aria-hidden />
                     Team Access Management
-                  </div>
+                  </div> */}
                   <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                       Team Members

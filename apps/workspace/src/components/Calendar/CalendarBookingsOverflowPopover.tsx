@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { LuX as X } from "react-icons/lu";
@@ -27,6 +28,7 @@ type CalendarBookingsOverflowPopoverProps = {
   hiddenCount: number;
   onBookingClick: (booking: Booking) => void;
   triggerClassName?: string;
+  triggerLabel?: ReactNode;
 };
 
 export function CalendarBookingsOverflowPopover({
@@ -35,6 +37,7 @@ export function CalendarBookingsOverflowPopover({
   hiddenCount,
   onBookingClick,
   triggerClassName,
+  triggerLabel,
 }: CalendarBookingsOverflowPopoverProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -162,7 +165,7 @@ export function CalendarBookingsOverflowPopover({
         aria-haspopup="dialog"
         aria-controls={open ? headingId : undefined}
       >
-        +{hiddenCount} more
+        {triggerLabel ?? `+${hiddenCount} more`}
       </button>
 
       {open && mounted && position

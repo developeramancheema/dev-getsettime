@@ -584,10 +584,10 @@ export default function ContactsCreative() {
         <div className="relative space-y-6">
             <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                {/* <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
                   <Icon name="sparkles" className="h-4 w-4" /> Contact
                   Management
-                </div>
+                </div> */}
 
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                   Contacts
@@ -1107,7 +1107,7 @@ export default function ContactsCreative() {
 
       {show_modal && (
         <div
-          className="fixed inset-0 z-[100001] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100001] flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]"
           role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -1364,7 +1364,7 @@ export default function ContactsCreative() {
 
       {view_contact && (
         <div
-          className="fixed inset-0 z-1000001 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-1000001 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]"
           role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) {

@@ -1635,7 +1635,7 @@ export default function EventTypes() {
           </div>
         </section>
 
-      <button
+      {/* <button
         type="button"
         aria-label="Close panel"
         onClick={handlePanelClose}
@@ -1647,34 +1647,40 @@ export default function EventTypes() {
         )}
         tabIndex={panel_animated_open ? 0 : -1}
         aria-hidden={!panel_animated_open}
-      />
+      /> */}
 
       <aside
         className={cn(
-          "fixed top-16 right-0 bottom-0 z-50 flex flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl",
-          "w-full max-md:w-full lg:!w-[60vw]",
-          "transform transition-transform duration-300 ease-in-out will-change-transform",
+          "fixed inset-0 z-100001 h-full flex",
+          "transform transition-transform duration-300 ease-in-out will-change-transform mb-0",
           panel_animated_open
             ? "translate-x-0"
             : "pointer-events-none translate-x-full"
         )}
         aria-hidden={!panel_visible}
       >
+        <button
+            type="button"
+            aria-label="Close event type panel"
+            onClick={handlePanelClose}
+            className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
+          />
         {panel_visible && (
           <>
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
-                <h2 className="text-lg font-bold text-slate-900">
-                  {editingId ? "Edit Event Type" : "Add Event Type"}
-                </h2>
-                <button
-                  type="button"
-                  onClick={handlePanelClose}
-                  className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
-                  aria-label="Close panel"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+              <div className="relative ml-auto flex w-full max-w-5xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
+                <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    {editingId ? "Edit Event Type" : "Add Event Type"}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={handlePanelClose}
+                    className="cursor-pointer rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                    aria-label="Close panel"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
               <div className="flex min-h-0 h-full flex-1 flex-col pb-[60px] lg:pb-0">
                 {editingId !== null ? (
@@ -1716,6 +1722,7 @@ export default function EventTypes() {
                   />
                 )}
               </div>
+            </div>
             </>
           )}
       </aside>

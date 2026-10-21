@@ -333,7 +333,7 @@ export function ProviderCreateModal({
   return (
     <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
         aria-hidden="true"
         onClick={onCancel}
       />
@@ -520,7 +520,7 @@ export function StaffInviteModal({
   return (
     <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
         aria-hidden="true"
         onClick={onCancel}
       />
@@ -762,7 +762,7 @@ export function EditTeamMemberModal({
   return (
     <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
         aria-hidden="true"
         onClick={onCancel}
       />
@@ -1082,7 +1082,7 @@ export function ManageRoleModal({
   return (
     <div className="fixed inset-0 z-1000001 flex items-center justify-center px-4 overflow-y-auto">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
         aria-hidden="true"
         onClick={onCancel}
       />

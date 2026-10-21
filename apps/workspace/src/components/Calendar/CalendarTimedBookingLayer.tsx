@@ -44,7 +44,7 @@ export function CalendarTimedBookingLayer({
                 showProvider={showProvider}
                 providerName={getProviderName?.(item.booking)}
                 onSelect={() => onSelectBooking(item.booking)}
-                className="h-full"
+                className=""
               />
             </div>
           );
@@ -63,7 +63,7 @@ export function CalendarTimedBookingLayer({
               height: `${Math.max(40, item.height - 2)}px`,
             }}
           >
-            <div className="flex h-full min-h-0 flex-col gap-0.5">
+            <div className="grid grid-cols-1 min-[600px]:grid-cols-2 gap-1">
               {item.visibleBookings.map((booking) => (
                 <CalendarTimedBookingCard
                   key={booking.id}
@@ -73,7 +73,7 @@ export function CalendarTimedBookingLayer({
                   showProvider={showProvider}
                   providerName={getProviderName?.(booking)}
                   onSelect={() => onSelectBooking(booking)}
-                  className="min-h-0 flex-1"
+                  className="flex-1"
                 />
               ))}
               <CalendarBookingsOverflowPopover

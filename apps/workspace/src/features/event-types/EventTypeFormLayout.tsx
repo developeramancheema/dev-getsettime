@@ -329,7 +329,7 @@ export function LocationTypesMultiSelect({
         className={`flex w-full items-center justify-between gap-2 rounded-2xl border bg-slate-50 px-4 py-3 text-left text-sm outline-none transition focus:bg-white ${
           invalid
             ? "border-red-400 focus:border-red-400"
-            : "border-slate-200 focus:border-violet-400"
+            : "border-slate-200 focus:border-indigo-400"
         }`}
       >
         <span className={`truncate ${value.length === 0 ? "text-slate-400" : "text-slate-900"}`}>
@@ -359,7 +359,7 @@ export function LocationTypesMultiSelect({
                   <span
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                       selected
-                        ? "border-violet-600 bg-violet-600 text-white"
+                        ? "border-indigo-600 bg-indigo-600 text-white"
                         : "border-slate-300 bg-white"
                     }`}
                     aria-hidden
@@ -1229,14 +1229,14 @@ export function EventTypeFormLayout({
     `w-full appearance-none rounded-xl border bg-slate-50 px-3 py-2.5 pr-9 text-sm text-slate-900 outline-none transition focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
       has_error
         ? "border-red-400 focus:border-red-400"
-        : "border-slate-200 focus:border-violet-400"
+        : "border-slate-200 focus:border-indigo-400"
     }`;
 
   const panel_input_class = (has_error = false) =>
     `w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:bg-white ${
       has_error
         ? "border-red-400 focus:border-red-400"
-        : "border-slate-200 focus:border-violet-400"
+        : "border-slate-200 focus:border-indigo-400"
     }`;
 
   const field_error_message = (key: event_type_field_error_key, id: string) =>
@@ -1456,7 +1456,7 @@ export function EventTypeFormLayout({
             <button
               type="button"
               onClick={() => set_service_panel_open(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-50"
             >
               <LuPlus className="h-3.5 w-3.5" aria-hidden />
               Add Service
@@ -1486,7 +1486,7 @@ export function EventTypeFormLayout({
         className={`flex overflow-hidden rounded-xl border bg-slate-50 transition focus-within:bg-white ${
           slug_error || field_errors.slug
             ? "border-red-400 focus-within:border-red-400"
-            : "border-slate-200 focus-within:border-violet-400"
+            : "border-slate-200 focus-within:border-indigo-400"
         }`}
       >
         <span className="flex shrink-0 items-center border-r border-slate-200 bg-slate-100 px-3 text-sm text-slate-500">
@@ -1535,7 +1535,7 @@ export function EventTypeFormLayout({
         onChange={(e) => patch({ short_description: e.target.value })}
         placeholder="Showcase our product and features to potential customers."
         rows={3}
-        className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white"
+        className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white"
       />
     </label>
   );
@@ -1598,8 +1598,8 @@ export function EventTypeFormLayout({
         : "bg-emerald-50 text-emerald-500";
     }
     return selected
-      ? "bg-violet-100 text-violet-600"
-      : "bg-violet-50 text-violet-500";
+      ? "bg-indigo-100 text-indigo-600"
+      : "bg-indigo-50 text-indigo-500";
   };
 
   const digit_key_filter = (e: ReactKeyboardEvent<HTMLInputElement>) => {
@@ -1648,7 +1648,7 @@ export function EventTypeFormLayout({
       disabled={disabled}
       onClick={on_toggle}
       className={`flex h-6 w-11 shrink-0 items-center rounded-full p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-        checked ? "justify-end bg-violet-600" : "justify-start bg-slate-200"
+        checked ? "justify-end bg-indigo-600" : "justify-start bg-slate-200"
       }`}
     >
       <span className="h-4 w-4 rounded-full bg-white shadow" />
@@ -1658,7 +1658,7 @@ export function EventTypeFormLayout({
   const setting_chip_class = (selected: boolean) =>
     `min-w-[3.25rem] rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
       selected
-        ? "border-violet-500 bg-violet-50 text-violet-700"
+        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
         : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
     }`;
 
@@ -1780,7 +1780,7 @@ export function EventTypeFormLayout({
               className={`w-32 rounded-xl border bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:bg-white ${
                 field_errors.recurrence_custom_session_count
                   ? "border-red-400 focus:border-red-400"
-                  : "border-slate-200 focus:border-violet-400"
+                  : "border-slate-200 focus:border-indigo-400"
               }`}
               data-event-type-field="recurrence_custom_session_count"
             />
@@ -1797,7 +1797,7 @@ export function EventTypeFormLayout({
         </label>
       ) : null}
 
-      <p className="flex items-start gap-2 rounded-lg bg-violet-50 px-3 py-2 text-xs text-violet-700">
+      <p className="flex items-start gap-2 rounded-lg bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
         <LuInfo className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
         Customers will only see schedules that work across the full series.
       </p> */}
@@ -1904,7 +1904,7 @@ export function EventTypeFormLayout({
             patch({ waitlist_capacity: raw });
           }}
           onKeyDown={digit_key_filter}
-          className={`w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60`}
+          className={`w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60`}
         />
       </label>
 
@@ -1952,14 +1952,14 @@ export function EventTypeFormLayout({
                 onClick={() => on_one_time_audience_change(option.value)}
                 className={`rounded-xl border px-3 py-3 text-left transition ${
                   selected
-                    ? "border-violet-500 bg-violet-50"
+                    ? "border-indigo-500 bg-indigo-50"
                     : "border-slate-200 bg-white hover:bg-slate-50"
                 }`}
                 aria-pressed={selected}
               >
                 <span
                   className={`block text-sm font-semibold ${
-                    selected ? "text-violet-700" : "text-slate-900"
+                    selected ? "text-indigo-700" : "text-slate-900"
                   }`}
                 >
                   {option.label}
@@ -2051,7 +2051,7 @@ export function EventTypeFormLayout({
           <button
             type="button"
             onClick={() => set_active_step(0)}
-            className="mt-2 text-sm font-semibold text-violet-700 hover:text-violet-800"
+            className="mt-2 text-sm font-semibold text-indigo-700 hover:text-indigo-800"
           >
             Go to step 1
           </button>
@@ -2078,7 +2078,7 @@ export function EventTypeFormLayout({
                 aria-pressed={selected}
                 className={`flex min-w-[220px] flex-1 items-center gap-3 rounded-2xl border px-3 py-3 text-left transition sm:max-w-xs ${
                   selected
-                    ? "border-violet-500 bg-violet-50"
+                    ? "border-indigo-500 bg-indigo-50"
                     : field_errors.service_provider_ids
                       ? "border-red-400 bg-white hover:bg-slate-50"
                       : "border-slate-200 bg-white hover:bg-slate-50"
@@ -2100,7 +2100,7 @@ export function EventTypeFormLayout({
                 <span
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
                     selected
-                      ? "bg-violet-600 text-white"
+                      ? "bg-indigo-600 text-white"
                       : "border border-slate-300 bg-white"
                   }`}
                   aria-hidden
@@ -2250,7 +2250,7 @@ export function EventTypeFormLayout({
                       onClick={() => set_active_step(index)}
                       className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left text-sm transition ${
                         is_active
-                          ? "bg-violet-100 font-semibold text-violet-700"
+                          ? "bg-indigo-100 font-semibold text-indigo-700"
                           : "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                       aria-current={is_active ? "step" : undefined}
@@ -2258,7 +2258,7 @@ export function EventTypeFormLayout({
                       <span
                         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                           is_active
-                            ? "bg-violet-600 text-white"
+                            ? "bg-indigo-600 text-white"
                             : "bg-slate-200 text-slate-600"
                         }`}
                       >
@@ -2284,7 +2284,7 @@ export function EventTypeFormLayout({
                       onClick={() => set_active_step(index)}
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                         is_active
-                          ? "bg-violet-600 text-white"
+                          ? "bg-indigo-600 text-white"
                           : "bg-slate-200 text-slate-600"
                       }`}
                       aria-label={step.label}
@@ -2300,7 +2300,7 @@ export function EventTypeFormLayout({
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   <div className="border-b border-slate-200 px-5 py-4">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
                         1
                       </span>
                       <div>
@@ -2344,7 +2344,7 @@ export function EventTypeFormLayout({
                           value={value.internal_label}
                           onChange={(e) => patch({ internal_label: e.target.value })}
                           placeholder="e.g. Therapy Session Call"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white"
                         />
                       </label>
                     </div>
@@ -2359,7 +2359,7 @@ export function EventTypeFormLayout({
                 <div className="overflow-visible rounded-2xl border border-slate-200 bg-white">
                   <div className="border-b border-slate-200 px-5 py-4">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
                         2
                       </span>
                       <div>
@@ -2394,14 +2394,14 @@ export function EventTypeFormLayout({
                               key={option.value}
                               className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition ${
                                 selected
-                                  ? "border-violet-300 bg-violet-50/60"
+                                  ? "border-indigo-300 bg-indigo-50/60"
                                   : "border-slate-200 bg-white hover:bg-slate-50"
                               }`}
                             >
                               <input
                                 type="radio"
                                 name="event-type-availability-mode"
-                                className="mt-1 h-4 w-4 border-slate-300 text-violet-600 focus:ring-violet-500"
+                                className="mt-1 h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 checked={selected}
                                 onChange={() => {
                                   if (option.value === "custom") {
@@ -2531,7 +2531,7 @@ export function EventTypeFormLayout({
                         onClick={() => patch({ allow_reschedule: !value.allow_reschedule })}
                         className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors ${
                           value.allow_reschedule
-                            ? "justify-end bg-violet-600"
+                            ? "justify-end bg-indigo-600"
                             : "justify-start bg-slate-200"
                         }`}
                       >
@@ -2550,7 +2550,7 @@ export function EventTypeFormLayout({
                         }
                         className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors ${
                           value.allow_cancellation
-                            ? "justify-end bg-violet-600"
+                            ? "justify-end bg-indigo-600"
                             : "justify-start bg-slate-200"
                         }`}
                       >
@@ -2565,7 +2565,7 @@ export function EventTypeFormLayout({
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   <div className="border-b border-slate-200 px-5 py-4">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
                         3
                       </span>
                       <div>
@@ -2594,7 +2594,7 @@ export function EventTypeFormLayout({
                               onClick={() => on_format_change(option.value)}
                               className={`flex items-start gap-3 rounded-xl border px-3 py-3 text-left transition ${
                                 selected
-                                  ? "border-violet-500 bg-violet-50"
+                                  ? "border-indigo-500 bg-indigo-50"
                                   : "border-slate-200 bg-white hover:bg-slate-50"
                               }`}
                               aria-pressed={selected}
@@ -2610,7 +2610,7 @@ export function EventTypeFormLayout({
                               <span className="min-w-0">
                                 <span
                                   className={`block text-sm font-semibold ${
-                                    selected ? "text-violet-700" : "text-slate-900"
+                                    selected ? "text-indigo-700" : "text-slate-900"
                                   }`}
                                 >
                                   {option.label}
@@ -2638,7 +2638,7 @@ export function EventTypeFormLayout({
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   <div className="border-b border-slate-200 px-5 py-4">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
                         4
                       </span>
                       <div>
@@ -2661,7 +2661,7 @@ export function EventTypeFormLayout({
                           onClick={() => patch({ is_public: true })}
                           className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
                             value.is_public
-                              ? "border-violet-500 bg-violet-50"
+                              ? "border-indigo-500 bg-indigo-50"
                               : "border-slate-200 bg-white hover:bg-slate-50"
                           }`}
                           aria-pressed={value.is_public}
@@ -2669,7 +2669,7 @@ export function EventTypeFormLayout({
                           <span
                             className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
                               value.is_public
-                                ? "border-violet-600 bg-violet-600"
+                                ? "border-indigo-600 bg-indigo-600"
                                 : "border-slate-300 bg-white"
                             }`}
                             aria-hidden
@@ -2692,7 +2692,7 @@ export function EventTypeFormLayout({
                           onClick={() => patch({ is_public: false })}
                           className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
                             !value.is_public
-                              ? "border-violet-500 bg-violet-50"
+                              ? "border-indigo-500 bg-indigo-50"
                               : "border-slate-200 bg-white hover:bg-slate-50"
                           }`}
                           aria-pressed={!value.is_public}
@@ -2700,7 +2700,7 @@ export function EventTypeFormLayout({
                           <span
                             className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
                               !value.is_public
-                                ? "border-violet-600 bg-violet-600"
+                                ? "border-indigo-600 bg-indigo-600"
                                 : "border-slate-300 bg-white"
                             }`}
                             aria-hidden
@@ -2735,7 +2735,7 @@ export function EventTypeFormLayout({
                         onClick={() => patch({ allow_waitlist: !value.allow_waitlist })}
                         className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors ${
                           value.allow_waitlist
-                            ? "justify-end bg-violet-600"
+                            ? "justify-end bg-indigo-600"
                             : "justify-start bg-slate-200"
                         }`}
                       >
@@ -2800,7 +2800,7 @@ export function EventTypeFormLayout({
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   <div className="border-b border-slate-200 px-5 py-4">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
                         5
                       </span>
                       <div>
@@ -2829,7 +2829,7 @@ export function EventTypeFormLayout({
                               onClick={() => patch({ status: option.value })}
                               className={`rounded-xl border px-3 py-2.5 text-left text-sm transition ${
                                 selected
-                                  ? "border-violet-500 bg-violet-50 text-violet-700"
+                                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                                   : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
                               }`}
                               aria-pressed={selected}
@@ -2870,7 +2870,7 @@ export function EventTypeFormLayout({
                             href={booking_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="min-w-0 flex-1 break-all text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
+                            className="min-w-0 flex-1 break-all text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
                           >
                             {display_booking_url(booking_url)}
                           </a>
@@ -2958,7 +2958,7 @@ export function EventTypeFormLayout({
                     type="button"
                     onClick={() => void handle_panel_save()}
                     disabled={submitting || is_panel_saving}
-                    className="shrink-0 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="shrink-0 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {submitting || is_panel_saving ? "Saving…" : "Save Event Type"}
                   </button>
@@ -2967,7 +2967,7 @@ export function EventTypeFormLayout({
                     type="button"
                     onClick={() => void go_to_next_step()}
                     disabled={slug_checking}
-                    className="shrink-0 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="shrink-0 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {slug_checking ? "Checking…" : "Next"}
                   </button>
@@ -2998,7 +2998,7 @@ export function EventTypeFormLayout({
     <div className="rounded-2xl bg-slate-50 p-4 md:p-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-600">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-600">
             Event types
           </p>
           <h1
@@ -3034,8 +3034,8 @@ export function EventTypeFormLayout({
                   Build scheduling rules with flexible hour and minute controls.
                 </p>
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-violet-50 px-3 py-2 text-xs font-medium text-violet-700">
-                <span className="h-2 w-2 rounded-full bg-violet-500" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700">
+                <span className="h-2 w-2 rounded-full bg-indigo-500" />
                 Smart duration setup
               </div>
             </div>
@@ -3050,7 +3050,7 @@ export function EventTypeFormLayout({
                     value={value.service_provider_id}
                     onChange={(e) => patch({ service_provider_id: e.target.value })}
                     disabled={service_providers_loading}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {service_providers_loading && !self_assign_option ? (
                       <option value="">Loading service providers…</option>
@@ -3083,7 +3083,7 @@ export function EventTypeFormLayout({
                     value={value.title}
                     onChange={(e) => patch({ title: e.target.value })}
                     placeholder="e.g. 30-min Discovery Call"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white"
                     required
                   />
                 </label>
@@ -3163,7 +3163,7 @@ export function EventTypeFormLayout({
                       </div>
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-dashed border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-700">
+                    <div className="mt-4 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
                       Tip: use quick presets or enter an exact duration.
                     </div>
                   </div>
@@ -3182,7 +3182,7 @@ export function EventTypeFormLayout({
                               value.duration_minutes_part,
                               item
                             )
-                              ? "border-violet-500 bg-violet-600 text-white shadow-lg shadow-violet-200"
+                              ? "border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                               : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
                           }`}
                         >
@@ -3211,7 +3211,7 @@ export function EventTypeFormLayout({
                       aria-checked={value.is_public}
                       onClick={() => patch({ is_public: !value.is_public })}
                       className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors ${
-                        value.is_public ? "justify-end bg-violet-600" : "justify-start bg-slate-200"
+                        value.is_public ? "justify-end bg-indigo-600" : "justify-start bg-slate-200"
                       }`}
                     >
                       <span className="h-5 w-5 rounded-full bg-white shadow" />
@@ -3246,7 +3246,7 @@ export function EventTypeFormLayout({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(109,40,217,0.28)] hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(109,40,217,0.28)] hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting
                     ? editingId

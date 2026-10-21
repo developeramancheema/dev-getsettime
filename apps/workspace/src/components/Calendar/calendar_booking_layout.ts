@@ -1,6 +1,17 @@
 import type { Booking } from "@/src/types/booking";
 
+/** Month-grid chips by viewport: 1 below md, 2 from md, 3 from lg. */
+export const CALENDAR_MONTH_VISIBLE_COUNT_MOBILE = 1;
+export const CALENDAR_MONTH_VISIBLE_COUNT_TABLET = 2;
 export const CALENDAR_MONTH_VISIBLE_COUNT = 3;
+
+/** Index matches chip order. Empty string keeps the first chip visible at every width. */
+export const CALENDAR_MONTH_CHIP_VISIBILITY_CLASS = [
+  "",
+  "hidden md:block",
+  "hidden lg:block",
+] as const;
+
 export const CALENDAR_TIMED_VISIBLE_COUNT = 2;
 
 export type NormalizedTimedBooking = {
