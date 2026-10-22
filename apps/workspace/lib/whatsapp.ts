@@ -197,7 +197,7 @@ export async function sendWhatsAppTemplate(
       document?: { link: string };
       video?: { link: string };
     }>;
-    sub_type?: "url" | "quick_reply";
+    sub_type?: "url" | "quick_reply" | "copy_code";
     index?: number | string;
   }>
 ) {
