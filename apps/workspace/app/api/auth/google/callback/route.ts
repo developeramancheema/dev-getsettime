@@ -35,6 +35,7 @@ export async function GET(req: Request) {
       isSignup?: boolean;
       timestamp?: number;
       returnTo?: string;
+      claimCode?: string;
     } = {};
     if (stateParam) {
       try {
@@ -91,6 +92,7 @@ export async function GET(req: Request) {
         google_id: userInfo.id,
         enableCalendarSync,
         isSignup: state.isSignup === true,
+        claimCode: typeof state.claimCode === 'string' ? state.claimCode : null,
       };
 
       const handoffUrl = new URL(req.url);

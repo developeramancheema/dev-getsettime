@@ -15,6 +15,12 @@ import { workspaceAdminNeedsOnboardingWizard } from '@/lib/auth_onboarding';
 import { getPublicSiteOrigin } from '@/lib/request-site-origin';
 import { ROLE_SERVICE_PROVIDER } from '@/src/constants/roles';
 import { resolveRegistrationGeoFromHeaders } from '@/lib/ipapi-geo';
+import {
+  ClaimCodeError,
+  consumeClaimCode,
+  isEmailClaimIneligible,
+  validateClaimCodeForSignup,
+} from '@app/db/subscription';
 
 export interface GoogleSignupData {
   access_token: string;
@@ -28,6 +34,7 @@ export interface GoogleSignupData {
   google_id: string;
   enableCalendarSync: boolean;
   isSignup: boolean;
+  claimCode?: string | null;
 }
 
 type SupabaseClients = {
@@ -213,6 +220,25 @@ async function handleNewUserSignup(
 ): Promise<NextResponse> {
   const { email, name, google_id, enableCalendarSync, access_token, refresh_token, expires_at } =
     data;
+  const claimCode =
+    typeof data.claimCode === 'string' && data.claimCode.trim() ? data.claimCode.trim() : null;
+  const isClaimSignup = Boolean(claimCode);
+
+  if (claimCode) {
+    const validation = await validateClaimCodeForSignup(clients.supabaseAdmin, claimCode);
+    if (!validation.valid) {
+      const q = new URLSearchParams({
+        error: validation.message,
+        claim_code: claimCode,
+      });
+      return NextResponse.redirect(new URL(`/register?${q.toString()}`, req.url));
+    }
+    if (await isEmailClaimIneligible(clients.supabaseAdmin, email)) {
+      return NextResponse.redirect(
+        new URL('/register?error=claim_invalid&claim_code=' + encodeURIComponent(claimCode), req.url)
+      );
+    }
+  }
 
   const { data: userData, error: createError } = await clients.supabaseAdmin.auth.admin.createUser({
     email,
@@ -223,8 +249,8 @@ async function handleNewUserSignup(
       google_calendar_sync: enableCalendarSync,
       google_id,
       picture: data.picture,
-      onboarding_completed: false,
-      onboarding_last_completed_step: 0,
+      onboarding_completed: isClaimSignup ? false : true,
+      onboarding_last_completed_step: isClaimSignup ? 0 : 4,
     },
   });
 
@@ -238,7 +264,37 @@ async function handleNewUserSignup(
   }
 
   const userId = userData.user.id;
-  const createdMeta = (userData.user.user_metadata ?? {}) as Record<string, unknown>;
+
+  let createdMeta = (userData.user.user_metadata ?? {}) as Record<string, unknown>;
+
+  if (claimCode) {
+    try {
+      const claimedCodeId = await consumeClaimCode(
+        clients.supabaseAdmin,
+        claimCode,
+        userId,
+        email
+      );
+      const claimPatch = {
+        claim_code: claimCode,
+        claimed_code_id: claimedCodeId,
+        signup_type: 'free_claimed',
+      };
+      await clients.supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: { ...createdMeta, ...claimPatch },
+      });
+      createdMeta = { ...createdMeta, ...claimPatch };
+    } catch (err) {
+      await clients.supabaseAdmin.auth.admin.deleteUser(userId);
+      const msg = err instanceof ClaimCodeError ? err.message : 'claim_invalid';
+      return NextResponse.redirect(
+        new URL(
+          `/register?error=${encodeURIComponent(msg)}&claim_code=${encodeURIComponent(claimCode)}`,
+          req.url
+        )
+      );
+    }
+  }
 
   const registrationGeo = await resolveRegistrationGeoFromHeaders(req.headers);
 
@@ -266,8 +322,8 @@ async function handleNewUserSignup(
       google_calendar_sync: enableCalendarSync,
       google_id,
       picture: data.picture,
-      onboarding_completed: false,
-      onboarding_last_completed_step: 0,
+      onboarding_completed: isClaimSignup ? false : true,
+      onboarding_last_completed_step: isClaimSignup ? 0 : 4,
     },
     clients.supabaseAdmin,
     workspaceResult.isNewWorkspace,
@@ -308,10 +364,12 @@ async function handleNewUserSignup(
     });
   }
 
+  const nextPath = isClaimSignup ? '/register?onboarding=1' : '/';
+
   return finalizeAuthRedirect(req, clients, {
     email,
     userId,
-    nextPath: '/register?onboarding=1',
+    nextPath,
   });
 }
 

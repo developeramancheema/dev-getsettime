@@ -73,6 +73,7 @@ import {
 import { resolve_provider_scoped_service_gate } from '@/src/utils/provider_scoped_service_gate';
 import { slot_occupancy_context_from_event_type } from '@/lib/booking_capacity';
 import { InviteeDuplicateBookingAlert } from './InviteeDuplicateBookingAlert';
+import { EmbedBookingOtpModal } from './EmbedBookingOtpModal';
 import {
   apply_booking_form_error,
   BookingFormSubmitError,
@@ -141,6 +142,8 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duplicatePreviewPath, setDuplicatePreviewPath] = useState<string | null>(null);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const showFormError = useCallback((message: string, previewPath?: string | null) => {
     setError(message);
     setDuplicatePreviewPath(previewPath ?? null);
@@ -170,6 +173,10 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     setSelectedDate(null);
     setSelectedTime('');
   }, []);
+
+  useEffect(() => {
+    setVerificationToken(null);
+  }, [phone, email]);
 
   const {
     departments,
@@ -843,7 +850,40 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirmRequest = () => {
+    if (!selectedType || !selectedDate || !selectedTime) {
+      showFormError('Please fill in all required fields');
+      return;
+    }
+    if (!isStep4Valid) {
+      const first =
+        intakeValidation._config ||
+        intakeValidation.name ||
+        intakeValidation.email ||
+        intakeValidation.phone ||
+        intakeValidation.services ||
+        intakeValidation.meeting_option;
+      showFormError(first || 'Please fill in all required fields');
+      return;
+    }
+    if (!isRescheduleMode) {
+      const phoneEnabled = intakeForm?.phone === true;
+      const emailEnabled = intakeForm?.email !== false;
+      if (!phoneEnabled || !emailEnabled) {
+        showFormError(
+          'Phone and email are required on this booking form before you can verify and confirm.'
+        );
+        return;
+      }
+      if (!verificationToken) {
+        setOtpModalOpen(true);
+        return;
+      }
+    }
+    void handleConfirm(verificationToken);
+  };
+
+  const handleConfirm = async (activeVerificationToken: string | null = verificationToken) => {
     if (!selectedType || !selectedDate || !selectedTime) {
       showFormError('Please fill in all required fields');
       return;
@@ -876,6 +916,11 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     );
     if (selectedSlot?.disabled || !selectedSlot?.startUtc) {
       showFormError('This time slot is not available. Please select another time.');
+      return;
+    }
+
+    if (!isRescheduleMode && !activeVerificationToken) {
+      setOtpModalOpen(true);
       return;
     }
 
@@ -1019,6 +1064,9 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
           provider_timezone: providerTimezone,
           timezone: viewerTimezone,
           book_series: bookSeries,
+          ...(!isRescheduleMode && activeVerificationToken
+            ? { verification_token: activeVerificationToken }
+            : {}),
         }),
       });
 
@@ -1271,7 +1319,7 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
                   onFilesChange={handleFilesChange}
                   fileError={fileError}
                   onBack={go_to_previous_step}
-                  onConfirm={handleConfirm}
+                  onConfirm={handleConfirmRequest}
                   hideIntakeCatalogServices={hideIntakeCatalogServices}
                   enabledMeetingOptionKeys={bookableMeetingOptionKeys}
                   selectedMeetingOption={selectedMeetingOption}
@@ -1299,6 +1347,21 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
           </div>
         )*/}
       </div>
+      {!isRescheduleMode && (
+        <EmbedBookingOtpModal
+          open={otpModalOpen}
+          workspaceId={workspace.id}
+          name={name.trim() || email.trim() || 'Guest'}
+          email={email.trim()}
+          phone={phone.trim()}
+          onClose={() => setOtpModalOpen(false)}
+          onVerified={(token) => {
+            setVerificationToken(token);
+            setOtpModalOpen(false);
+            void handleConfirm(token);
+          }}
+        />
+      )}
     </div>
   );
 }

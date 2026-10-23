@@ -15,6 +15,8 @@ export type plans = {
   booking_limit: number;
   /** monthly = cap per UTC month; lifetime = total cap for workspace */
   booking_limit_period: booking_limit_period;
+  /** -1 = unlimited claim-free signups (free plan landing cap) */
+  user_limit: number;
   workspace_limit: number;
   admin_limit: number;
   service_provider_limit: number;
@@ -69,6 +71,7 @@ export type plan_input = {
   price: number;
   booking_limit: number;
   booking_limit_period?: booking_limit_period;
+  user_limit?: number;
   workspace_limit?: number;
   admin_limit?: number;
   service_provider_limit?: number;
@@ -95,6 +98,7 @@ export type workspace_subscriptions = {
   stripe_subscription_id: string | null;
   trial_ends_at: string | null;
   cancelled_at: string | null;
+  limit_notification_sent_at?: string | null;
   created_at: string;
   updated_at: string;
 };
