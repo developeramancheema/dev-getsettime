@@ -1667,7 +1667,7 @@ export default function EventTypes() {
           />
         {panel_visible && (
           <>
-              <div className="relative ml-auto flex w-full max-w-5xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
+              <div className="relative ml-auto flex w-full max-w-5xl flex-col border-l border-slate-200 bg-white shadow-2xl">
                 <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
                   <h2 className="text-lg font-bold text-slate-900">
                     {editingId ? "Edit Event Type" : "Add Event Type"}
@@ -1682,7 +1682,7 @@ export default function EventTypes() {
                   </button>
                 </div>
 
-              <div className="flex min-h-0 h-full flex-1 flex-col pb-[60px] lg:pb-0">
+              <div className="flex min-h-0 h-full flex-1 flex-col">
                 {editingId !== null ? (
                   <EventTypeEditForm
                     key={editingId}
@@ -1739,14 +1739,14 @@ export default function EventTypes() {
       )}
 
       {settings_open && (
-        <div className="fixed inset-0 z-999 flex">
+        <div className="fixed inset-0 z-100001 flex">
           <button
             type="button"
             aria-label="Close settings"
             onClick={() => set_settings_open(false)}
             className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-[2px]"
           />
-          <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl pb-[60px] lg:pb-0">
+          <div className="relative ml-auto flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
               <div className="flex gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">

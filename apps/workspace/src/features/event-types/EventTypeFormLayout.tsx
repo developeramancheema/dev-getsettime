@@ -3235,7 +3235,7 @@ export function EventTypeFormLayout({
                 </p>
               )}
 
-              <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+              <div className="mt-6 flex gap-3 border-t border-slate-100 pt-5 flex-row justify-end">
                 <button
                   type="button"
                   onClick={onCancel}
