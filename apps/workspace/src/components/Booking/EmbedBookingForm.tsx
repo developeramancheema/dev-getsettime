@@ -41,6 +41,7 @@ import {
   type meeting_option_key,
 } from '@/src/utils/meeting_options';
 import { BookingPreviewSidebar } from './MultiStepBooking/BookingPreviewSidebar';
+import { format_workspace_public_address } from '@/src/utils/workspace_public_address';
 import { ProgressIndicator } from './MultiStepBooking/ProgressIndicator';
 import { Step1DepartmentProvider } from './MultiStepBooking/Step1DepartmentProvider';
 import { Step2ServiceSelection } from './MultiStepBooking/Step2ServiceSelection';
@@ -203,6 +204,8 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     workspaceOwnerAdminNotice,
     meetingOptions,
     bookingStepOrder,
+    workspaceHostProfileHighlights,
+    providerHostProfileHighlights,
   } = useEmbedBookingFormData({
     workspace,
     eventTypeSlug,
@@ -559,6 +562,14 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
     setDisableAutoAdvance(true);
     go_to_step(previous_step_id);
   }, [go_to_step, previous_step_id]);
+
+  const workspaceAddress = useMemo(
+    () =>
+      format_workspace_public_address(
+        (generalSettings ?? undefined) as Record<string, unknown> | undefined
+      ),
+    [generalSettings]
+  );
 
   const workspacePrimaryColor = generalSettings?.primaryColor ?? DEFAULT_PRIMARY_COLOR;
   const workspaceAccentColor = generalSettings?.accentColor ?? null;
@@ -1137,6 +1148,10 @@ export default function EmbedBookingForm({ workspace, eventType, eventTypeSlug, 
             workspaceName={workspace.name}
             workspaceTagline={generalSettings?.tagline}
             workspaceLogoUrl={workspace.logo_url ?? null}
+            workspaceClinicImageUrl={generalSettings?.clinic_image_url ?? null}
+            workspaceHostProfileHighlights={workspaceHostProfileHighlights}
+            providerHostProfileHighlights={providerHostProfileHighlights}
+            workspaceAddress={workspaceAddress}
             workspacePrimaryColor={workspacePrimaryColor}
             workspaceAccentColor={workspaceAccentColor}
             loadingSettings={false}

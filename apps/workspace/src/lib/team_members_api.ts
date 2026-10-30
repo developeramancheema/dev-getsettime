@@ -5,6 +5,7 @@ export type TeamMemberApiRecord = {
   education: string | null;
   experience: string | null;
   specialty: string | null;
+  bio: string | null;
   role: string | null;
   additional_roles: string[];
   departments: number[];

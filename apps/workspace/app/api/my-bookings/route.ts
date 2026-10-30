@@ -123,9 +123,9 @@ export async function GET(req: NextRequest) {
       const contact = b.contacts as unknown as { name: string | null; phone: string | null; email: string | null } | null;
       return {
         id: b.id,
-        invitee_name: b.invitee_name || contact?.name || null,
-        invitee_email: b.invitee_email || contact?.email || null,
-        invitee_phone: b.invitee_phone || contact?.phone || null,
+        name: b.invitee_name || contact?.name || null,
+        email: b.invitee_email || contact?.email || null,
+        phone: b.invitee_phone || contact?.phone || null,
         start_at: b.start_at,
         end_at: b.end_at,
         status: b.status,
@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
     // Server-side pagination
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
+    const limit = Math.min(20, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
     const total = matched.length;
     const totalPages = Math.ceil(total / limit);
     const offset = (page - 1) * limit;

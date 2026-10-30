@@ -137,6 +137,7 @@ type snapshot = {
   timezone: string;
   logoFileName: string;
   logoUrl: string | null;
+  clinicImageUrl: string | null;
   tagline: string;
   businessEmail: string;
   businessPhone: string;
@@ -193,8 +194,10 @@ export default function SettingsPage() {
   const [logoFileName, setLogoFileName] = useState("No file selected");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoPath, setLogoPath] = useState<string | null>(null);
+  const [clinicImageUrl, setClinicImageUrl] = useState<string | null>(null);
   const [tagline, setTagline] = useState("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingClinicImage, setIsUploadingClinicImage] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -259,6 +262,7 @@ export default function SettingsPage() {
     setTimezone(s.timezone);
     setLogoFileName(s.logoFileName);
     setLogoUrl(s.logoUrl);
+    setClinicImageUrl(s.clinicImageUrl);
     setTagline(s.tagline);
     setBusinessEmail(s.businessEmail);
     setBusinessPhone(s.businessPhone);
@@ -301,6 +305,7 @@ export default function SettingsPage() {
       timezone: "",
       logoFileName: "No file selected",
       logoUrl: shellWorkspaceLogo || null,
+      clinicImageUrl: null,
       tagline: "",
       businessEmail: "",
       businessPhone: "",
@@ -341,6 +346,9 @@ export default function SettingsPage() {
 
     if (typeof general.tagline === "string") {
       snap.tagline = general.tagline;
+    }
+    if (typeof general.clinic_image_url === "string" && general.clinic_image_url.trim()) {
+      snap.clinicImageUrl = general.clinic_image_url.trim();
     }
     if (typeof general.business_email === "string") {
       snap.businessEmail = general.business_email;
@@ -479,6 +487,100 @@ export default function SettingsPage() {
     }
   };
 
+  const handleClinicImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canEditAllSettings) return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingClinicImage(true);
+    try {
+      const { session } = await getWorkspaceSession();
+      const token = session?.access_token;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/settings/clinic-image", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "Failed to upload clinic image");
+      }
+
+      const result = await response.json();
+      setClinicImageUrl(result.url);
+      if (snapshotRef.current) {
+        snapshotRef.current = {
+          ...snapshotRef.current,
+          clinicImageUrl: result.url as string,
+        };
+      }
+      toast.success("Clinic image uploaded successfully.");
+      if (user?.id && typeof result.url === "string") {
+        applyPatch({
+          settings: { general: { clinic_image_url: result.url } },
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading clinic image:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to upload clinic image. Please try again."
+      );
+    } finally {
+      setIsUploadingClinicImage(false);
+    }
+  };
+
+  const handleClinicImageRemove = async () => {
+    if (!canEditAllSettings || !clinicImageUrl) return;
+
+    setIsUploadingClinicImage(true);
+    try {
+      const { session } = await getWorkspaceSession();
+      const token = session?.access_token;
+
+      const response = await fetch("/api/settings/clinic-image", {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "Failed to remove clinic image");
+      }
+
+      setClinicImageUrl(null);
+      if (snapshotRef.current) {
+        snapshotRef.current = {
+          ...snapshotRef.current,
+          clinicImageUrl: null,
+        };
+      }
+      toast.success("Clinic image removed successfully.");
+      if (user?.id) {
+        applyPatch({
+          settings: { general: { clinic_image_url: null } },
+        });
+      }
+    } catch (error) {
+      console.error("Error removing clinic image:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to remove clinic image. Please try again."
+      );
+    } finally {
+      setIsUploadingClinicImage(false);
+    }
+  };
+
   const handleLogoRemove = async () => {
     if (!canEditAllSettings || !logoUrl) return;
 
@@ -597,6 +699,7 @@ export default function SettingsPage() {
             timezone,
             logoFileName,
             logoUrl,
+            clinicImageUrl,
             tagline,
             businessEmail,
             businessPhone,
@@ -655,6 +758,7 @@ export default function SettingsPage() {
           accentColor,
           timezone: timezone.trim() || undefined,
           tagline: tagline.trim().slice(0, TAGLINE_MAX_LENGTH) || undefined,
+          clinic_image_url: clinicImageUrl?.trim() || undefined,
           business_email: businessEmail.trim() || undefined,
           // Send empty string (not undefined) so clearing the field overwrites the
           // stored value — JSON.stringify drops `undefined`, leaving the old value in DB.
@@ -717,6 +821,7 @@ export default function SettingsPage() {
         timezone,
         logoFileName,
         logoUrl,
+        clinicImageUrl,
         tagline,
         businessEmail,
         businessPhone,
@@ -1192,20 +1297,20 @@ export default function SettingsPage() {
                             className="hidden"
                           />
                         </label>
+                        {logoUrl && canEditAllSettings ? (
+                          <button
+                            type="button"
+                            onClick={handleLogoRemove}
+                            disabled={isUploadingLogo}
+                            className="text-sm block font-medium text-red-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Remove logo
+                          </button>
+                        ) : null}
                       </div>
                       <p className="mt-1 text-sm text-slate-500">
                         Recommended: PNG, JPG (300x300px)
                       </p>
-                      {logoUrl && canEditAllSettings ? (
-                        <button
-                          type="button"
-                          onClick={handleLogoRemove}
-                          disabled={isUploadingLogo}
-                          className="text-sm font-medium text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Remove logo
-                        </button>
-                      ) : null}
                     </div>
 
                     <label className="block">
@@ -1228,6 +1333,63 @@ export default function SettingsPage() {
                           : ""}
                       </p>
                     </label>
+
+                    <div className="md:col-span-2">
+                      <span className="mb-2 block text-sm font-bold text-slate-700">
+                        Clinic image
+                      </span>
+                      <p className="mb-3 text-sm text-slate-500">
+                        Shown on your public booking page header. If not set, your logo is used
+                        instead.
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-slate-200 bg-white p-1">
+                          {clinicImageUrl ? (
+                            <WorkspaceBrandLogo
+                              src={clinicImageUrl}
+                              alt="Clinic image preview"
+                              width={72}
+                              height={72}
+                              className="h-full w-full rounded-xl object-cover"
+                            />
+                          ) : (
+                            <span className="px-2 text-center text-xs text-slate-400">
+                              No image
+                            </span>
+                          )}
+                        </div>
+                        <label
+                          className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-indigo-600 transition ${
+                            canEditAllSettings
+                              ? "cursor-pointer hover:border-blue-200 hover:bg-indigo-50"
+                              : "cursor-not-allowed opacity-60"
+                          }`}
+                        >
+                          <SettingsIcon name="refresh" className="h-4 w-4" />
+                          {isUploadingClinicImage ? "Uploading…" : "Upload"}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            onChange={handleClinicImageChange}
+                            disabled={isUploadingClinicImage || !canEditAllSettings}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Recommended: PNG, JPG (square, at least 200×200px)
+                      </p>
+                      {clinicImageUrl && canEditAllSettings ? (
+                        <button
+                          type="button"
+                          onClick={handleClinicImageRemove}
+                          disabled={isUploadingClinicImage}
+                          className="text-sm font-medium text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Remove clinic image
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
 

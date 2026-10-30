@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { Department, Service, ServiceProvider } from '@/src/types/bookingForm';
 import { BOOKING_BUTTON_LABELS, BOOKING_EMPTY_MESSAGES, BOOKING_LOADING_MESSAGES } from '@/src/constants/booking';
+import { WorkspaceUserAvatar } from '@/src/components/User/WorkspaceUserAvatar';
 
 type GuideTarget = 'provider' | 'services' | 'continue';
 
@@ -210,9 +211,15 @@ export function Step1DepartmentProvider({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold">
-                        {provider.name.charAt(0)}
-                      </div>
+                      <WorkspaceUserAvatar
+                        userId={provider.id}
+                        name={provider.name}
+                        email={provider.email}
+                        avatarUrl={provider.avatar_url}
+                        size="lg"
+                        shape="rounded"
+                        className="h-10 w-10 shrink-0 text-white shadow-sm"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-gray-900 capitalize">{provider.name}</div>
                         {(provider.education || provider.experience || provider.specialty) && (

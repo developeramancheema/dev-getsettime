@@ -30,6 +30,7 @@ import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import type { ServiceProvider } from "@/src/types/booking-entities";
 
 const DESCRIPTION_MAX_LENGTH = 150;
+const DUPLICATE_DEPARTMENT_MESSAGE = "Department already added";
 
 type VisibilityStatus = "active" | "private" | "draft";
 
@@ -213,13 +214,74 @@ export function AddDepartmentPanel({
   }, [open, resetForm]);
 
   const trimmedDepartmentName = departmentName.trim();
+
+  const doctors = useMemo<doctor_option[]>(() => {
+    return serviceProviders.map((sp) => ({
+      id: sp.id,
+      name: serviceProviderDisplayName(sp),
+    }));
+  }, [serviceProviders]);
+
+  const assignedDeptIdsForEffectiveProvider = useMemo(() => {
+    const providerId =
+      isLoggedInServiceProvider && currentUserId
+        ? currentUserId
+        : serviceProviders.length === 1
+          ? serviceProviders[0]!.id
+          : null;
+    if (!providerId) return new Set<number>();
+    return deptIdsByProvider.get(providerId) ?? new Set<number>();
+  }, [
+    isLoggedInServiceProvider,
+    currentUserId,
+    serviceProviders,
+    deptIdsByProvider,
+  ]);
+
+  const departmentAlreadyAdded = useCallback(
+    (name: string) => {
+      const normalized = name.trim().toLowerCase();
+      if (!normalized) return false;
+      if (isLoggedInServiceProvider) {
+        const dep = departments.find(
+          (d) => d.name.toLowerCase() === normalized
+        );
+        return dep != null && assignedDeptIdsForEffectiveProvider.has(dep.id);
+      }
+      return departments.some((d) => d.name.toLowerCase() === normalized);
+    },
+    [isLoggedInServiceProvider, departments, assignedDeptIdsForEffectiveProvider]
+  );
+
+  const availableSuggestions = useMemo(
+    () => suggestions.filter((item) => !departmentAlreadyAdded(item)),
+    [suggestions, departmentAlreadyAdded]
+  );
+
+  const filteredSuggestions = useMemo(() => {
+    const query = trimmedDepartmentName.toLowerCase();
+    if (!query) return availableSuggestions;
+    return availableSuggestions.filter((item) =>
+      item.toLowerCase().includes(query)
+    );
+  }, [availableSuggestions, trimmedDepartmentName]);
+
+  const duplicateDepartmentName =
+    trimmedDepartmentName.length > 0 &&
+    departmentAlreadyAdded(trimmedDepartmentName);
+
   const matchedCatalogDepartment = useMemo(
     () =>
-      suggestions.find(
+      availableSuggestions.find(
         (item) => item.toLowerCase() === trimmedDepartmentName.toLowerCase()
       ) ?? null,
-    [suggestions, trimmedDepartmentName]
+    [availableSuggestions, trimmedDepartmentName]
   );
+
+  const isCustomDepartment =
+    trimmedDepartmentName.length > 0 &&
+    !duplicateDepartmentName &&
+    matchedCatalogDepartment == null;
 
   useEffect(() => {
     if (!open) return;
@@ -256,46 +318,6 @@ export function AddDepartmentPanel({
       cancelled = true;
     };
   }, [open, adminProfessionsId, matchedCatalogDepartment, getAuthToken]);
-
-  const doctors = useMemo<doctor_option[]>(() => {
-    return serviceProviders.map((sp) => ({
-      id: sp.id,
-      name: serviceProviderDisplayName(sp),
-    }));
-  }, [serviceProviders]);
-
-  const assignedDeptIdsForEffectiveProvider = useMemo(() => {
-    const providerId =
-      isLoggedInServiceProvider && currentUserId
-        ? currentUserId
-        : serviceProviders.length === 1
-          ? serviceProviders[0]!.id
-          : null;
-    if (!providerId) return new Set<number>();
-    return deptIdsByProvider.get(providerId) ?? new Set<number>();
-  }, [
-    isLoggedInServiceProvider,
-    currentUserId,
-    serviceProviders,
-    deptIdsByProvider,
-  ]);
-
-  const suggestionShowsAsSelected = useCallback(
-    (name: string) => {
-      if (isLoggedInServiceProvider) {
-        const dep = departments.find(
-          (d) => d.name.toLowerCase() === name.toLowerCase()
-        );
-        return (
-          dep != null && assignedDeptIdsForEffectiveProvider.has(dep.id)
-        );
-      }
-      return departments.some(
-        (d) => d.name.toLowerCase() === name.toLowerCase()
-      );
-    },
-    [isLoggedInServiceProvider, departments, assignedDeptIdsForEffectiveProvider]
-  );
 
   const selectedDoctors = doctors.filter((d) =>
     assignedDoctorIds.includes(d.id)
@@ -493,6 +515,11 @@ export function AddDepartmentPanel({
           (d) => d.name.toLowerCase() === name.toLowerCase()
         );
 
+        if (existing && departmentAlreadyAdded(name)) {
+          toast.error(DUPLICATE_DEPARTMENT_MESSAGE);
+          return null;
+        }
+
         if (existing) {
           deptId = existing.id;
           deptName = existing.name;
@@ -578,6 +605,7 @@ export function AddDepartmentPanel({
     },
     [
       departments,
+      departmentAlreadyAdded,
       isLoggedInServiceProvider,
       currentUserId,
       assignSelfToDepartment,
@@ -592,7 +620,10 @@ export function AddDepartmentPanel({
   );
 
   const handleSuggestionClick = async (name: string) => {
-    if (suggestionShowsAsSelected(name)) return;
+    if (departmentAlreadyAdded(name)) {
+      toast.error(DUPLICATE_DEPARTMENT_MESSAGE);
+      return;
+    }
     const created = await createDepartment(name);
     if (!created) return;
     toast.success(`"${created.name}" added successfully.`);
@@ -705,8 +736,29 @@ export function AddDepartmentPanel({
                               value={departmentName}
                               onChange={(e) => setDepartmentName(e.target.value)}
                               placeholder="e.g. Cardiology"
-                              className={panelFieldClass}
+                              aria-invalid={duplicateDepartmentName}
+                              className={classNames(
+                                "w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:bg-white disabled:cursor-not-allowed disabled:opacity-60",
+                                duplicateDepartmentName
+                                  ? "border-red-300 focus:border-red-400"
+                                  : "border-slate-200 focus:border-indigo-400"
+                              )}
                             />
+                            {duplicateDepartmentName && (
+                              <span
+                                className="mt-1.5 block text-xs font-medium text-red-600"
+                                role="alert"
+                              >
+                                {DUPLICATE_DEPARTMENT_MESSAGE}
+                              </span>
+                            )}
+                            {isCustomDepartment && (
+                              <span className="mt-1.5 block text-xs text-slate-500">
+                                {filteredSuggestions.length > 0
+                                  ? "This name is not a suggestion, so it will be added as a custom department."
+                                  : "No suggestion matches this name. It will be added as a custom department."}
+                              </span>
+                            )}
                           </label>
                         )}
 
@@ -719,39 +771,49 @@ export function AddDepartmentPanel({
                               <p className="mb-2 text-xs text-slate-500">
                                 {isLoggedInServiceProvider
                                   ? "Select a department to assign it to yourself."
-                                  : "Click a suggestion to fill the department name."}
+                                  : trimmedDepartmentName
+                                    ? "Suggestions are filtered to names that match what you typed."
+                                    : "Click a suggestion to fill the department name."}
                               </p>
-                              <div className="flex flex-wrap gap-2">
-                                {suggestions.map((item) => {
-                                  const selected =
-                                    suggestionShowsAsSelected(item);
-                                  return (
-                                    <button
-                                      key={item}
-                                      type="button"
-                                      onClick={() => {
-                                        if (selected) return;
-                                        if (isLoggedInServiceProvider) {
-                                          void handleSuggestionClick(item);
-                                          return;
-                                        }
-                                        setDepartmentName(item);
-                                      }}
-                                      disabled={busyAction || selected}
-                                      className={classNames(
-                                        "rounded-full px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
-                                        selected
-                                          ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                                          : departmentName === item
+                              {filteredSuggestions.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {filteredSuggestions.map((item) => {
+                                    const highlighted =
+                                      item.toLowerCase() ===
+                                      trimmedDepartmentName.toLowerCase();
+                                    return (
+                                      <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => {
+                                          if (isLoggedInServiceProvider) {
+                                            void handleSuggestionClick(item);
+                                            return;
+                                          }
+                                          setDepartmentName(item);
+                                        }}
+                                        disabled={busyAction}
+                                        className={classNames(
+                                          "rounded-full px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+                                          highlighted
                                             ? "border border-indigo-300 bg-indigo-50 text-indigo-700"
                                             : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                                      )}
-                                    >
-                                      {selected ? "✓" : "+"} {item}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                                        )}
+                                      >
+                                        + {item}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-500">
+                                  {isLoggedInServiceProvider
+                                    ? "All suggested departments are already assigned to you."
+                                    : trimmedDepartmentName
+                                      ? "No suggestions match this name."
+                                      : "All suggested departments are already added."}
+                                </p>
+                              )}
                             </div>
                           </div>
                         )}
@@ -974,9 +1036,15 @@ export function AddDepartmentPanel({
                               </div>
                             ) : (
                               <p className="mb-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-500">
-                                {matchedCatalogDepartment
-                                  ? "No service suggestions available for this department yet."
-                                  : "Pick a department from the quick suggestions to see matching service suggestions."}
+                                {duplicateDepartmentName
+                                  ? "This department is already added."
+                                  : matchedCatalogDepartment
+                                    ? "No service suggestions available for this department yet."
+                                    : isCustomDepartment
+                                      ? filteredSuggestions.length > 0
+                                        ? "Select a matching suggestion to load its services, or save this name as a custom department and add a custom service below."
+                                        : "Custom departments do not include catalog service suggestions. Add a custom service below."
+                                      : "Pick a department from the quick suggestions to see matching service suggestions."}
                               </p>
                             )}
 
