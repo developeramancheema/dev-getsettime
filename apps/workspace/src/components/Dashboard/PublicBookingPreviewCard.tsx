@@ -4,6 +4,7 @@ import { getWorkspaceSession } from '@/src/lib/auth_session';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import DashboardIcon from '@/src/components/Dashboard/DashboardIcon';
+import { WorkspaceUserAvatar } from '@/src/components/User/WorkspaceUserAvatar';
 import { useWorkspaceSettings } from '@/src/hooks/useWorkspaceSettings';
 import { build_service_provider_public_booking_url, build_workspace_public_booking_url } from '@/src/utils/public_booking_link';
 import { ROLE_SERVICE_PROVIDER } from '@/src/constants/roles';
@@ -28,11 +29,11 @@ export function PublicBookingPreviewCard() {
   const { user } = useAuth();
   const { open: open_create_booking } = useCreateBookingModal();
   const {
-    loading: loading_settings,
     workspaceSlug,
     serviceProviderLinkSlug,
     workspaceName,
     general,
+    workspaceLogoResolved,
   } = useWorkspaceSettings();
 
   const is_service_provider =
@@ -41,7 +42,11 @@ export function PublicBookingPreviewCard() {
 
   const workspace_title =
     workspaceName?.trim() || general.accountName?.trim() || 'Your workspace';
-  const initial = workspace_title.charAt(0).toUpperCase() || 'G';
+  const service_provider_name =
+    (user?.user_metadata?.full_name as string | undefined)?.trim() ||
+    (user?.user_metadata?.name as string | undefined)?.trim() ||
+    user?.email?.split('@')[0] ||
+    undefined;
 
   const booking_url = useMemo(() => {
     if (is_service_provider) {
@@ -136,9 +141,15 @@ export function PublicBookingPreviewCard() {
 
       <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/60 p-5 text-slate-900">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-lg font-bold text-white">
-            {initial}
-          </div>
+          <WorkspaceUserAvatar
+            userId={is_service_provider ? user?.id : undefined}
+            name={is_service_provider ? service_provider_name : workspace_title}
+            email={is_service_provider ? user?.email : undefined}
+            avatarUrl={is_service_provider ? undefined : workspaceLogoResolved || undefined}
+            size="lg"
+            shape="rounded"
+            className="h-11 w-11 bg-indigo-500 text-white shadow-sm"
+          />
           <div className="min-w-0">
             <h4 className="truncate text-base font-bold text-slate-900">
               {workspace_title}

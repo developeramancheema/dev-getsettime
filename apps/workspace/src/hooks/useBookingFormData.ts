@@ -36,6 +36,10 @@ import {
 } from '@/lib/booking_capacity';
 import { parse_event_type_recurrence } from '@/src/features/event-types/event_type_recurrence';
 import { useWorkspaceSettings } from '@/src/hooks/useWorkspaceSettings';
+import {
+  resolve_member_profile_highlights,
+  resolve_workspace_owner_profile_highlights,
+} from '@/src/utils/booking_host_profile';
 
 interface TeamMemberRow {
   id: string;
@@ -44,6 +48,8 @@ interface TeamMemberRow {
   education?: string | null;
   experience?: string | null;
   specialty?: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
   role?: string | null;
   additional_roles?: string[];
   departments?: number[];
@@ -104,6 +110,8 @@ export function useBookingFormData({
         education: m.education,
         experience: m.experience,
         specialty: m.specialty,
+        bio: m.bio ?? null,
+        avatar_url: m.avatar_url ?? null,
         role: m.role,
         additional_roles: m.additional_roles,
         departments: m.departments,
@@ -170,6 +178,7 @@ export function useBookingFormData({
         education: m.education ?? null,
         experience: m.experience ?? null,
         specialty: m.specialty ?? null,
+        avatar_url: m.avatar_url ?? null,
         departments: Array.isArray(m.departments) ? m.departments : [],
         is_workspace_owner: m.is_workspace_owner,
         additional_roles: m.additional_roles,
@@ -673,6 +682,18 @@ export function useBookingFormData({
     fetchScoped();
   }, [accessToken, selectedDepartment, effectiveProviderId]);
 
+  const workspaceHostProfileHighlights = useMemo(
+    () => resolve_workspace_owner_profile_highlights(workspaceMembers, workspaceOwnerUserId),
+    [workspaceMembers, workspaceOwnerUserId]
+  );
+
+  const providerHostProfileHighlights = useMemo(() => {
+    const providerId = fixedServiceProviderId?.trim();
+    if (!providerId) return null;
+    if (providerId === workspaceOwnerUserId) return null;
+    return resolve_member_profile_highlights(workspaceMembers, providerId);
+  }, [workspaceMembers, fixedServiceProviderId, workspaceOwnerUserId]);
+
   return {
     departments,
     setDepartments,
@@ -702,5 +723,7 @@ export function useBookingFormData({
     effectiveProviderId,
     providerMeetingOptions,
     providerNotifications,
+    workspaceHostProfileHighlights,
+    providerHostProfileHighlights,
   };
 }

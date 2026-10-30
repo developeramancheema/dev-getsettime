@@ -227,6 +227,9 @@ export async function GET(req: NextRequest) {
           typeof specialtyRaw === 'string' && specialtyRaw.trim() !== ''
             ? specialtyRaw.trim()
             : null;
+        const bioRaw = meta?.bio;
+        const bio =
+          typeof bioRaw === 'string' && bioRaw.trim() !== '' ? bioRaw.trim() : null;
         return {
           id: u.id,
           email: u.email,
@@ -234,6 +237,7 @@ export async function GET(req: NextRequest) {
           education,
           experience,
           specialty,
+          bio,
           role: u.user_metadata?.role || null,
           additional_roles,
           departments: deptIds,

@@ -31,6 +31,10 @@ import {
   flatten_embed_booking_row,
 } from '@/lib/booking_capacity';
 import { parse_event_type_recurrence } from '@/src/features/event-types/event_type_recurrence';
+import {
+  resolve_member_profile_highlights,
+  resolve_workspace_owner_profile_highlights,
+} from '@/src/utils/booking_host_profile';
 
 interface TeamMemberRow {
   id: string;
@@ -39,6 +43,8 @@ interface TeamMemberRow {
   education?: string | null;
   experience?: string | null;
   specialty?: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
   role?: string | null;
   additional_roles?: string[];
   departments?: number[];
@@ -115,6 +121,7 @@ export function useEmbedBookingFormData({
     accentColor?: string;
     timezone?: string;
     tagline?: string;
+    clinic_image_url?: string | null;
   } | null>(null);
   const [workspaceOwnerAdminNotice, setWorkspaceOwnerAdminNotice] = useState<string | null>(null);
 
@@ -138,6 +145,8 @@ export function useEmbedBookingFormData({
         education: m.education ?? null,
         experience: m.experience ?? null,
         specialty: m.specialty ?? null,
+        bio: m.bio ?? null,
+        avatar_url: m.avatar_url ?? null,
         departments: Array.isArray(m.departments) ? m.departments : [],
         is_workspace_owner: m.is_workspace_owner,
         additional_roles: m.additional_roles,
@@ -266,9 +275,7 @@ export function useEmbedBookingFormData({
           fetch(
             `/api/embed/departments?workspace_id=${workspace.id}${providerQuery}`
           ),
-          fetch(
-            `/api/embed/team-members?workspace_id=${workspace.id}${providerQuery}`
-          ),
+          fetch(`/api/embed/team-members?workspace_id=${workspace.id}`),
         ]);
         if (depRes.ok) {
           const depData = await depRes.json();
@@ -626,6 +633,18 @@ export function useEmbedBookingFormData({
     fetchScoped();
   }, [selectedDepartment, effectiveProviderId, workspace.id]);
 
+  const workspaceHostProfileHighlights = useMemo(
+    () => resolve_workspace_owner_profile_highlights(workspaceMembers, workspaceOwnerUserId),
+    [workspaceMembers, workspaceOwnerUserId]
+  );
+
+  const providerHostProfileHighlights = useMemo(() => {
+    const providerId = fixedServiceProviderId?.trim();
+    if (!providerId) return null;
+    if (providerId === workspaceOwnerUserId) return null;
+    return resolve_member_profile_highlights(workspaceMembers, providerId);
+  }, [workspaceMembers, fixedServiceProviderId, workspaceOwnerUserId]);
+
   return {
     departments,
     loadingDepartments,
@@ -651,5 +670,7 @@ export function useEmbedBookingFormData({
     workspaceOwnerAdminNotice: scopedAdminNotice,
     meetingOptions: meetingOptionsSettings,
     bookingStepOrder,
+    workspaceHostProfileHighlights,
+    providerHostProfileHighlights,
   };
 }
