@@ -1473,9 +1473,6 @@ export default function EventTypes() {
                             Duration
                           </th>
                           <th className="px-6 py-4 font-semibold">
-                            Capacity
-                          </th>
-                          <th className="px-6 py-4 font-semibold">
                             Team / Provider
                           </th>
                           <th className="px-6 py-4 font-semibold">
@@ -1551,9 +1548,6 @@ export default function EventTypes() {
                               </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Duration">
                                 {format_duration_short(item.duration_minutes)}
-                              </td>
-                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Capacity">
-                                {capacity}
                               </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
                                 <EventTypeAssignedProviders

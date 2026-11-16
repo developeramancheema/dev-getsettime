@@ -669,18 +669,26 @@ export async function ensureServiceProviderSettingsDefaults(
  * When isNewWorkspace is true the user is the original creator and gets
  * the immutable `is_workspace_owner` flag.
  */
+export type UpdateUserWorkspaceMetadataOptions = {
+  /** Backfill creator flags when workspace already existed (manual signup retry). */
+  applyCreatorFlags?: boolean;
+};
+
 export async function updateUserWorkspaceMetadata(
   userId: string,
   workspaceId: number,
   additionalMetadata: Record<string, any>,
   supabaseAdmin: SupabaseClient,
   isNewWorkspace = false,
-  existingMetadata?: Record<string, unknown>
+  existingMetadata?: Record<string, unknown>,
+  options?: UpdateUserWorkspaceMetadataOptions
 ): Promise<{ error: string | null; metadata?: Record<string, unknown> }> {
   try {
     const existingMeta =
       existingMetadata ??
       ((await supabaseAdmin.auth.admin.getUserById(userId)).data?.user?.user_metadata ?? {});
+
+    const applyCreator = isNewWorkspace || options?.applyCreatorFlags === true;
 
     const existingRole =
       typeof existingMeta.role === 'string' && existingMeta.role.trim() !== ''
@@ -690,7 +698,7 @@ export async function updateUserWorkspaceMetadata(
       typeof additionalMetadata.role === 'string' && additionalMetadata.role.trim() !== ''
         ? additionalMetadata.role
         : undefined;
-    const role = isNewWorkspace
+    const role = applyCreator
       ? 'workspace_admin'
       : (existingRole ?? additionalRole ?? 'workspace_admin');
 
@@ -699,7 +707,7 @@ export async function updateUserWorkspaceMetadata(
       ...additionalMetadata,
       workspace_id: workspaceId,
       role,
-      ...(isNewWorkspace
+      ...(applyCreator
         ? { is_workspace_owner: true, additional_roles: [ROLE_SERVICE_PROVIDER] }
         : {}),
     };

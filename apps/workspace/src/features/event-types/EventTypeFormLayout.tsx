@@ -3323,11 +3323,13 @@ export function EventTypeFormLayout({
             role="dialog"
             aria-modal="true"
             aria-label="Add service"
-            className={`fixed top-0 right-0 bottom-0 z-50 flex w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out will-change-transform md:w-[32rem] ${
+            className={`fixed top-0 right-0 bottom-0 z-50 flex h-full min-h-0 w-full flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out will-change-transform md:w-[32rem] ${
               service_panel_entered ? "translate-x-0" : "translate-x-full"
             }`}
           >
-            {add_service_panel}
+            <div className="flex min-h-0 flex-1 flex-col">
+              {add_service_panel}
+            </div>
           </div>
         </>
       ) : null}

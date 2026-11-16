@@ -186,7 +186,7 @@ export default function Topbar({ toggleSidebar, isSidebarOpen }: TopbarProps) {
             <DashboardIcon name="plus" size={17} className="text-white" />
             Create Booking
           </button>
-          <Link href="/billings" className="hidden sm:flex text-emerald-600 px-4 py-2 rounded-lg text-sm border bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200">
+          <Link href="/plans" className="hidden sm:flex text-emerald-600 px-4 py-2 rounded-lg text-sm border bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200">
             Current Plan: <span className="font-medium"> {currentBillingPlan}</span>
           </Link>
           <div className="relative">
