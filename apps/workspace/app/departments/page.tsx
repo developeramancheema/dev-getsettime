@@ -1267,7 +1267,25 @@ export default function DepartmentsPage() {
 
                           return (
                             <div key={dep.id} className="group">
-                              <div className="relative flex w-full items-start md:items-center justify-between rounded-xl border border-slate-200  px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-sm">
+                              <div
+                                role={showRowActions ? "button" : undefined}
+                                tabIndex={showRowActions ? 0 : undefined}
+                                onClick={() => {
+                                  if (!showRowActions) return;
+                                  openEditDepartment(dep);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (!showRowActions) return;
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    openEditDepartment(dep);
+                                  }
+                                }}
+                                className={classNames(
+                                  "relative flex w-full items-start md:items-center justify-between rounded-xl border border-slate-200 px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/50 hover:shadow-sm",
+                                  showRowActions && "cursor-pointer"
+                                )}
+                              >
                                 <div className="flex items-start flex-col sm:items-center gap-3 pr-4">
                                   <div className="flex gap-2">
                                     {/* Icon */}
@@ -1437,7 +1455,11 @@ export default function DepartmentsPage() {
 
                                 {/* ACTION */}
                                 {showRowActions && (
-                                  <div className="flex shrink-0 flex-col items-end justify-end gap-2">
+                                  <div
+                                    className="flex shrink-0 flex-col items-end justify-end gap-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                    onKeyDown={(e) => e.stopPropagation()}
+                                  >
                                     {/* STATUS */}
                                     <div className="">
                                       <span
@@ -1604,7 +1626,14 @@ export default function DepartmentsPage() {
                             return (
                               <tr
                                 key={dep.id}
-                                className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
+                                onClick={() => {
+                                  if (!showRowActions) return;
+                                  openEditDepartment(dep);
+                                }}
+                                className={classNames(
+                                  "transition hover:bg-slate-50 border border-slate-100 last:border-b-0 border-b border-slate-100",
+                                  showRowActions && "cursor-pointer"
+                                )}
                               >
                                 <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Department">
                                   <div className="flex max-[1301px]:justify-end gap-2.5">
@@ -1702,7 +1731,11 @@ export default function DepartmentsPage() {
                                 </td>
 
                                 {showRowActions && (
-                                  <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
+                                  <td
+                                    className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100"
+                                    data-label="Action"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
                                     <div className="flex items-center justify-end gap-2">
                                       <PortalActionsMenu
                                         open={rowMenuId === dep.id}

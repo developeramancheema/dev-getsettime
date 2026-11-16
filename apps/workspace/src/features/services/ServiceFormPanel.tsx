@@ -384,7 +384,6 @@ export function ServiceFormPanel({
         saved_service.id,
         assigned_ids
       );
-      if (is_edit && !assignments_synced) return;
 
       await on_saved({ service: saved_service, assignments_synced });
     } finally {
