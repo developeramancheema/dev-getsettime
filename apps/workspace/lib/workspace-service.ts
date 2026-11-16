@@ -510,6 +510,31 @@ export async function createServiceProviderEventType(
     return { data: { id: (existing as { id: number }).id }, error: null };
   }
 
+  // Event types support a single department; use the first linked assignment when present.
+  let departmentId: number | null = null;
+  const { data: deptLinks, error: deptLinksErr } = await supabase
+    .from('user_departments')
+    .select('department_id')
+    .eq('workspace_id', wid)
+    .eq('user_id', ownerId)
+    .order('department_id', { ascending: true })
+    .limit(1);
+
+  if (deptLinksErr) {
+    console.warn('createServiceProviderEventType department lookup:', deptLinksErr);
+  } else {
+    const firstDeptId = (deptLinks?.[0] as { department_id?: unknown } | undefined)?.department_id;
+    const parsed =
+      typeof firstDeptId === 'number'
+        ? firstDeptId
+        : typeof firstDeptId === 'string'
+          ? Number(firstDeptId)
+          : NaN;
+    if (Number.isFinite(parsed) && parsed > 0) {
+      departmentId = parsed;
+    }
+  }
+
   const slugBase = `${DEFAULT_EVENT_TYPE_SLUG}-${ownerId.replace(/-/g, '').slice(0, 8)}`;
   const slug = await resolveUniqueEventTypeSlugForWorkspace(supabase, wid, slugBase);
 
@@ -525,6 +550,7 @@ export async function createServiceProviderEventType(
       buffer_after: null,
       location_type: null,
       location_value: null,
+      department_id: departmentId,
       is_public: true,
       status: 'active',
       settings: null,
