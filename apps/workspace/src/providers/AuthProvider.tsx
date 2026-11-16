@@ -157,6 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname_ref = useRef(pathname)
   pathname_ref.current = pathname
   const idleDurations = useMemo(() => getWorkspaceIdleLogoutDurations(), [])
+  const isPublicBookingRoute = is_public_embed_booking_path(pathname)
+  const sessionGuardsEnabled = Boolean(user) && !loading && !isPublicBookingRoute
 
   const handleIdleLogout = useCallback(async () => {
     try {
@@ -164,17 +166,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error(err)
     }
+    if (is_public_embed_booking_path(pathname_ref.current)) return
     router.push('/login?reason=idle')
   }, [router])
 
   const { showWarning, secondsRemaining, staySignedIn } = useIdleLogout(
-    Boolean(user) && !loading,
+    sessionGuardsEnabled,
     idleDurations.idleMs,
     idleDurations.warningMs,
     handleIdleLogout
   )
 
-  useRemoteSessionInvalidation(Boolean(user) && !loading, pathname)
+  useRemoteSessionInvalidation(sessionGuardsEnabled, pathname)
 
   useEffect(() => {
     installWorkspaceApiUnauthorizedHandler()
@@ -401,11 +404,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, accessToken }}>
-      <IdleSessionWarningModal
-        open={showWarning}
-        secondsRemaining={secondsRemaining}
-        onStaySignedIn={staySignedIn}
-      />
+      {!isPublicBookingRoute && (
+        <IdleSessionWarningModal
+          open={showWarning}
+          secondsRemaining={secondsRemaining}
+          onStaySignedIn={staySignedIn}
+        />
+      )}
       {children}
     </AuthContext.Provider>
   )

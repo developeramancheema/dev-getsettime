@@ -36,6 +36,8 @@ export type AvailabilitySettings = {
 export type GeneralSettings = {
   accountName?: string | null;
   logoUrl?: string | null;
+  /** Public booking page header image (stored as `clinic_image_url` in configurations) */
+  clinic_image_url?: string | null;
   tagline?: string | null;
   primaryColor?: string | null;
   accentColor?: string | null;

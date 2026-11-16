@@ -1,5 +1,12 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { assignFreePlanToWorkspace } from '@app/db/subscription';
+import {
+  assignInitialPlanToWorkspace,
+  attachClaimCodeToWorkspace,
+  getClaimedCodeByCode,
+  isFreeClaimSignupMetadata,
+  parseClaimCodeFromMetadata,
+  type workspace_signup_type,
+} from '@app/db/subscription';
 import { getTimezoneForCountry } from '@app/location';
 import { sendNewWorkspaceSuperadminEmail } from '@/lib/send-new-workspace-superadmin-email';
 import { ROLE_SERVICE_PROVIDER } from '@/src/constants/roles';
@@ -328,12 +335,34 @@ export async function getOrCreateWorkspace(
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '');
 
+    let signupType: workspace_signup_type = 'normal';
+    let claimedCodeId: string | null = null;
+    const claimCode = parseClaimCodeFromMetadata(meta);
+
+    if (isFreeClaimSignupMetadata(meta) && claimCode) {
+      const claimRow = await getClaimedCodeByCode(supabaseAdmin, claimCode);
+      if (
+        !claimRow ||
+        claimRow.status !== 'consumed' ||
+        claimRow.user_id !== userId
+      ) {
+        return {
+          data: null,
+          error: 'Your claim is not valid.',
+        };
+      }
+      signupType = 'free_claimed';
+      claimedCodeId = claimRow.id;
+    }
+
     const { data: workspace, error: workspaceError } = await supabaseAdmin
       .from('workspaces')
       .insert({
         name: workspaceName,
         slug: workspaceSlug,
         user_id: userId,
+        signup_type: signupType,
+        claimed_code_id: claimedCodeId,
       })
       .select('id')
       .single();
@@ -359,7 +388,15 @@ export async function getOrCreateWorkspace(
     }
 
     try {
-      await assignFreePlanToWorkspace(supabaseAdmin, workspace.id);
+      if (signupType === 'free_claimed' && claimCode) {
+        await attachClaimCodeToWorkspace(
+          supabaseAdmin,
+          claimCode,
+          userId,
+          workspace.id
+        );
+      }
+      await assignInitialPlanToWorkspace(supabaseAdmin, workspace.id, signupType);
     } catch (subErr) {
       console.error('Subscription assignment error:', subErr);
       await supabaseAdmin.from('configurations').delete().eq('workspace_id', workspace.id);

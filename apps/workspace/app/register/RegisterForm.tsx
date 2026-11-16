@@ -3,7 +3,14 @@ import {
   getWorkspaceSession,
   validateWorkspaceUser,
 } from '@/src/lib/auth_session';
-import { useState, useEffect, useRef, useCallback, type ComponentType } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -34,8 +41,47 @@ import {
   ROLE_CUSTOMER,
 } from "@/src/constants/roles";
 import { build_service_provider_public_booking_url } from "@/src/utils/public_booking_link";
+import {
+  CLAIM_FREE_EXIT_COPY,
+  useClaimFreeRegister,
+} from "@/src/hooks/useClaimFreeRegister";
 
 type OnboardingRole = "workspace_admin" | "service_provider";
+
+function RegisterAuthShell({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-neutral-50 relative flex items-center justify-center">
+      <div className="absolute inset-0">
+        <div className="absolute bottom-0 right-0 w-100 h-100 bg-emerald-300/20 rounded-full blur-3xl animate-pulse [animation-delay:2s]" />
+        <div className="absolute top-0 left-0 w-100 h-100 bg-indigo-400/30 rounded-full blur-3xl animate-pulse [animation-delay:4s]" />
+      </div>
+      <div className="w-full max-w-md px-6 relative z-10">
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-block">
+            <Image
+              src="/getsettime-logo.svg"
+              alt="GetSetTime Logo"
+              width={200}
+              height={50}
+              className="mx-auto mb-4"
+            />
+          </Link>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">{title}</h1>
+          {subtitle ? <p className="text-gray-600">{subtitle}</p> : null}
+        </div>
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 /** Row from professions_list (onboarding catalog), not workspace professions.id */
 type Profession = {
@@ -195,7 +241,20 @@ export default function RegisterForm() {
   }, []);
   const [timesheetSaveFeedback, setTimesheetSaveFeedback] =
     useState<availability_timesheet_save_feedback>(null);
-  const [onboardingUser, setOnboardingUser] = useState<{ email?: string; google_calendar_sync?: boolean } | null>(null);
+  const [onboardingUser, setOnboardingUser] = useState<{
+    email?: string;
+    google_calendar_sync?: boolean;
+    onboarding_completed?: boolean;
+  } | null>(null);
+
+  const claimFree = useClaimFreeRegister({
+    exitGuardEnabled: onboardingUser?.onboarding_completed !== true,
+    email,
+    getAccessToken: async () => {
+      const { session } = await getWorkspaceSession({ bypassCache: true });
+      return session?.access_token ?? null;
+    },
+  });
 
   useEffect(() => {
     if (onboardingMode !== true || onboardingRole !== "service_provider") return;
@@ -526,7 +585,14 @@ export default function RegisterForm() {
         timeoutMessage
       );
       if (!res.ok) return null;
-      const body = (await res.json()) as { workspace_id?: number };
+      const body = (await res.json()) as {
+        workspace_id?: number;
+        skip_onboarding?: boolean;
+      };
+      if (body.skip_onboarding) {
+        router.replace("/");
+        return null;
+      }
       const id = body.workspace_id;
       return id != null && Number.isFinite(id) ? id : null;
     };
@@ -669,6 +735,7 @@ export default function RegisterForm() {
       setOnboardingUser({
         email: emailUser.email ?? undefined,
         google_calendar_sync: read_google_calendar_sync(meta),
+        onboarding_completed: meta.onboarding_completed === true,
       });
       if (isServiceProvider && userIdForResume) {
         await ensureServiceProviderBookingLink(authHeadersFast, userIdForResume);
@@ -862,6 +929,7 @@ export default function RegisterForm() {
     setOnboardingUser({
       email: emailUser.email ?? undefined,
       google_calendar_sync: read_google_calendar_sync(meta),
+      onboarding_completed: meta.onboarding_completed === true,
     });
     setCalendarConnecting(false);
   };
@@ -1127,6 +1195,9 @@ export default function RegisterForm() {
         body: JSON.stringify({
           enableCalendarSync: true,
           isSignup: true,
+          ...(claimFree.isClaimSignup && claimFree.claimCode
+            ? { claim_code: claimFree.claimCode }
+            : {}),
         }),
       });
 
@@ -1172,7 +1243,14 @@ export default function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name: fullName }),
+        body: JSON.stringify({
+          email,
+          password,
+          name: fullName,
+          ...(claimFree.isClaimSignup && claimFree.claimCode
+            ? { claim_code: claimFree.claimCode }
+            : {}),
+        }),
       });
       const json = await res.json().catch(() => ({}));
 
@@ -1758,6 +1836,79 @@ export default function RegisterForm() {
               onCancel={() => setStep3SaveChoiceOpen(false)}
             />
           )}
+
+          {claimFree.exitConfirmOpen && (
+            <ConfirmModal
+              {...CLAIM_FREE_EXIT_COPY}
+              variant="primary"
+              onConfirm={() => void claimFree.confirmExit()}
+              onCancel={() => claimFree.cancelClaimExit()}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (claimFree.claimCode && claimFree.gate === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (claimFree.gate === "invalid") {
+    return (
+      <RegisterAuthShell
+        title="Claim not valid"
+        subtitle="This free workspace offer link cannot be used."
+      >
+        <AlertMessage
+          type="error"
+          message={claimFree.gateMessage || "Your claim is not valid."}
+        />
+        <button
+          type="button"
+          onClick={() => claimFree.abandonClaimOffer()}
+          className="mt-6 block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+        >
+          Register without offer
+        </button>
+      </RegisterAuthShell>
+    );
+  }
+
+  if (claimFree.gate === "waitlist") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-6">
+        <div className="max-w-md w-full rounded-2xl bg-white p-8 shadow-xl border border-gray-100">
+          <h1 className="text-xl font-semibold text-gray-900">Free workspace offer is full</h1>
+          <p className="mt-2 text-gray-600">Join the waitlist and we will notify you when a spot opens.</p>
+          {claimFree.waitlistDone ? (
+            <p className="mt-4 text-green-700 font-medium">You are on the waitlist. Thank you!</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <input
+                type="email"
+                value={claimFree.waitlistEmail}
+                onChange={(e) => claimFree.setWaitlistEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+              />
+              {claimFree.gateMessage && (
+                <p className="text-sm text-red-600">{claimFree.gateMessage}</p>
+              )}
+              <button
+                type="button"
+                disabled={claimFree.waitlistSubmitting}
+                onClick={() => void claimFree.submitWaitlist()}
+                className="w-full rounded-lg bg-indigo-600 py-2 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {claimFree.waitlistSubmitting ? "Submitting…" : "Join waitlist"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1790,7 +1941,11 @@ export default function RegisterForm() {
             />
           </Link>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join GetSetTime to manage your bookings</p>
+          <p className="text-gray-600">
+            {claimFree.isClaimSignup
+              ? "Claim your free workspace — 250 bookings per month"
+              : "Join GetSetTime to manage your bookings"}
+          </p>
         </div>
 
         <form onSubmit={handleRegister} className="bg-white rounded-2xl shadow-xl p-8 space-y-5 border border-gray-100">
@@ -1958,12 +2113,30 @@ export default function RegisterForm() {
           <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
+              <Link
+                href="/login"
+                className="text-indigo-600 hover:text-indigo-800 font-medium"
+                onClick={(e) => {
+                  if (claimFree.isClaimSignup) {
+                    e.preventDefault();
+                    claimFree.requestClaimExit("/login");
+                  }
+                }}
+              >
                 Sign in
               </Link>
             </p>
           </div>
         </form>
+
+        {claimFree.exitConfirmOpen && (
+          <ConfirmModal
+            {...CLAIM_FREE_EXIT_COPY}
+            variant="primary"
+            onConfirm={() => void claimFree.confirmExit()}
+            onCancel={() => claimFree.cancelClaimExit()}
+          />
+        )}
       </div>
     </div>
   );

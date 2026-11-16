@@ -72,6 +72,8 @@ import {
 } from '@/src/utils/bookingStep3Perf';
 
 import { BookingPreviewSidebar } from './MultiStepBooking/BookingPreviewSidebar';
+import { read_clinic_image_url } from '@/src/utils/workspace_logo';
+import { format_workspace_public_address } from '@/src/utils/workspace_public_address';
 import { ProgressIndicator } from './MultiStepBooking/ProgressIndicator';
 import { Step1DepartmentProvider } from './MultiStepBooking/Step1DepartmentProvider';
 import { Step2ServiceSelection } from './MultiStepBooking/Step2ServiceSelection';
@@ -219,6 +221,8 @@ const MultiStepBookingForm = ({
     showProviderPicker,
     workspaceName,
     workspaceLogoUrl,
+    workspaceHostProfileHighlights,
+    providerHostProfileHighlights,
     effectiveProviderId,
     providerMeetingOptions,
     providerNotifications,
@@ -232,6 +236,11 @@ const MultiStepBookingForm = ({
     intakeForm,
     onAvailabilityChange,
   });
+
+  const workspaceAddress = useMemo(
+    () => format_workspace_public_address(general as Record<string, unknown> | undefined),
+    [general]
+  );
 
   const resolvedMeetingOptions = providerMeetingOptions ?? settings.meeting_options;
   const resolvedNotifications = providerNotifications ?? settings.notifications;
@@ -940,6 +949,12 @@ const MultiStepBookingForm = ({
             workspaceName={workspaceName}
             workspaceTagline={general?.tagline}
             workspaceLogoUrl={workspaceLogoUrl}
+            workspaceClinicImageUrl={read_clinic_image_url(
+              general as Record<string, unknown> | undefined
+            )}
+            workspaceHostProfileHighlights={workspaceHostProfileHighlights}
+            providerHostProfileHighlights={providerHostProfileHighlights}
+            workspaceAddress={workspaceAddress}
             workspacePrimaryColor={workspacePrimaryColor}
             workspaceAccentColor={workspaceAccentColor}
             loadingSettings={loadingSettings}

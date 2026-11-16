@@ -317,9 +317,9 @@ export function BookingFilters({
             type="search"
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
-            placeholder="Search client, provider, creator…"
+            placeholder="Search client, phone, email, provider"
             className={inputBase}
-            aria-label="Search bookings by client, provider, or creator"
+            aria-label="Search bookings by client, phone, email, provider"
             autoComplete="off"
           />
         </div>

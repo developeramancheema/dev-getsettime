@@ -130,6 +130,8 @@ export function parsePlanInput(body: Record<string, unknown>): plan_input {
     price: price as number,
     booking_limit: bookingLimit as number,
     booking_limit_period: bookingLimitPeriod ?? 'monthly',
+    user_limit:
+      body.user_limit !== undefined ? parseBookingLimit(body.user_limit) ?? undefined : undefined,
     workspace_limit:
       body.workspace_limit !== undefined ? parseNonNegativeInt(body.workspace_limit) ?? undefined : undefined,
     admin_limit:
@@ -199,6 +201,14 @@ export function parsePartialPlanInput(body: Record<string, unknown>): Partial<pl
       throw new Error('booking_limit_period must be monthly or lifetime');
     }
     patch.booking_limit_period = period;
+  }
+
+  if (body.user_limit !== undefined) {
+    const userLimit = parseBookingLimit(body.user_limit);
+    if (userLimit === null) {
+      throw new Error('user_limit must be -1 (unlimited) or a non-negative integer');
+    }
+    patch.user_limit = userLimit;
   }
 
   const intFields = ['workspace_limit', 'admin_limit', 'service_provider_limit'] as const;

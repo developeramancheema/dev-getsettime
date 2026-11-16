@@ -47,6 +47,7 @@ export interface ServiceProvider {
   education?: string | null;
   experience?: string | null;
   specialty?: string | null;
+  avatar_url?: string | null;
   admin_notice?: string | null;
   is_workspace_owner?: boolean;
   /** Matches auth metadata; used with userActsAsServiceProviderFromMetadata */

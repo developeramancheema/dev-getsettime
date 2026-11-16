@@ -1,18 +1,14 @@
 "use client";
-import { useMemo, useState, useEffect, useRef, useCallback, type FormEvent } from "react";
+import { useState } from "react";
 import { LuMonitor, LuUser, LuUsers } from "react-icons/lu";
 import { parse_event_type_format } from "@/src/features/event-types/event_type_format";
 import type { event_type_format, event_type_status } from "@/src/types/event_types";
-import { EventTypeActionsMenu } from "@/src/features/event-types/EventTypeActionsMenu";
-import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
-import {
-  capitalize_booking_display_label,
-  getServiceProviderName,
-} from "@/src/utils/booking";
+import { EventTypeAssignedProviders } from "@/src/features/event-types/EventTypeAssignedProviders";
 import { useServiceProviders } from "@/src/hooks/useBookingLookups";
 import ScreenGate from "@/src/components/ScreenGate";
+import type { event_type_assignment_fields } from "@/src/utils/bookingFormUtils";
 
-export type event_type_list_item = {
+export type event_type_list_item = event_type_assignment_fields & {
   id: number;
   title: string;
   slug: string;
@@ -20,7 +16,6 @@ export type event_type_list_item = {
   location_type: string | null;
   settings: unknown;
   status?: string | null;
-  owner_id?: string | null;
   event_type_format?: string | null;
 };
 
@@ -29,6 +24,8 @@ type EventTypeListMobileCardsProps = {
   format_duration_label: (minutes: number | null) => string;
   get_status: (status: unknown) => event_type_status;
   get_status_label: (status: event_type_status) => string;
+  owner_names_by_id?: Record<string, string>;
+  show_owner_labels?: boolean;
   on_row_click: (item: event_type_list_item) => void;
 };
 
@@ -69,23 +66,22 @@ export function EventTypeListMobileCards({
   format_duration_label,
   get_status,
   get_status_label,
+  owner_names_by_id,
+  show_owner_labels = false,
   on_row_click,
 }: EventTypeListMobileCardsProps) {
-  
-  const [open_menu_id, set_open_menu_id] = useState<number | null>(null);
+  const { data: serviceProviders } = useServiceProviders();
 
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-  const { data: serviceProviders, loading: service_providers_loading } =
-    useServiceProviders();
-  
-
-  const get_provider_label = (ownerId: string | null | undefined) => {
-    if (!ownerId) return "—";
-    const name = capitalize_booking_display_label(
-      getServiceProviderName(ownerId, serviceProviders)
-    );
-    return name === "N/A" ? "—" : name;
-  };
+  const provider_row = (item: event_type_list_item) => (
+    <EventTypeAssignedProviders
+      eventType={item}
+      serviceProviders={serviceProviders}
+      owner_names_by_id={owner_names_by_id}
+      show_owner_labels={show_owner_labels}
+      size="sm"
+      compact
+    />
+  );
 
   return (
     <>
@@ -95,7 +91,6 @@ export function EventTypeListMobileCards({
           const status_label = get_status_label(status);
           const format = parse_event_type_format(item.event_type_format);
           const duration_label = format_duration_label(item.duration_minutes);
-          const provider_label = get_provider_label(item.owner_id);
 
           return (
             <div
@@ -135,16 +130,7 @@ export function EventTypeListMobileCards({
                         {format_short_label(format)}
                       </span>
                     </div>
-                    <p>
-                      <span className="flex items-center gap-2 text-sm text-slate-700">
-                      <WorkspaceUserAvatar
-                        name={provider_label === "—" ? "Provider" : provider_label}
-                        userId={item.owner_id}
-                        size="sm"
-                      />
-                        <span className="truncate">{provider_label}</span>
-                      </span>
-                    </p>
+                    <p>{provider_row(item)}</p>
                   </div>
                   </ScreenGate>
 
@@ -169,16 +155,7 @@ export function EventTypeListMobileCards({
                       {format_short_label(format)}
                     </span>
                   </div>
-                  <p>
-                    <span className="flex items-center gap-2 text-sm text-slate-700">
-                    <WorkspaceUserAvatar
-                      name={provider_label === "—" ? "Provider" : provider_label}
-                      userId={item.owner_id}
-                      size="sm"
-                    />
-                      <span className="truncate">{provider_label}</span>
-                    </span>
-                  </p>
+                  <p>{provider_row(item)}</p>
                 </div>
               </ScreenGate> 
             </div>

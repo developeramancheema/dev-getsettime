@@ -1,3 +1,4 @@
+import { is_public_embed_booking_path } from "@/lib/public_embed_route";
 import { supabase } from "@/lib/supabaseClient";
 import { logAuthActivityFromSession } from "@/src/lib/auth_activity_log_client";
 import { getWorkspaceSession } from "@/src/lib/auth_session";
@@ -61,7 +62,8 @@ function isAuthPublicPath(pathname: string): boolean {
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/reset-password") ||
-    pathname.startsWith("/auth/callback")
+    pathname.startsWith("/auth/callback") ||
+    is_public_embed_booking_path(pathname)
   );
 }
 

@@ -443,15 +443,120 @@ export function ServiceFormPanel({
                     </div>
                   ) : (
                     <div className="relative">
-                      <select
-                        value={department_id ?? ""}
-                        onChange={(e) => {
-                          const next =
-                            e.target.value === ""
-                              ? null
-                              : parseInt(e.target.value, 10);
-                          set_department_id(
-                            next != null && Number.isFinite(next) ? next : null
+                      <textarea
+                        value={description}
+                        onChange={(e) =>
+                          set_description(
+                            e.target.value.slice(0, SERVICE_DESCRIPTION_MAX_LENGTH)
+                          )
+                        }
+                        placeholder="Brief summary of this service"
+                        rows={3}
+                        maxLength={SERVICE_DESCRIPTION_MAX_LENGTH}
+                        className={classNames(PANEL_FIELD_CLASS, "resize-none pb-7")}
+                      />
+                      <span className="pointer-events-none absolute bottom-2.5 right-3 text-xs text-slate-400">
+                        {description.length}/{SERVICE_DESCRIPTION_MAX_LENGTH}
+                      </span>
+                    </div>
+                  </label>
+                </PanelSection>
+
+                <PanelSection number={2} title="Scheduling">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <label className="block min-w-0">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Duration<span className="text-red-500">*</span>
+                      </span>
+                      <div className="relative">
+                        <select
+                          value={duration}
+                          onChange={(e) =>
+                            set_duration(parseInt(e.target.value, 10))
+                          }
+                          className={PANEL_SELECT_CLASS}
+                        >
+                          {SERVICE_DURATION_OPTIONS.map((minutes) => (
+                            <option key={minutes} value={minutes}>
+                              {minutes} mins
+                            </option>
+                          ))}
+                          {!SERVICE_DURATION_OPTIONS.includes(duration) && (
+                            <option value={duration}>{duration} mins</option>
+                          )}
+                        </select>
+                        <ChevronDown
+                          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                          aria-hidden
+                        />
+                      </div>
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Price ({currency})
+                      </span>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+                          {currency_sign}
+                        </span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={price}
+                          onChange={(e) => set_price(e.target.value)}
+                          placeholder="0.00"
+                          className={classNames(PANEL_FIELD_CLASS, "pl-8")}
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </PanelSection>
+
+                <PanelSection number={3} title="Consultant Assignment">
+                  <div>
+                    <p className="mb-2 text-sm text-slate-500">
+                      Department consultants (eligible pool from selected department)
+                    </p>
+                    {doctor_pool.length === 0 ? (
+                      <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
+                        {doctors_loading
+                          ? "Loading consultants…"
+                          : "No consultants assigned to this department yet."}
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {doctor_pool.map((doctor) => (
+                          <div
+                            key={doctor.id}
+                            className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-2.5 py-1.5"
+                          >
+                            <WorkspaceUserAvatar
+                              userId={doctor.id}
+                              name={doctor.name}
+                              avatarUrl={doctor.avatarUrl}
+                              size="sm"
+                            />
+                            <span className="text-sm font-medium text-indigo-900">
+                              {doctor.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-slate-700">
+                      Assign service to
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          set_assign_mode("all");
+                          set_assigned_doctor_ids(
+                            doctor_pool.map((doctor) => doctor.id)
                           );
                           set_assigned_doctor_ids([]);
                           set_assigned_menu_open(false);

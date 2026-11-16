@@ -37,6 +37,11 @@ import { EventTypeActionsMenu } from "@/src/features/event-types/EventTypeAction
 import { EventTypeEditForm } from "@/src/features/event-types/EventTypeEditForm";
 import { EventTypeFilters } from "@/src/features/event-types/EventTypeFilters";
 import { EventTypeListMobileCards } from "@/src/features/event-types/EventTypeListMobileCards";
+import { EventTypeAssignedProviders } from "@/src/features/event-types/EventTypeAssignedProviders";
+import {
+  eventTypeAssignedProviderIds,
+  isProviderAssignedToEventType,
+} from "@/src/utils/bookingFormUtils";
 import {
   check_event_type_slug_available,
   normalize_event_type_slug_input,
@@ -81,7 +86,6 @@ import {
 import { useWorkspaceSettings } from "@/src/hooks/useWorkspaceSettings";
 import { format_timezone_display_label } from "@/lib/date-timezone";
 import { parse_event_type_format } from "@/src/features/event-types/event_type_format";
-import { WorkspaceUserAvatar } from "@/src/components/User/WorkspaceUserAvatar";
 import type { event_type_format } from "@/src/types/event_types";
 import type { event_type_format_filter_value } from "@/src/features/event-types/EventTypeFilters";
 import ScreenGate from "@/src/components/ScreenGate";
@@ -113,6 +117,7 @@ interface EventType {
   created_at: string;
   bookings_count?: number | null;
   owner_id?: string | null;
+  service_provider_ids?: string[] | null;
 }
 
 const EVENT_TYPES_PAGE_SIZE = 10;
@@ -926,12 +931,13 @@ export default function EventTypes() {
   };
 
   const show_owner_labels = useMemo(() => {
-    const owner_ids = new Set(
-      items
-        .map((item) => item.owner_id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0)
-    );
-    return owner_ids.size > 1;
+    const assigned_ids = new Set<string>();
+    for (const item of items) {
+      for (const id of eventTypeAssignedProviderIds(item)) {
+        assigned_ids.add(id);
+      }
+    }
+    return assigned_ids.size > 1;
   }, [items]);
 
   useEffect(() => {
@@ -1118,7 +1124,8 @@ export default function EventTypes() {
         (visibility_filter === "public" && is_public) ||
         (visibility_filter === "private" && !is_public);
       const matches_provider =
-        provider_filter === "" || item.owner_id === provider_filter;
+        provider_filter === "" ||
+        isProviderAssignedToEventType(provider_filter, item);
       const item_status = parse_event_type_status(item.status);
       const matches_status =
         status_filter === "" || item_status === status_filter;
@@ -1260,17 +1267,6 @@ export default function EventTypes() {
     user,
     workspaceSlug,
   ]);
-
-  const get_provider_label = (ownerId: string | null | undefined) => {
-    if (!ownerId) return "—";
-    if (show_owner_labels && owner_names_by_id[ownerId]) {
-      return owner_names_by_id[ownerId];
-    }
-    const name = capitalize_booking_display_label(
-      getServiceProviderName(ownerId, serviceProviders)
-    );
-    return name === "N/A" ? "—" : name;
-  };
 
   return (
     <>
@@ -1441,6 +1437,8 @@ export default function EventTypes() {
                     format_duration_label={format_duration_short}
                     get_status={parse_event_type_status}
                     get_status_label={event_type_status_label}
+                    owner_names_by_id={owner_names_by_id}
+                    show_owner_labels={show_owner_labels}
                     on_row_click={(item) => {
                       if (isStaffUser) return;
                       handleEdit(item as EventType);
@@ -1497,7 +1495,6 @@ export default function EventTypes() {
                           const format = parse_event_type_format(item.event_type_format);
                           const short_description =
                             parse_short_description_from_settings(item.settings);
-                          const provider_label = get_provider_label(item.owner_id);
                           const capacity =
                             typeof item.capacity_per_slot === "number" &&
                             Number.isFinite(item.capacity_per_slot)
@@ -1559,14 +1556,15 @@ export default function EventTypes() {
                                 {capacity}
                               </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
-                                <div className="flex items-center max-[1301px]:justify-end gap-2 text-sm text-slate-700">
-                                  <WorkspaceUserAvatar
-                                    name={provider_label === "—" ? "Provider" : provider_label}
-                                    userId={item.owner_id}
-                                    size="sm"
-                                  />
-                                  <span className="truncate">{provider_label}</span>
-                                </div>
+                                <EventTypeAssignedProviders
+                                  eventType={item}
+                                  serviceProviders={serviceProviders}
+                                  owner_names_by_id={owner_names_by_id}
+                                  show_owner_labels={show_owner_labels}
+                                  size="sm"
+                                  compact
+                                  className="max-[1301px]:justify-end"
+                                />
                               </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Status">
                                 <span

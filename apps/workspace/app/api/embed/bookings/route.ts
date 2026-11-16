@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { after } from 'next/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@app/db';
-import { verifyOTP, isOTPVerified } from '@/lib/otp-service';
+import { consumeEmbedBookingVerificationToken } from '@/lib/embed-booking-otp';
 import { findOrCreateContact } from '@/lib/contact-linking';
 import { getLocalTimePartsInTimezone } from '@/lib/date-timezone';
 import {
@@ -186,8 +186,7 @@ export async function POST(req: NextRequest) {
       invitee_phone,
       start_at,
       end_at,
-      otp_code,
-      verified_identifier,
+      verification_token,
       intake_form,
       location,
       book_series,
@@ -251,35 +250,6 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Verify OTP if provided (optional for direct booking)
-    if (otp_code && verified_identifier) {
-      const identifier = verified_identifier.includes('@')
-        ? normalizeEmail(verified_identifier)
-        : normalizePhone(verified_identifier);
-
-      const alreadyVerified = await isOTPVerified(identifier);
-      let isValid = false;
-      if (alreadyVerified) {
-        isValid = await verifyOTP(identifier, otp_code, false);
-      } else {
-        isValid = await verifyOTP(identifier, otp_code, false);
-      }
-
-      if (!isValid) {
-        return NextResponse.json(
-          { error: 'Invalid or expired OTP code' },
-          { status: 400 }
-        );
-      }
-
-      const supabaseForOTP = createSupabaseServerClient();
-      await supabaseForOTP
-        .from('otp_verifications')
-        .delete()
-        .eq('identifier', identifier);
-    }
-
-    // Verify workspace exists
     const supabase = createSupabaseServerClient();
     const { data: workspace } = await supabase
       .from('workspaces')
@@ -292,6 +262,21 @@ export async function POST(req: NextRequest) {
         { error: 'Workspace not found' },
         { status: 404 }
       );
+    }
+
+    const inviteeEmailForVerify =
+      typeof invitee_email === 'string' && invitee_email.trim()
+        ? normalizeEmail(invitee_email)
+        : null;
+
+    const tokenCheck = await consumeEmbedBookingVerificationToken(
+      typeof verification_token === 'string' ? verification_token : '',
+      workspace_id,
+      invitee_phone_e164,
+      inviteeEmailForVerify
+    );
+    if (!tokenCheck.ok) {
+      return NextResponse.json({ error: tokenCheck.error }, { status: 400 });
     }
 
     const event_type_slug_from_body =
