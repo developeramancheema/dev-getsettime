@@ -25,6 +25,7 @@ import type {
   provider_notifications_entry,
 } from '@/src/utils/providerSettingsResolution';
 import { workspace_meeting_options_to_location_types } from '@/src/utils/meeting_options';
+import { parseMetadataBoolean } from '@/lib/auth_onboarding';
 
 export type onboarding_auth_context = {
   userId: string;
@@ -108,6 +109,35 @@ async function get_or_create_workspace_profession_id(
   return { id: inserted?.id != null ? (inserted.id as number) : null };
 }
 
+async function workspace_admin_has_onboarding_profile(
+  supabaseAdmin: SupabaseClient,
+  workspaceId: number
+): Promise<boolean> {
+  const { data: ws } = await supabaseAdmin
+    .from('workspaces')
+    .select('type, profession_id')
+    .eq('id', workspaceId)
+    .maybeSingle();
+  return !!(ws?.type || ws?.profession_id);
+}
+
+/** Legacy bootstrap marked onboarding complete without saving profession/type. */
+async function repair_stale_workspace_admin_onboarding_metadata(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  meta: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  const repaired: Record<string, unknown> = {
+    ...meta,
+    onboarding_completed: false,
+    onboarding_last_completed_step: 0,
+  };
+  await supabaseAdmin.auth.admin.updateUserById(userId, {
+    user_metadata: repaired,
+  });
+  return repaired;
+}
+
 export async function resolve_onboarding_auth_context(
   req: NextRequest
 ): Promise<onboarding_auth_context | { error: string; status: number }> {
@@ -133,19 +163,34 @@ export async function resolve_onboarding_auth_context(
   const { data: authRow, error: adminErr } = await supabaseAdmin.auth.admin.getUserById(jwtUser.id);
   if (adminErr || !authRow?.user) return { error: 'Unauthorized', status: 401 };
 
-  const meta = (authRow.user.user_metadata ?? {}) as Record<string, unknown>;
+  let meta = (authRow.user.user_metadata ?? {}) as Record<string, unknown>;
   const role = typeof meta.role === 'string' ? meta.role : '';
   if (role !== ROLE_WORKSPACE_ADMIN && role !== ROLE_SERVICE_PROVIDER) {
     return { error: 'Forbidden', status: 403 };
   }
 
-  if (meta.onboarding_completed === true) {
-    return { error: 'Onboarding already completed', status: 409 };
-  }
-
   const workspaceId = parse_workspace_id(meta.workspace_id);
   if (workspaceId == null) {
     return { error: 'Workspace ID not found', status: 400 };
+  }
+
+  if (parseMetadataBoolean(meta.onboarding_completed) === true) {
+    if (role === ROLE_WORKSPACE_ADMIN) {
+      const hasProfile = await workspace_admin_has_onboarding_profile(
+        supabaseAdmin,
+        workspaceId
+      );
+      if (hasProfile) {
+        return { error: 'Onboarding already completed', status: 409 };
+      }
+      meta = await repair_stale_workspace_admin_onboarding_metadata(
+        supabaseAdmin,
+        jwtUser.id,
+        meta
+      );
+    } else {
+      return { error: 'Onboarding already completed', status: 409 };
+    }
   }
 
   return { userId: jwtUser.id, role, workspaceId, meta, token };
@@ -241,7 +286,7 @@ async function persist_departments_for_user(
   supabaseAdmin: SupabaseClient,
   ctx: onboarding_auth_context,
   names: string[]
-): Promise<{ error: string | null }> {
+): Promise<{ error: string | null; departmentIds: number[] }> {
   const uniqueNames: string[] = [];
   const seen = new Set<string>();
   for (const n of names.map((x) => x.trim()).filter(Boolean)) {
@@ -252,7 +297,7 @@ async function persist_departments_for_user(
   }
 
   if (uniqueNames.length === 0) {
-    return { error: 'At least one department is required' };
+    return { error: 'At least one department is required', departmentIds: [] };
   }
 
   const { data: existingRows, error: existingErr } = await supabaseAdmin
@@ -260,27 +305,63 @@ async function persist_departments_for_user(
     .select('id, name, flag')
     .eq('workspace_id', ctx.workspaceId);
 
-  if (existingErr) return { error: existingErr.message };
+  if (existingErr) return { error: existingErr.message, departmentIds: [] };
 
   const existing = (existingRows ?? []) as { id: number; name: string; flag: boolean }[];
   const resolved: resolved_department[] = [];
 
   for (const deptName of uniqueNames) {
     const row = await resolve_department_by_name(supabaseAdmin, ctx.workspaceId, deptName, existing);
-    if (!row) return { error: `Failed to create department "${deptName}"` };
+    if (!row) return { error: `Failed to create department "${deptName}"`, departmentIds: [] };
     resolved.push(row);
     if (!existing.some((d) => d.id === row.id)) {
       existing.push({ id: row.id, name: row.name, flag: true });
     }
   }
 
+  const departmentIds = resolved.map((r) => r.id);
   const linkErr = await link_user_departments(
     supabaseAdmin,
     ctx.workspaceId,
     ctx.userId,
-    resolved.map((r) => r.id)
+    departmentIds
   );
-  return { error: linkErr.error };
+  return { error: linkErr.error, departmentIds: linkErr.error ? [] : departmentIds };
+}
+
+/**
+ * Workspace-admin default event type is created at bootstrap (before departments exist).
+ * Assign the first onboarding department once step 1 has persisted departments.
+ */
+async function assign_department_to_admin_default_event_type(
+  supabaseAdmin: SupabaseClient,
+  workspaceId: number,
+  departmentId: number
+): Promise<{ error: string | null }> {
+  if (!Number.isFinite(departmentId) || departmentId <= 0) {
+    return { error: null };
+  }
+
+  const defaultEventId = await resolveDefaultEventTypeId(supabaseAdmin, workspaceId);
+  if (defaultEventId == null) {
+    console.warn(
+      'assign_department_to_admin_default_event_type: no default event type for workspace',
+      workspaceId
+    );
+    return { error: null };
+  }
+
+  const { error } = await supabaseAdmin
+    .from('event_types')
+    .update({ department_id: departmentId })
+    .eq('id', defaultEventId)
+    .eq('workspace_id', workspaceId);
+
+  if (error) {
+    console.error('assign_department_to_admin_default_event_type:', error);
+    return { error: error.message };
+  }
+  return { error: null };
 }
 
 async function persist_admin_profession(
@@ -453,12 +534,22 @@ export async function apply_onboarding_step1(
     if (profErr.error) return profErr;
   }
 
-  const deptErr = await persist_departments_for_user(
+  const deptResult = await persist_departments_for_user(
     supabaseAdmin,
     ctx,
     body.department_names
   );
-  if (deptErr.error) return deptErr;
+  if (deptResult.error) return { error: deptResult.error };
+
+  // Admin default event type already exists from workspace bootstrap; attach first department now.
+  if (ctx.role === ROLE_WORKSPACE_ADMIN && deptResult.departmentIds.length > 0) {
+    const assignErr = await assign_department_to_admin_default_event_type(
+      supabaseAdmin,
+      ctx.workspaceId,
+      deptResult.departmentIds[0]!
+    );
+    if (assignErr.error) return assignErr;
+  }
 
   const extra: Record<string, unknown> = {};
   if (ctx.role === ROLE_SERVICE_PROVIDER) {

@@ -1473,9 +1473,6 @@ export default function EventTypes() {
                             Duration
                           </th>
                           <th className="px-6 py-4 font-semibold">
-                            Capacity
-                          </th>
-                          <th className="px-6 py-4 font-semibold">
                             Team / Provider
                           </th>
                           <th className="px-6 py-4 font-semibold">
@@ -1506,9 +1503,20 @@ export default function EventTypes() {
                           return (
                             <tr
                               key={item.id}
-                              className="cursor-pointer transition hover:bg-slate-50 border border-slate-100 last:border-b-0  border-b border-slate-100"
+                              onClick={() => {
+                                if (isStaffUser) return;
+                                handleEdit(item);
+                              }}
+                              className={cn(
+                                "transition hover:bg-slate-50 border border-slate-100 last:border-b-0 border-b border-slate-100",
+                                !isStaffUser && "cursor-pointer"
+                              )}
                             >
-                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Select">
+                              <td
+                                className="text-sm px-6 py-5 align-middle border-b border-slate-100"
+                                data-label="Select"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <input
                                   type="checkbox"
                                   checked={selected}
@@ -1552,9 +1560,6 @@ export default function EventTypes() {
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Duration">
                                 {format_duration_short(item.duration_minutes)}
                               </td>
-                              <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Capacity">
-                                {capacity}
-                              </td>
                               <td className="text-sm px-6 py-5 align-middle border-b border-slate-100" data-label="Team / Provider">
                                 <EventTypeAssignedProviders
                                   eventType={item}
@@ -1579,7 +1584,11 @@ export default function EventTypes() {
                                 </span>
                               </td>
                               {!isStaffUser ? (
-                                <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100" data-label="Action">
+                                <td
+                                  className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium align-middle border-b border-slate-100"
+                                  data-label="Action"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <div className="flex items-center justify-end">
                                     <EventTypeActionsMenu
                                       open={open_menu_id === item.id}
