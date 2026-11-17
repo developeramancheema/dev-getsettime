@@ -17,6 +17,7 @@ const PATH_TO_MENU: Record<string, string> = {
   "/services": "services",
   "/plans": "plans",
   "/subscribers": "subscribers",
+  "/form-submissions": "form-submissions",
   "/bookings": "bookings",
   "/settings": "settings",
 };
@@ -162,6 +163,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <Link href="/subscribers" className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-[14px] font-medium transition-all ${ activeMenu === "subscribers" ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-700 hover:bg-gray-50" }`} onClick={handleNavClick}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
             Subscribers
+          </Link>
+
+          <Link href="/form-submissions" className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-[14px] font-medium transition-all ${ activeMenu === "form-submissions" ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-700 hover:bg-gray-50" }`} onClick={handleNavClick}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
+            Form submissions
           </Link>        
 
           <Link href="/integration-requests" className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-[14px] font-medium transition-all ${ activeMenu === "integration-requests" ? "bg-indigo-50 text-indigo-700 shadow-sm" : "text-gray-700 hover:bg-gray-50" }`} onClick={handleNavClick}>
