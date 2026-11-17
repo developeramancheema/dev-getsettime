@@ -65,3 +65,6 @@ export * from './user-avatar';
 // Subscription / plan entitlements
 export * from './subscription';
 
+// Public marketing signups
+export * from './public_subscribers';
+

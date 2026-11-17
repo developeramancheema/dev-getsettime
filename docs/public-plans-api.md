@@ -80,6 +80,10 @@ OPTIONS http://localhost:3001/api/public/plans
 Origin: http://localhost:3003
 ```
 
+## Related
+
+Email-only signups from the same allowlist: [public-subscribers-api.md](./public-subscribers-api.md) (`POST /api/public/subscribers`).
+
 ## Superadmin fields
 
 Edit plans in the superadmin **Plans** UI (or `/api/plans`):
