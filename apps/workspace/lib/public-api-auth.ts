@@ -17,31 +17,41 @@ export function guardPublicMarketingApi(req: Request): NextResponse | null {
   if (getPublicMarketingApiAccess(req).allowed) return null;
 
   const bearer = verifyClaimFreeMintBearer(req);
-  if (bearer.reason === 'env_not_configured') {
+  if (!bearer.ok) {
+    if (bearer.reason === 'env_not_configured') {
+      const body: Record<string, unknown> = {
+        error: 'Server configuration error',
+        reason: 'env_not_configured',
+      };
+      if (process.env.NODE_ENV === 'development') {
+        body.hint = 'Set CLAIM_FREE_MINT_BEARER_TOKEN in apps/workspace/.env.local and restart dev.';
+      }
+      return jsonWithPublicPlansCors(req, body, { status: 500 });
+    }
+
+    if (bearer.reason === 'invalid_bearer') {
+      return jsonWithPublicPlansCors(
+        req,
+        { error: 'Unauthorized', reason: 'invalid_bearer' },
+        { status: 401 }
+      );
+    }
+
+    const reason = getPublicPlansForbiddenReason(req);
     const body: Record<string, unknown> = {
-      error: 'Server configuration error',
-      reason: 'env_not_configured',
+      error: 'Forbidden',
+      reason,
+      bearer: bearer.reason,
     };
     if (process.env.NODE_ENV === 'development') {
-      body.hint = 'Set CLAIM_FREE_MINT_BEARER_TOKEN in apps/workspace/.env.local and restart dev.';
+      body.hint =
+        'Call from an allowlisted site in the browser, or send Authorization: Bearer <CLAIM_FREE_MINT_BEARER_TOKEN> (landing server only).';
     }
-    return jsonWithPublicPlansCors(req, body, { status: 500 });
-  }
-
-  if (bearer.reason === 'invalid_bearer') {
-    return jsonWithPublicPlansCors(
-      req,
-      { error: 'Unauthorized', reason: 'invalid_bearer' },
-      { status: 401 }
-    );
+    return jsonWithPublicPlansCors(req, body, { status: 403 });
   }
 
   const reason = getPublicPlansForbiddenReason(req);
-  const body: Record<string, unknown> = {
-    error: 'Forbidden',
-    reason,
-    bearer: bearer.reason,
-  };
+  const body: Record<string, unknown> = { error: 'Forbidden', reason };
   if (process.env.NODE_ENV === 'development') {
     body.hint =
       'Call from an allowlisted site in the browser, or send Authorization: Bearer <CLAIM_FREE_MINT_BEARER_TOKEN> (landing server only).';
