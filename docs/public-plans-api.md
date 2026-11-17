@@ -44,14 +44,21 @@ Origin: https://www.example.com
       "billing_interval": "month",
       "metadata": null,
       "display_order": 0,
-      "created_at": "...",
-      "updated_at": "..."
+      "content": {
+        "context": "upgrade_modal",
+        "subtitle": null,
+        "features": ["250 bookings"],
+        "cta_label": "Get started",
+        "cta_variant": "primary",
+        "badge_label": null,
+        "is_highlighted": false
+      }
     }
   ]
 }
 ```
 
-Each plan object includes `plans` columns **except** `id`, `user_limit`, `workspace_limit`, and `admin_limit`. Limit fields that are stored as `-1` (unlimited) are returned as the string `"unlimited"` (e.g. `booking_limit`). Only **active** plans are returned, ordered by `display_order` then `price`. The internal `free` plan (`slug: "free"`) is **excluded** from this catalog.
+Same shape as superadmin `GET /api/plans` (plan row + nested `content` for `upgrade_modal`), but only **active** plans, without `id`, `user_limit`, `workspace_limit`, or `admin_limit` on the plan, and without `id`, `plan_id`, `created_at`, `updated_at`, or `display_order` on `content` (and without `id`, `created_at`, or `updated_at` on the plan). Limit fields stored as `-1` are returned as `"unlimited"`. The `free` plan (`slug: "free"`) is **excluded**.
 
 Annual price (client-side): `price * 12 * (1 - annual_discount_percent / 100)`.
 
