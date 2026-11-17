@@ -5,13 +5,8 @@ import {
   listActivePlansWithContent,
   UNLIMITED_BOOKING_LIMIT,
 } from '@app/db/subscription';
-import {
-  getPublicPlansForbiddenReason,
-  isOriginAllowedForPublicPlans,
-  jsonWithPublicPlansCors,
-  resolveRequestOrigin,
-  withPublicPlansCors,
-} from '@/lib/public-plans-http';
+import { jsonWithPublicPlansCors, withPublicPlansCors } from '@/lib/public-plans-http';
+import { guardPublicMarketingApi } from '@/lib/public-api-auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 type public_plan_limit = number | 'unlimited';
@@ -84,17 +79,8 @@ export async function OPTIONS(req: Request) {
 
 /** Read-only plan catalog for allowlisted external pricing pages (CORS). */
 export async function GET(req: Request) {
-  const origin = resolveRequestOrigin(req);
-  if (!isOriginAllowedForPublicPlans(origin)) {
-    return jsonWithPublicPlansCors(
-      req,
-      {
-        error: 'Forbidden',
-        reason: getPublicPlansForbiddenReason(req),
-      },
-      { status: 403 }
-    );
-  }
+  const denied = guardPublicMarketingApi(req);
+  if (denied) return denied;
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {

@@ -7,12 +7,11 @@ import {
   sanitizeSubscriberSource,
 } from '@app/db/public_subscribers';
 import {
-  getPublicPlansForbiddenReason,
-  isOriginAllowedForPublicPlans,
   jsonWithPublicPlansCors,
-  resolveRequestOrigin,
+  resolvePublicApiCallerOrigin,
   withPublicPlansCors,
 } from '@/lib/public-plans-http';
+import { guardPublicMarketingApi } from '@/lib/public-api-auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const SUCCESS_MESSAGE = 'Email subscribed successfully';
@@ -32,17 +31,19 @@ export async function OPTIONS(req: Request) {
 
 /** Email-only signup from allowlisted external sites (same CORS list as public plans). */
 export async function POST(req: Request) {
-  const origin = resolveRequestOrigin(req);
-  if (!isOriginAllowedForPublicPlans(origin)) {
-    const reason = getPublicPlansForbiddenReason(req);
+  const denied = guardPublicMarketingApi(req);
+  if (denied) {
+    const code = denied.status;
     const message =
-      reason === 'origin_not_allowed'
-        ? 'This origin is not allowed to subscribe.'
-        : reason === 'missing_origin'
-          ? 'Origin header is required.'
-          : 'Subscriber API is not configured.';
-    return subscriberJson(req, false, message, { status: 403 });
+      code === 401
+        ? 'Unauthorized.'
+        : code === 500
+          ? 'Server configuration error.'
+          : 'Access denied.';
+    return subscriberJson(req, false, message, { status: code });
   }
+
+  const callerOrigin = resolvePublicApiCallerOrigin(req);
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
 
   const source =
     sanitizeSubscriberSource(
-      typeof body.source === 'string' ? body.source : (origin ?? null)
+      typeof body.source === 'string' ? body.source : (callerOrigin ?? null)
     ) ?? undefined;
 
   try {

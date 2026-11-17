@@ -5,19 +5,38 @@
 | Variable | Description |
 |----------|-------------|
 | `PUBLIC_PLANS_ALLOWED_ORIGINS` | Comma-separated origins allowed to call the API via browser CORS (e.g. `https://www.getsettime.com,https://getsettime.com`) |
-| `PUBLIC_PLANS_ALLOW_REQUEST_HOST` | Set to `true` to accept requests when `Origin` is missing but Host matches the allowlist (default: enabled in development only) |
+| `PUBLIC_PLANS_ALLOW_REQUEST_HOST` | Set to `true` only for deliberate same-host API testing (Host must be in the allowlist). **Default: off** — avoids curl/Postman hitting the API port without Bearer |
 | `SUPABASE_SERVICE_ROLE_KEY` / `SUPABASE_URL` | Required for server-side reads (`getSupabaseAdmin`) |
+| `CLAIM_FREE_MINT_BEARER_TOKEN` | Same secret as claim-free mint; server-side callers send `Authorization: Bearer …` (never expose in browser JS) |
 
 Set env in **`apps/workspace/.env.local`**, then **restart** the workspace dev server. Origins are compared **without trailing slashes**.
 
 ## Endpoint
 
-Read-only. No authentication required; access is limited by **Origin** allowlist.
+Read-only. No authentication required; access is limited by an allowlist.
+
+### How the caller is verified
+
+The API **does not** treat a bare `Origin` header as proof of where the request came from (Postman/curl can forge `Origin`).
+
+1. **`Referer`** — origin taken from the referer URL when present.
+2. **`Origin` + `Sec-Fetch-Site`** — only when the browser sends Fetch Metadata (typical `fetch` from a real page).
+3. **`PUBLIC_PLANS_ALLOW_REQUEST_HOST=true`** — request **Host** may match the allowlist (advanced local testing only).
+
+**Do not** list the workspace API origin (e.g. `http://localhost:3001`) in `PUBLIC_PLANS_ALLOWED_ORIGINS` unless you intentionally allow direct server-to-self calls. List the **marketing site** origin (e.g. `http://localhost:3000`).
+
+Access is allowed when **either**:
+
+1. **`Authorization: Bearer &lt;CLAIM_FREE_MINT_BEARER_TOKEN&gt;`** (landing **server** / Postman backend tests — same token as claim-free mint), or  
+2. **Browser** from an allowlisted origin (Referer, or `Origin` with `Sec-Fetch-Site`).
+
+New routes under `/api/public/*` are gated in workspace **proxy.ts** (except `/api/public/claim-free/*`, which keeps its own rules).
 
 ```http
 GET {APP_URL}/api/public/plans
-Origin: https://www.example.com
 ```
+
+(Browsers send `Origin` / `Referer` automatically; do not rely on manually setting `Origin` in API clients.)
 
 **200**
 
@@ -62,7 +81,7 @@ Same shape as superadmin `GET /api/plans` (plan row + nested `content` for `upgr
 
 Annual price (client-side): `price * 12 * (1 - annual_discount_percent / 100)`.
 
-**403** — `Origin` missing (production), env empty, or origin not in `PUBLIC_PLANS_ALLOWED_ORIGINS`.
+**403** — env empty, caller not allowlisted, or only a forged `Origin` header without browser Fetch Metadata / Referer (`reason: origin_header_spoofed`).
 
 **500** — missing service role configuration or database error.
 

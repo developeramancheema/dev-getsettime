@@ -1,6 +1,6 @@
 # Public subscribers API (email signups)
 
-Uses the same allowlist as the public plans API: `PUBLIC_PLANS_ALLOWED_ORIGINS` in the workspace app.
+Uses the same protection as public plans: `PUBLIC_PLANS_ALLOWED_ORIGINS` **or** `Authorization: Bearer <CLAIM_FREE_MINT_BEARER_TOKEN>` (landing server only). `proxy.ts` enforces this for all `/api/public/*` routes except claim-free.
 
 ## Endpoint
 
