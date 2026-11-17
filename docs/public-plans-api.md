@@ -101,7 +101,9 @@ Origin: http://localhost:3003
 
 ## Related
 
-Email-only signups from the same allowlist: [public-subscribers-api.md](./public-subscribers-api.md) (`POST /api/public/subscribers`).
+- [public-subscribers-api.md](./public-subscribers-api.md) — `POST /api/public/subscribers`
+- [public-professions-api.md](./public-professions-api.md) — `GET /api/public/professions`
+- [public-submit-forms-api.md](./public-submit-forms-api.md) — `POST /api/public/submit-forms`
 
 ## Superadmin fields
 
