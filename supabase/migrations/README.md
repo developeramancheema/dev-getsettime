@@ -1,62 +1,74 @@
 # Supabase Migrations
 
-This folder contains SQL migration files for the database schema.
+SQL migrations for the GetSetTime schema. Filenames follow the Supabase CLI format:
 
-## Running Migrations
+`YYYYMMDDHHMMSS_description.sql`
 
-### Option 1: Using Supabase CLI (Recommended)
+Source of truth for the live shape: `docs/DB Backups/Nov 2026/full-db-schema.sql`.
 
-If you have the Supabase CLI installed:
+## Missing-table baselines (added from full-db-schema)
+
+These tables existed in the live DB but had no CREATE migration before:
+
+| Migration | Table(s) |
+|---|---|
+| `…_create_workspaces_table.sql` | `workspaces` |
+| `…_create_configurations_table.sql` | `configurations` |
+| `…_create_memberships_table.sql` | `memberships` |
+| `…_create_users_profile_table.sql` | `users_profile` |
+| `…_create_payments_table.sql` | `payments` |
+| `…_create_subscriptions_table.sql` | `subscriptions` |
+| `…_create_workflows_table.sql` | `workflows` |
+| `…_create_integrations_table.sql` | `integrations` |
+| `…_create_audit_logs_table.sql` | `audit_logs` |
+| `…_create_availability_table.sql` | `availability` |
+| `…_create_availability_overrides_table.sql` | `availability_overrides` |
+| `…_create_event_types_table.sql` | `event_types` |
+| `…_create_bookings_table.sql` | `bookings` |
+| `…_create_booking_invitations_table.sql` | `booking_invitations` |
+| `…_create_reminders_table.sql` | `reminders` |
+
+Base CREATEs include only original columns. Later `add_*` / `update_*` migrations remain idempotent (`IF NOT EXISTS`) and apply the rest.
+
+Circular FKs (`workspaces.profession_id`, `workspaces.claimed_code_id`) are intentionally deferred to later migrations.
+
+## Running with Yarn / Supabase CLI
 
 ```bash
-# Link your project
-supabase link --project-ref your-project-ref
-
-# Run all pending migrations
-supabase db push
+# from repo root (after: yarn add -D supabase && npx supabase init)
+yarn supabase start
+yarn supabase db reset          # apply all migrations locally
+yarn supabase db push           # push to a linked remote project
+yarn supabase migration new <name>
 ```
 
-### Option 2: Using Supabase Dashboard
+Suggested root `package.json` scripts:
 
-1. Go to your Supabase project dashboard
-2. Navigate to **SQL Editor**
-3. Open the migration file you want to run (e.g., `create_invites_table.sql`)
-4. Copy the entire SQL content
-5. Paste it into the SQL Editor
-6. Click **Run** to execute the migration
-
-### Option 3: Using psql Command Line
-
-If you have direct database access:
-
-```bash
-psql -h your-db-host -U postgres -d postgres -f supabase/migrations/create_invites_table.sql
+```json
+{
+  "db:start": "supabase start",
+  "db:stop": "supabase stop",
+  "db:reset": "supabase db reset",
+  "db:push": "supabase db push",
+  "db:link": "supabase link --project-ref"
+}
 ```
 
-## Migrations in this folder
+## Important: rename vs existing remotes
 
-1. `create_departments_table.sql` - Creates the departments table
-2. `create_services_table.sql` - Creates the services table
-3. `create_otp_verifications_table.sql` - Creates the OTP verifications table
-4. `add_verified_fields_to_otp.sql` - Adds verified fields to OTP table
-5. `create_invites_table.sql` - **NEW** - Creates the invites table for team member invitations
+If a remote project already recorded the **old** descriptive filenames in `supabase_migrations.schema_migrations`, renaming files will desync history. Prefer:
 
-## After Running the Invites Migration
+1. **Local / new environments:** `supabase db reset`
+2. **Existing remotes:** repair history (`supabase migration repair`) or apply only the new CREATE files manually once, without replaying renamed history
 
-The `invites` table will be created with the following structure:
-- `id` - Primary key
-- `token` - Unique invite token
-- `email` - Email of the invited user
-- `role` - Role assigned to the invited user
-- `departments` - Array of department IDs (for service providers)
-- `workspace_id` - ID of the workspace
-- `invited_by` - UUID of the user who sent the invite
-- `invited_at` - Timestamp when invite was created
-- `expires_at` - Timestamp when invite expires
-- `used` - Boolean flag indicating if invite was used
-- `used_at` - Timestamp when invite was used
-- `created_at` - Record creation timestamp
-- `updated_at` - Record update timestamp
+## Timestamp naming
 
-RLS (Row Level Security) policies are automatically enabled to ensure workspace isolation.
+Timestamps come from each file’s **LastWriteTime** (`CreationTime` is unreliable — most files share a clone date of 28-Sep-26).
 
+Rules:
+
+1. **Historical files** → `yyyyMMddHHmmss` from `LastWriteTime` (41 kept exact)
+2. **New baseline CREATEs** (added 19-Nov-26) → synthetic stamps starting 15 minutes before the earliest historical file (`20260324110030`…), so they run before dependent `ALTER`s
+3. **FK safety** → only bump a stamp (+1s) when a hard dependency would otherwise run out of order, or to resolve same-second collisions
+
+Examples: `create_activity_events` → `20260602124950_…`, `create_date_exceptions` → `20260715195030_…`.
