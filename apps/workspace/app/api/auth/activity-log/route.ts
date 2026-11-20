@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@app/db";
 import { createClient } from "@supabase/supabase-js";
-import type { user_auth_activity_log_request } from "@/src/types/user_auth_activity";
+import {
+  is_user_auth_activity_event_type,
+  type user_auth_activity_log_request,
+} from "@/src/types/user_auth_activity";
+import { client_ip_from_headers } from "@/lib/user_auth_activity_log";
 
 function parse_workspace_id(meta: Record<string, unknown> | undefined): number | null {
   if (!meta) return null;
@@ -13,14 +17,7 @@ function parse_workspace_id(meta: Record<string, unknown> | undefined): number |
 }
 
 function client_ip(req: NextRequest): string | null {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  const real = req.headers.get("x-real-ip");
-  if (real?.trim()) return real.trim();
-  return null;
+  return client_ip_from_headers(req.headers);
 }
 
 async function get_user_from_request(req: NextRequest) {
@@ -74,7 +71,7 @@ function auth_session_id_from_access_token(token: string): string | null {
 function is_valid_body(body: unknown): body is user_auth_activity_log_request {
   if (!body || typeof body !== "object") return false;
   const b = body as Record<string, unknown>;
-  if (b.event_type !== "login" && b.event_type !== "logout") return false;
+  if (!is_user_auth_activity_event_type(b.event_type)) return false;
   if (b.supabase_auth_event != null && typeof b.supabase_auth_event !== "string") return false;
   if (b.reason != null && typeof b.reason !== "string") return false;
   return true;

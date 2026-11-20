@@ -78,7 +78,7 @@ export type FinalizeWorkspaceOwnerSignupResult =
       metadata: Record<string, unknown>;
       repairedCreatorFlags: boolean;
     }
-  | { ok: false; error: string };
+  | { ok: false; error: string; workspaceId?: number };
 
 /**
  * Shared self-serve owner path: create or resolve workspace, then set workspace_id
@@ -126,7 +126,11 @@ export async function finalizeWorkspaceOwnerSignup(
   );
 
   if (updateError) {
-    return { ok: false, error: updateError };
+    return {
+      ok: false,
+      error: updateError,
+      workspaceId: workspaceResult.workspaceId,
+    };
   }
 
   const mergedMeta = (metadata ?? baseMeta) as Record<string, unknown>;

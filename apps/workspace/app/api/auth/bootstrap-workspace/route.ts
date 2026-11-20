@@ -9,6 +9,10 @@ import {
   finalizeWorkspaceOwnerSignup,
 } from "@/lib/workspace-owner-signup";
 import { resolveRegistrationGeoFromHeaders } from "@/lib/ipapi-geo";
+import {
+  log_onboarding_activity,
+  truncate_activity_reason,
+} from "@/lib/user_auth_activity_log";
 
 export async function POST(req: Request) {
   try {
@@ -133,12 +137,37 @@ export async function POST(req: Request) {
 
     if (!finalized.ok) {
       console.error("Bootstrap workspace error:", finalized.error);
+      if (
+        typeof finalized.workspaceId === "number" &&
+        Number.isFinite(finalized.workspaceId) &&
+        finalized.workspaceId > 0
+      ) {
+        await log_onboarding_activity({
+          req,
+          user_id: user.id,
+          workspace_id: finalized.workspaceId,
+          event_type: "onboarding_error",
+          reason: truncate_activity_reason(
+            `Workspace bootstrap: ${finalized.error || "Failed to get or create workspace"}`
+          ),
+        });
+      }
       const status =
         finalized.error === "Your claim is not valid." ? 400 : 500;
       return NextResponse.json(
         { error: finalized.error || "Failed to get or create workspace" },
         { status }
       );
+    }
+
+    if (finalized.isNewWorkspace) {
+      await log_onboarding_activity({
+        req,
+        user_id: user.id,
+        workspace_id: finalized.workspaceId,
+        event_type: "onboarding_workspace",
+        reason: "Workspace created",
+      });
     }
 
     return NextResponse.json({

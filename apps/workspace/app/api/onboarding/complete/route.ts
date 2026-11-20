@@ -5,6 +5,10 @@ import {
   resolve_onboarding_auth_context,
   sync_sp_event_type_location_deferred,
 } from '@/lib/onboarding-persistence';
+import {
+  log_onboarding_activity,
+  truncate_activity_reason,
+} from '@/lib/user_auth_activity_log';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +20,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const meetingOptionsIn = body?.meeting_options;
     if (!meetingOptionsIn || typeof meetingOptionsIn !== 'object') {
+      await log_onboarding_activity({
+        req,
+        user_id: ctxOrError.userId,
+        workspace_id: ctxOrError.workspaceId,
+        event_type: 'onboarding_error',
+        reason: 'Complete: meeting_options is required',
+      });
       return NextResponse.json({ error: 'meeting_options is required' }, { status: 400 });
     }
 
@@ -27,8 +38,23 @@ export async function POST(req: NextRequest) {
 
     const result = await apply_onboarding_complete(ctxOrError, meetingOptions);
     if (result.error) {
+      await log_onboarding_activity({
+        req,
+        user_id: ctxOrError.userId,
+        workspace_id: ctxOrError.workspaceId,
+        event_type: 'onboarding_error',
+        reason: truncate_activity_reason(`Complete: ${result.error}`),
+      });
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
+
+    await log_onboarding_activity({
+      req,
+      user_id: ctxOrError.userId,
+      workspace_id: ctxOrError.workspaceId,
+      event_type: 'onboarding_complete',
+      reason: 'Completed',
+    });
 
     after(async () => {
       try {

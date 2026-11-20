@@ -47,6 +47,7 @@ import {
   useClaimFreeRegister,
 } from "@/src/hooks/useClaimFreeRegister";
 import { OnboardingBootstrapLoading } from "./OnboardingBootstrapLoading";
+import { logAuthActivityFromSession } from "@/src/lib/auth_activity_log_client";
 
 type OnboardingRole = "workspace_admin" | "service_provider";
 
@@ -124,6 +125,31 @@ async function with_network_timeout<T>(
     ]);
   } finally {
     if (t !== undefined) clearTimeout(t);
+  }
+}
+
+function is_browser_network_failure(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message.toLowerCase();
+  return (
+    err.name === "TypeError" ||
+    msg.includes("failed to fetch") ||
+    msg.includes("networkerror") ||
+    msg.includes("network request failed") ||
+    msg.includes("load failed") ||
+    msg.includes("taking too long") ||
+    msg.includes("timed out") ||
+    msg.includes("timeout")
+  );
+}
+
+async function log_onboarding_client_error(reason: string): Promise<void> {
+  try {
+    await logAuthActivityFromSession("onboarding_error", {
+      reason: reason.slice(0, 1800),
+    });
+  } catch {
+    /* never block onboarding */
   }
 }
 
@@ -365,11 +391,21 @@ export default function RegisterForm() {
 
       const run = async (): Promise<void> => {
         const headers = await headers_for_workspace_api();
-        const res = await fetch("/api/onboarding/step", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ step, ...body }),
-        });
+        let res: Response;
+        try {
+          res = await fetch("/api/onboarding/step", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ step, ...body }),
+          });
+        } catch (e: unknown) {
+          if (is_browser_network_failure(e)) {
+            await log_onboarding_client_error(
+              `Network: Step ${step}: ${e instanceof Error ? e.message : "request failed"}`
+            );
+          }
+          throw e;
+        }
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         if (!res.ok) {
           throw new Error(data.error ?? "Failed to save onboarding step");
@@ -593,26 +629,44 @@ export default function RegisterForm() {
           (metaRole === ROLE_WORKSPACE_ADMIN || metaRole === "")));
 
     const runBootstrapWorkspace = async (timeoutMessage: string): Promise<number | null> => {
-      const res = await with_network_timeout(
-        fetch("/api/auth/bootstrap-workspace", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      try {
+        const res = await with_network_timeout(
+          fetch("/api/auth/bootstrap-workspace", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }),
           }),
-        }),
-        ONBOARDING_BOOTSTRAP_TIMEOUT_MS,
-        timeoutMessage
-      );
-      if (!res.ok) return null;
-      const body = (await res.json()) as {
-        workspace_id?: number;
-      };
-      const id = body.workspace_id;
-      return id != null && Number.isFinite(id) ? id : null;
+          ONBOARDING_BOOTSTRAP_TIMEOUT_MS,
+          timeoutMessage
+        );
+        if (!res.ok) {
+          const errBody = (await res.json().catch(() => ({}))) as { error?: string };
+          const message =
+            typeof errBody.error === "string" && errBody.error.trim()
+              ? errBody.error
+              : `Workspace bootstrap failed (${res.status})`;
+          // May lack workspace_id in JWT yet; best-effort client log.
+          await log_onboarding_client_error(`Workspace bootstrap: ${message}`);
+          return null;
+        }
+        const body = (await res.json()) as {
+          workspace_id?: number;
+        };
+        const id = body.workspace_id;
+        return id != null && Number.isFinite(id) ? id : null;
+      } catch (e: unknown) {
+        if (is_browser_network_failure(e)) {
+          await log_onboarding_client_error(
+            `Network: Workspace bootstrap: ${e instanceof Error ? e.message : "request failed"}`
+          );
+        }
+        throw e;
+      }
     };
 
     if (isLockedInviteOnboarding && lockedWorkspaceIdRef.current != null) {
@@ -970,11 +1024,25 @@ export default function RegisterForm() {
   // Resolve session: show onboarding for new users (Google signup or email/password after confirm)
   useEffect(() => {
     const errorParam = searchParams.get("error");
+    const messageParam = searchParams.get("message");
     if (errorParam) {
       if (errorParam === "user_not_found") {
         setError("No account found. Try signing up or use a different email.");
+      } else if (messageParam && messageParam.trim()) {
+        setError(messageParam);
       } else {
-        setError(decodeURIComponent(errorParam));
+        const friendly: Record<string, string> = {
+          oauth_error: "Google Calendar connection was denied or failed.",
+          missing_params: "Google Calendar connection failed (missing parameters).",
+          unauthorized: "Google Calendar connection failed (not signed in).",
+          no_workspace: "Google Calendar connection failed (workspace not ready).",
+          config_missing: "Google Calendar is not configured on the server.",
+          no_token: "Google Calendar connection failed (no access token).",
+          save_failed: "Google Calendar connected but could not be saved.",
+          redirect_uri_mismatch: "Google Calendar connection failed (redirect URI mismatch).",
+          callback_failed: "Google Calendar connection failed.",
+        };
+        setError(friendly[errorParam] ?? decodeURIComponent(errorParam));
       }
     }
 
@@ -1150,17 +1218,27 @@ export default function RegisterForm() {
       await retryPendingStepSaves();
       setFinishProgressMessage("Almost ready...");
       const headers = await headers_for_workspace_api();
-      const res = await fetch("/api/onboarding/complete", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          meeting_options: {
-            in_person: meetingOptions.in_person,
-            phone_call: meetingOptions.phone_call,
-            google_meet: meetingOptions.google_meet,
-          },
-        }),
-      });
+      let res: Response;
+      try {
+        res = await fetch("/api/onboarding/complete", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            meeting_options: {
+              in_person: meetingOptions.in_person,
+              phone_call: meetingOptions.phone_call,
+              google_meet: meetingOptions.google_meet,
+            },
+          }),
+        });
+      } catch (e: unknown) {
+        if (is_browser_network_failure(e)) {
+          await log_onboarding_client_error(
+            `Network: Complete: ${e instanceof Error ? e.message : "request failed"}`
+          );
+        }
+        throw e;
+      }
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         throw new Error(data.error ?? "Failed to finish setup");
@@ -1690,42 +1768,72 @@ export default function RegisterForm() {
                         const { session } = await getWorkspaceSession();
                         const token = session?.access_token;
                         const connectUrl = `/api/integrations/google/connect?returnTo=${encodeURIComponent(returnTo)}`;
-                        const res = await fetch(connectUrl, {
-                          headers: token ? { Authorization: `Bearer ${token}` } : {},
-                        });
+                        let res: Response;
+                        try {
+                          res = await fetch(connectUrl, {
+                            headers: token ? { Authorization: `Bearer ${token}` } : {},
+                          });
+                        } catch (e: unknown) {
+                          if (is_browser_network_failure(e)) {
+                            await log_onboarding_client_error(
+                              `Network: Google Calendar: ${e instanceof Error ? e.message : "request failed"}`
+                            );
+                          }
+                          throw e;
+                        }
                         if (res.ok) {
                           const data = await res.json();
                           if (data.authUrl) {
                             window.location.href = data.authUrl;
                             return;
                           }
-                          setError("No auth URL received");
+                          const msg = "No auth URL received";
+                          setError(msg);
+                          await log_onboarding_client_error(`Google Calendar: ${msg}`);
                           setCalendarConnecting(false);
                           return;
                         }
-                        const fallback = await fetch("/api/auth/google", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            enableCalendarSync: true,
-                            isSignup: false,
-                            returnTo,
-                          }),
-                        });
+                        let fallback: Response;
+                        try {
+                          fallback = await fetch("/api/auth/google", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              enableCalendarSync: true,
+                              isSignup: false,
+                              returnTo,
+                            }),
+                          });
+                        } catch (e: unknown) {
+                          if (is_browser_network_failure(e)) {
+                            await log_onboarding_client_error(
+                              `Network: Google Calendar: ${e instanceof Error ? e.message : "request failed"}`
+                            );
+                          }
+                          throw e;
+                        }
                         const data = await fallback.json();
                         if (!fallback.ok) {
-                          setError(data.error ?? "Failed to connect Google");
+                          const msg = data.error ?? "Failed to connect Google";
+                          setError(msg);
+                          await log_onboarding_client_error(`Google Calendar: ${msg}`);
                           setCalendarConnecting(false);
                           return;
                         }
                         if (data.authUrl) {
                           window.location.href = data.authUrl;
                         } else {
-                          setError("No auth URL received");
+                          const msg = "No auth URL received";
+                          setError(msg);
+                          await log_onboarding_client_error(`Google Calendar: ${msg}`);
                           setCalendarConnecting(false);
                         }
                       } catch (e) {
-                        setError(e instanceof Error ? e.message : "Failed to connect");
+                        const msg = e instanceof Error ? e.message : "Failed to connect";
+                        setError(msg);
+                        if (!is_browser_network_failure(e)) {
+                          await log_onboarding_client_error(`Google Calendar: ${msg}`);
+                        }
                         setCalendarConnecting(false);
                       }
                     }}

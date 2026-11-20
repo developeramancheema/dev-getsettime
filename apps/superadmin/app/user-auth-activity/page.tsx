@@ -2,7 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pagination } from "@app/ui";
-import type { user_auth_activity } from "@/src/types/user_auth_activity";
+import {
+  format_user_auth_activity_event,
+  type user_auth_activity,
+} from "@/src/types/user_auth_activity";
 import type { user_auth_activity_user_summary } from "@/src/types/user_auth_activity_user_summary";
 import { UserAuthActivityGroupTableSkeleton } from "@/src/components/UserAuthActivity/UserAuthActivityTableSkeleton";
 
@@ -363,7 +366,7 @@ export default function UserAuthActivityPage() {
                               {format_ts(r.created_at)}
                             </td>
                             <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                              {r.event_type}
+                              {format_user_auth_activity_event(r.event_type)}
                             </td>
                             <td className="px-4 py-3 text-slate-800">
                               {ws_name

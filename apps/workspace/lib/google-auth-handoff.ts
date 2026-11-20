@@ -21,6 +21,10 @@ import {
   isEmailClaimIneligible,
   validateClaimCodeForSignup,
 } from '@app/db/subscription';
+import {
+  log_onboarding_activity,
+  truncate_activity_reason,
+} from '@/lib/user_auth_activity_log';
 
 export interface GoogleSignupData {
   access_token: string;
@@ -160,7 +164,32 @@ async function handleExistingUserLogin(
 
   if (!finalized.ok) {
     console.error('Failed to get/create workspace for existing user:', finalized.error);
+    if (
+      typeof finalized.workspaceId === 'number' &&
+      Number.isFinite(finalized.workspaceId) &&
+      finalized.workspaceId > 0
+    ) {
+      await log_onboarding_activity({
+        req,
+        user_id: userId,
+        workspace_id: finalized.workspaceId,
+        event_type: 'onboarding_error',
+        reason: truncate_activity_reason(
+          `Workspace bootstrap: ${finalized.error || 'workspace_error'}`
+        ),
+      });
+    }
     return NextResponse.redirect(new URL('/login?error=workspace_error', req.url));
+  }
+
+  if (finalized.isNewWorkspace) {
+    await log_onboarding_activity({
+      req,
+      user_id: userId,
+      workspace_id: finalized.workspaceId,
+      event_type: 'onboarding_workspace',
+      reason: 'Workspace created',
+    });
   }
 
   const metaNow = finalized.metadata;
@@ -195,6 +224,16 @@ async function handleExistingUserLogin(
   const needsOnboarding =
     role === 'workspace_admin' &&
     workspaceAdminNeedsOnboardingWizard(metaNow ?? existingMeta, hasWorkspaceProfile);
+
+  if (needsOnboarding && enableCalendarSync && refresh_token) {
+    await log_onboarding_activity({
+      req,
+      user_id: userId,
+      workspace_id: finalized.workspaceId,
+      event_type: 'onboarding_google_calendar',
+      reason: 'Connected',
+    });
+  }
 
   const returnTo = req.url ? new URL(req.url).searchParams.get('returnTo') : null;
   let nextPath = returnTo && returnTo.startsWith('/') ? returnTo : '/';
@@ -302,6 +341,21 @@ async function handleNewUserSignup(
 
   if (!finalized.ok) {
     console.error('Workspace owner finalize error:', finalized.error);
+    if (
+      typeof finalized.workspaceId === 'number' &&
+      Number.isFinite(finalized.workspaceId) &&
+      finalized.workspaceId > 0
+    ) {
+      await log_onboarding_activity({
+        req,
+        user_id: userId,
+        workspace_id: finalized.workspaceId,
+        event_type: 'onboarding_error',
+        reason: truncate_activity_reason(
+          `Workspace bootstrap: ${finalized.error || 'workspace_creation_failed'}`
+        ),
+      });
+    }
     const { data: orphanWorkspace } = await clients.supabaseAdmin
       .from('workspaces')
       .select('id')
@@ -325,6 +379,16 @@ async function handleNewUserSignup(
 
   const workspaceResult = { workspaceId: finalized.workspaceId };
 
+  if (finalized.isNewWorkspace) {
+    await log_onboarding_activity({
+      req,
+      user_id: userId,
+      workspace_id: finalized.workspaceId,
+      event_type: 'onboarding_workspace',
+      reason: 'Workspace created',
+    });
+  }
+
   if (enableCalendarSync && refresh_token) {
     await saveGoogleCalendarIntegration({
       workspaceId: workspaceResult.workspaceId,
@@ -336,6 +400,13 @@ async function handleNewUserSignup(
       googleId: data.google_id,
       linkedAuthUserId: null,
       supabaseAdmin: clients.supabaseAdmin,
+    });
+    await log_onboarding_activity({
+      req,
+      user_id: userId,
+      workspace_id: finalized.workspaceId,
+      event_type: 'onboarding_google_calendar',
+      reason: 'Connected',
     });
   }
 
