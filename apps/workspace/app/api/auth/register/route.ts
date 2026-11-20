@@ -24,21 +24,25 @@ function is_duplicate_user_error(msg: string): boolean {
   );
 }
 
-async function send_magiclink_confirmation(params: {
+async function send_signup_confirmation(params: {
   supabaseAdmin: SupabaseClient;
   normalizedEmail: string;
+  password: string;
   name: string;
   redirectTo: string;
 }): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
-  const { supabaseAdmin, normalizedEmail, name, redirectTo } = params;
+  const { supabaseAdmin, normalizedEmail, password, name, redirectTo } = params;
+  // Signup verification confirms the email and keeps the password from createUser.
+  // A magic link runs recovery verify, which clears a password set before confirmation.
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'magiclink',
+    type: 'signup',
     email: normalizedEmail,
+    password,
     options: { redirectTo },
   });
 
   if (linkError) {
-    console.error('generateLink (magiclink) error', linkError);
+    console.error('generateLink (signup) error', linkError);
     const msg = linkError.message ?? '';
     if (is_duplicate_user_error(msg)) {
       return { ok: false, status: 409, error: 'This email is already registered. Please login instead.' };
@@ -164,9 +168,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: um || 'Failed to update account. Please try again.' }, { status: 400 });
       }
 
-      const sent = await send_magiclink_confirmation({
+      const sent = await send_signup_confirmation({
         supabaseAdmin,
         normalizedEmail,
+        password,
         name: displayName,
         redirectTo,
       });
@@ -236,9 +241,10 @@ export async function POST(req: Request) {
       }
     }
 
-    const sent = await send_magiclink_confirmation({
+    const sent = await send_signup_confirmation({
       supabaseAdmin,
       normalizedEmail,
+      password,
       name: displayName,
       redirectTo,
     });
